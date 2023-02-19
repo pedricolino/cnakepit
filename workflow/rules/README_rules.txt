@@ -1,0 +1,1 @@
+Both bwa-mem and bowtie2 are implemented as mapping tools, I used bwa-mem mostly.

@@ -1,3 +1,8 @@
+####
+Only this file is to be changed when running the pipeline
+####
+
+
 # sequencing type: either DNA (DNA = true) or RNA (DNA = false)
 DNA_seq: True
 
@@ -13,6 +18,7 @@ samples: False
 
 # for trimming, path/to/adaptersequence.fa
 adapter: "resources/adapter/panel-adapter.fa"
+
 
 ### variance calling parameters: bcf tools
 

@@ -7,3 +7,4 @@ dependencies:
   - samtools
   - qualimap
   - multiqc
+  - python=3.7
