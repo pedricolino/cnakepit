@@ -1,0 +1,9 @@
+name: qc_map
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - samtools
+  - qualimap
+  - multiqc

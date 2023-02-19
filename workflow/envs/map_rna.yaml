@@ -1,0 +1,7 @@
+name: map_rna
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - bstar=2.7

@@ -1,0 +1,51 @@
+import pandas as pd
+from pathlib import Path
+import os
+from scripts.samples_auto import read_sample # load the tsv with samples or create a new dataframe to use it, configure either in config.yaml
+
+configfile: "config/config.yaml"
+
+ref_file = Path(config["ref"])
+
+# either tsv provided by user, or create new from data in data folder. script works for a specific type of name formats!!!
+if config["samples"]:
+  samples = pd.read_csv(config["samples"], index_col = "sample", sep = '\t')
+elif config["data_dir"]:
+  samples = read_sample(config["data_dir"])
+else:
+  print("no samples detected")
+
+rule all:
+  input:
+    # save used config.yaml to logs
+    "../results/config_used.yaml",
+    expand("results/stats/{sample}.stats_aug", sample = list(samples.index)),
+    #"results/qc/multiqc_report.html", # qc report for reads, untrimmed and trimmed
+    #expand("results/mapped/{sample}.bam", sample = list(samples.index)),
+    #expand("results/bowtie_mapped/{sample}.bam", sample = list(samples.index)),
+    #"results/qc_map_bowtie2/multiqc_report.html",
+    #"results/qc_map_bwa/multiqc_report.html",
+    #expand("results/bcf/stats/{sample}.stats.txt", sample = list(samples.index)),
+    #expand("results/mutect2/variant_bam/{sample}.vcf", sample=list(samples.index)),
+    #expand("results/mutect2/variant_bam/{sample}.bam", sample=list(samples.index)),
+    #"resources/reference/hs38.dict",
+    #expand("results/bam_sorted_bwa/{sample}_sorted.bam.bai", sample = list(samples.index))
+
+    # rpk stats
+
+#include: "rules/qc.smk"
+#include: "rules/map.smk"
+#include: "rules/map_bowtie2.smk"
+#include: "rules/qc_map.smk"
+#include: "rules/bcf.smk"
+#include: "rules/mutect2.smk"
+include: "rules/stats.smk"
+
+rule save_config:
+  input: 
+    "../config/config.yaml"
+  output:
+    "../results/config_used.yaml"
+  shell:
+    "cp {input} {output}"
+

@@ -1,0 +1,29 @@
+# sequencing type: either DNA (DNA = true) or RNA (DNA = false)
+DNA_seq: True
+
+# path/to/refgenome.fa
+ref: "resources/reference/hg38.fa"
+ref_index: "resources/reference/hg38.fa.fai"
+
+# set either data_dir or samples, the other one should be false
+# directory where the data is (or the symlink to the data)
+data_dir: "resources/data"
+# path to sample sheet as tsv provided by user which looks like sample|fq1|fq2
+samples: False
+
+# for trimming, path/to/adaptersequence.fa
+adapter: "resources/adapter/panel-adapter.fa"
+
+### variance calling parameters: bcf tools
+
+# bcftools call:
+# caller: valid options include -c/--consensus-caller or -m/--multiallelic-caller
+caller: "-m"
+# other options e.g. "--ploidy 1 --prior 0.001"
+caller_options: "--ploidy 1 --prior 0.001"
+
+# bcftools mpileup:
+# e.g. "--max-depth 100 --min-BQ 15"
+mpileup_options: "--max-depth 100 --min-BQ 15"
+
+
