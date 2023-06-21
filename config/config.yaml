@@ -1,10 +1,10 @@
 ####
-Only this file is to be changed when running the pipeline
+Only this file is to be changed when running the pipeline (and the Snakefile rule all)
 ####
 
 
 # sequencing type: either DNA (DNA = true) or RNA (DNA = false)
-DNA_seq: True
+# DNA_seq: True
 
 # path/to/refgenome.fa
 ref: "resources/reference/hg38.fa"
