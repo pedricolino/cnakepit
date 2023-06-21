@@ -1,5 +1,5 @@
 ####
-Only this file is to be changed when running the pipeline (and the Snakefile rule all)
+# Only this file is to be changed when running the pipeline (and the Snakefile rule all)
 ####
 
 
