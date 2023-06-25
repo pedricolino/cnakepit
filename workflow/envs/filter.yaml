@@ -1,0 +1,9 @@
+me: filter
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - bedtools==2.31.0
+  - samtools==1.17
+              

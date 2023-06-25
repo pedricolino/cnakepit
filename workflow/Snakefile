@@ -17,9 +17,11 @@ else:
 
 rule all:
   input:
-    "results/qc/multiqc_report.html", # qc report for reads, untrimmed and trimmed
+    #"results/qc/multiqc_report.html", # qc report for reads, untrimmed and trimmed
+    "results...",
 
 include: "rules/qc.smk"
+include: "rules/filter.smk"
 #include: "rules/map.smk"
 #include: "rules/map_bowtie2.smk"
 #include: "rules/qc_map.smk"
