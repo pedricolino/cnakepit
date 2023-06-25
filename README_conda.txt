@@ -1,3 +1,4 @@
+test
 run here with "snakemake use-conda --cores 8" to ensure the environment is being created
 this is needed if run on a vanilla machine with snakemake only.
 
