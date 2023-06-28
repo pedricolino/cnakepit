@@ -58,15 +58,17 @@ rule qualimap_bowtie2:
 
 rule multiqc_map_bwa:
     input:
-        bwa = expand("results/qc/qualimap/qualimap_bwa/{sample}/qualimapReport.html", sample = list(samples.index)),
+        expand("results/qc/qualimap/qualimap_bwa/{sample}/qualimapReport.html", sample = list(samples.index)),
     output:
         "results/qc_map_bwa/multiqc_report.html"
     log:
         "logs/qc_map_bwa/multiqc.log"
-    conda:
-        "../envs/qc_map.yaml"
-    shell:
-        "multiqc ./results/qc/qualimap/qualimap_bwa -o results/qc_map_bwa 2> {log}"
+#    conda:
+#        "../envs/qc_map.yaml"
+#    shell:
+#        "multiqc ./results/qc/qualimap/qualimap_bwa -o results/qc_map_bwa 2> {log}"
+    wrapper:
+      "v2.0.0/bio/multiqc"
 
 rule multiqc_map_bowtie2:
     input:

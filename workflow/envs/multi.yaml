@@ -1,9 +1,8 @@
-name: map
+name: multi
 channels:
   - bioconda
   - conda-forge
   - defaults
 dependencies:
-  - bwa==0.7.17
-  - samtools
-  - picard-slim=2.27
+  #- python==3.8
+  - multiqc=1.11

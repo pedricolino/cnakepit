@@ -1,11 +1,14 @@
-ref_ref = str(Path("results") / "reference" / ref_file.stem)
+#ref_ref = str(Path("results") / "reference" / ref_file.stem)
+stem = str(Path("results") / "filter_ref" / ref_fil.stem)
 
 # bwa if DNA sequencing
 rule bwa_index:
     input:
-        ref = ref_file,
+        #ref = ref_file,
+        ref = "results/filter_ref/hg38_filtered.fa",
     output:
-        idx=multiext(ref_ref, ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        #idx=multiext(ref_ref, ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
     log:
         "logs/bwa_index/bwa_index.log",
     params:
@@ -18,7 +21,7 @@ rule bwa_index:
 rule bwa_mem:
     input:
         reads=["results/trimmed/{sample}_1P.fq.gz", "results/trimmed/{sample}_2P.fq.gz"],
-        idx=multiext(ref_ref, ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
     output:
         "results/mapped/{sample}.bam",
     log:
@@ -33,6 +36,36 @@ rule bwa_mem:
         "../envs/map.yaml"
     wrapper:
         "v1.7.0/bio/bwa/mem"
+
+### sort and index mapped files so they can be imported to IGV
+#rule sort_bwa:
+#    input:
+#        "results/mapped/{sample}.bam"
+#    output:
+#        "results/bam_sorted_bwa/{sample}_sorted.bam"
+#    log:
+#        "logs/samtools/sort_bwa/{sample}.log"
+#    threads:
+#       8
+#    conda:
+#        "../envs/qc_map.yaml"
+#    shell:
+#        "samtools sort -o {output} {input} -@ {threads} 2> {log}"
+
+rule index_bwa:
+  input:
+    "results/bam_sorted_bwa/{sample}_sorted.bam"
+  output:
+    "results/bam_sorted_bwa/{sample}_sorted.bam.bai"
+  log:
+    "logs/samtools/index_bwa/{sample}.log"
+  threads: 8
+  conda:
+    "../envs/qc_map.yaml"
+  params:
+    extra="",  # optional params string
+  wrapper:
+    "v2.0.0/bio/samtools/index"
 
 # STAR if RNA sequencing
 

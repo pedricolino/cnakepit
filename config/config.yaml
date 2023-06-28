@@ -10,6 +10,9 @@
 ref: "resources/reference/hg38.fa"
 ref_index: "resources/reference/hg38.fa.fai"
 
+#TESTING PURPOSES:
+ref_fil: "results/filter_ref/hg38_filtered.fa"
+
 # set either data_dir or samples, the other one should be false
 # directory where the data is (or the symlink to the data)
 data_dir: "resources/data"
@@ -18,6 +21,9 @@ samples: False
 
 # for trimming, path/to/adaptersequence.fa
 adapter: "resources/adapter/panel-adapter.fa"
+
+# path/to/paneldesign.bed
+bed: "resources/paneldesign/covered_regions_nn.bed"
 
 
 ### variance calling parameters: bcf tools

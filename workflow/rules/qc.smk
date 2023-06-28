@@ -52,15 +52,17 @@ rule fastqc_trim:
 
 
 rule multiqc:
-  input:
-    fastqc_html = expand("results/qc/fastqc/{sample}_{i}.html", sample = list(samples.index), i = ["1", "2"]),
-    fastqc_trim_html = expand("results/qc/fastqc_trim/{sample}_{i}P.html", sample = list(samples.index), i = ["1", "2"]),
-  output:
-    "results/qc/multiqc_report.html"
-  log:
-    "logs/multiqc.log"
-  conda:
-    "../envs/qc.yaml"
-  shell:
-    "multiqc ./results/qc/ -o results/qc 2> {log}" 
+	input:
+		fastqc_html = expand("results/qc/fastqc/{sample}_{i}.html", sample = list(samples.index), i = ["1", "2"]),
+		fastqc_trim_html = expand("results/qc/fastqc_trim/{sample}_{i}P.html", sample = list(samples.index), i = ["1", "2"]),
+	output:
+		"results/qc/multiqc_report.html"
+	log:
+		"logs/multiqc.log"
+#  conda:
+#    "../envs/multi.yaml"
+#  shell:
+#    "multiqc ./results/qc/ -o results/qc 2> {log}" 
+	wrapper:
+		"v2.0.0/bio/multiqc"
 
