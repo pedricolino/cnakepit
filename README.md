@@ -1,6 +1,5 @@
-# FPPE-panel-pipeline
- Snakemake pipeline designed for FFPE panel sequencing (NGS) data.
+# Forked from Nina's FPPE-panel-pipeline
 
 General workflow:
 - QC of the raw data, trimming, QC of the trimmed data
-- 
+- I will try to add CNV calling
