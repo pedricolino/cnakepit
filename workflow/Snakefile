@@ -6,7 +6,7 @@ from scripts.samples_auto import read_sample # load the tsv with samples or crea
 configfile: "config/config.yaml"
 
 ref_file = Path(config["ref"])
-ref_fil = Path(config["ref_fil"])
+#ref_fil = Path(config["ref_fil"])
 
 # either tsv provided by user, or create new from data in data folder. script works for a specific type of name formats!!!
 if config["samples"]:
@@ -22,7 +22,7 @@ rule all:
     "results/qc/multiqc_report.html", # qc report for reads, untrimmed and trimmed
         
     # for QC analysis up until mapping and mapping QC with qualimap:
-    #"results/qc_map_bwa/multiqc_report.html",
+    "results/qc_map_bwa/multiqc_report.html",
 
 include: "rules/qc.smk"
 #include: "rules/filter.smk"
@@ -31,7 +31,7 @@ include: "rules/map.smk"
 include: "rules/qc_map.smk"
 #include: "rules/bcf.smk"
 #include: "rules/mutect2.smk"
-#include: "rules/stats.smk"
+include: "rules/stats.smk"
 
 rule save_config:
   input: 
