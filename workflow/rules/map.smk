@@ -1,11 +1,11 @@
 #ref_ref = str(Path("results") / "reference" / ref_file.stem)
-stem = str(Path("results") / "filter_ref" / ref_fil.stem)
+stem = str(Path("results") / "ref" / ref_file.stem)
 
 # bwa if DNA sequencing
 rule bwa_index:
     input:
-        #ref = ref_file,
-        ref = "results/filter_ref/hg38_filtered.fa",
+        ref = ref_file,
+        #ref = "results/filter_ref/hg38_filtered.fa",
     output:
         #idx=multiext(ref_ref, ".amb", ".ann", ".bwt", ".pac", ".sa"),
         idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
