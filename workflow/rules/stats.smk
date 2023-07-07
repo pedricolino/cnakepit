@@ -1,16 +1,17 @@
-rule index:
-    input:
-        "results/bam_sorted_bwa/{sample}_sorted.bam"
-    output:
-        "results/bam_sorted_bwa/{sample}_sorted.bam.bai"
-    log:
-        "logs/samtools/index/{sample}.log"
-    threads:
-        4
-    conda:
-        "../envs/stats.yaml"
-    shell:
-        "samtools index {input} -@ {threads} 2> {log}"
+# Commented bc of ambiguity with index_bwa rule in map.smk
+# rule index:
+#     input:
+#         "results/bam_sorted_bwa/{sample}_sorted.bam"
+#     output:
+#         "results/bam_sorted_bwa/{sample}_sorted.bam.bai"
+#     log:
+#         "logs/samtools/index/{sample}.log"
+#     threads:
+#         4
+#     conda:
+#         "../envs/stats.yaml"
+#     shell:
+#         "samtools index {input} -@ {threads} 2> {log}"
 
 rule stats:
     input:

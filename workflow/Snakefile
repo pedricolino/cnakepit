@@ -28,7 +28,9 @@ rule all:
     # for QC analysis up until mapping and mapping QC with qualimap:
     "results/qc_map_bwa/multiqc_report.html",
 
-    expand('results/cnvkit/{sample}_diagram.cnv.pdf', sample=samples.index)
+    # CNVkit and PureCN
+    expand('results/cnvkit/{sample}_diagram.cnv.pdf', sample=samples.index),
+    expand('results/purecn/{sample}.rds', sample=samples.index)
 
 include: "rules/qc.smk"
 #include: "rules/filter.smk"
@@ -36,9 +38,10 @@ include: "rules/map.smk"
 #include: "rules/map_bowtie2.smk"
 include: "rules/qc_map.smk"
 #include: "rules/bcf.smk"
-#include: "rules/mutect2.smk"
+include: "rules/mutect2.smk"
 include: "rules/stats.smk"
 include: "rules/cnvkit-amplicon-nocontrol.smk"
+include: "rules/purecn.smk"
 
 rule save_config:
   input: 

@@ -118,14 +118,18 @@ rule cnvkit_diagram:
     shell:
         'cnvkit.py diagram {input.copy_ratio} --segment {input.segment} -o {output} {params.extra}'
 
-# rule write_end_of_cnvkit:
-#     input:
-#         'results/cnvkit/{sample}_scatter.cnv.pdf',
-#         'results/cnvkit/{sample}_diagram.cnv.pdf',
-#     output:
-#         'results/cnvkit/{sample}.cnvkit.done'
-#     shell:
-#         'touch {output}'
+rule export_seg:
+    # Export the segmentation in DNAcopy format, i.e. create .seg file
+    input:
+        cns = 'results/cnvkit/{sample}.cns',
+    output:
+        'results/cnvkit/{sample}.seg'
+    params:
+        extra = '--enumerate-chroms',
+    threads: 1
+    shell:
+        'cnvkit.py export seg {input.cns} -o {output} {params.extra}'
+
 
 # rule cnvkit-batch-amplicon-nocontrol:
 #     input:
