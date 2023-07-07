@@ -4,7 +4,7 @@
 
 
 # sequencing type: either DNA (DNA = true) or RNA (DNA = false)
-# DNA_seq: True
+DNA_seq: True
 
 # path/to/refgenome.fa
 ref: "resources/reference/hg38.fa"
@@ -23,7 +23,10 @@ samples: False
 adapter: "resources/adapter/panel-adapter.fa"
 
 # path/to/paneldesign.bed
-bed: "resources/paneldesign/covered_regions_nn.bed"
+bed: "resources/paneldesign/S3287512_Covered-mod.bed"
+
+# path/to/mappability file
+mappability: "resources/mappability/access-5k-mappable.hg19.bed"
 
 
 ### variance calling parameters: bcf tools

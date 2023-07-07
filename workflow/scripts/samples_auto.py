@@ -13,7 +13,7 @@ def read_sample(data_dir):
         if sample not in dic:
             dic[sample] = (sample, path_str, path_2)
 
-    samples = pd.DataFrame.from_dict(dic, orient='index', columns=["sample", "fq1", "fq2"])
+    samples = pd.DataFrame.from_dict(dic, orient='index', columns=["samplename", "fq1", "fq2"])
     return samples
 
 if __name__=="__main__":

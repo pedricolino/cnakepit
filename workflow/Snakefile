@@ -7,6 +7,8 @@ configfile: "config/config.yaml"
 
 ref_file = Path(config["ref"])
 #ref_fil = Path(config["ref_fil"])
+bedpath = Path(config["bed"])
+bedname = os.path.splitext(os.path.basename(bedpath))[0]
 
 # either tsv provided by user, or create new from data in data folder. script works for a specific type of name formats!!!
 if config["samples"]:
@@ -16,6 +18,8 @@ elif config["data_dir"]:
 else:
   print("no samples detected")
 
+print(samples)  # Print the head of the 'samples' dataframe
+
 rule all:
   input:
     # for QC analysis only
@@ -23,6 +27,8 @@ rule all:
         
     # for QC analysis up until mapping and mapping QC with qualimap:
     "results/qc_map_bwa/multiqc_report.html",
+
+    expand('results/cnvkit/{sample}_diagram.cnv.pdf', sample=samples.index)
 
 include: "rules/qc.smk"
 #include: "rules/filter.smk"
@@ -32,6 +38,7 @@ include: "rules/qc_map.smk"
 #include: "rules/bcf.smk"
 #include: "rules/mutect2.smk"
 include: "rules/stats.smk"
+include: "rules/cnvkit-amplicon-nocontrol.smk"
 
 rule save_config:
   input: 
