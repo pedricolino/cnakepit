@@ -18,7 +18,7 @@ elif config["data_dir"]:
 else:
   print("no samples detected")
 
-print(samples)  # Print the head of the 'samples' dataframe
+#print(samples)  # Print the head of the 'samples' dataframe
 
 rule all:
   input:
@@ -40,7 +40,7 @@ include: "rules/qc_map.smk"
 #include: "rules/bcf.smk"
 include: "rules/mutect2.smk"
 include: "rules/stats.smk"
-include: "rules/cnvkit-amplicon-nocontrol.smk"
+include: "rules/cnvkit.smk"
 include: "rules/purecn.smk"
 
 rule save_config:

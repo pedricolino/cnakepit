@@ -5,6 +5,11 @@ rule purecn:
         seg='results/cnvkit/{sample}.seg'
     output:
         "results/purecn/{sample}.rds"
+    threads: 16
+    log:
+        "logs/purecn/{sample}.log",
+    conda:
+        "../envs/purecn.smk"
     params:
         sampleid="{sample}",
         extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation Hclust"

@@ -14,7 +14,7 @@ rule mutect2_bam:
         #"Testing Mutect2 with {wildcards.sample}"
     params:
         extra="--germline-resource $GERMLINE_RESOURCE --genotype-germline-sites true --genotype-pon-sites true --interval-padding 75"
-    threads: 8
+    threads: 16
     log:
         "logs/mutect2/{sample}.log",
     conda:
@@ -38,6 +38,11 @@ rule filter_mutect_calls:
     input:
         vcf="results/mutect2/variant_bam/{sample}.vcf.gz",
         reference=config["ref"],
+    threads: 16
+    log:
+        "logs/filter_mutect_calls/{sample}.log",
+    conda:
+        "../envs/mutect2.yaml"
     output:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
     shell:

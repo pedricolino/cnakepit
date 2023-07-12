@@ -7,7 +7,7 @@ rule sort_bwa:
     log:
         "logs/samtools/sort_bwa/{sample}.log"
     threads:
-        8
+        16
     conda:
         "../envs/qc_map.yaml"
     shell:
@@ -21,7 +21,7 @@ rule sort_bowtie2:
     log:
         "logs/samtools/sort_bowtie2/{sample}.log"
     threads:
-        8
+        16
     conda:
         "../envs/qc_map.yaml"
     shell:

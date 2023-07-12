@@ -37,7 +37,7 @@ set -x
 
 # Kick off Snakemake --------------------------------------------------------
 
-snakemake --use-conda --cores 96
+snakemake --use-conda --cores 96 --conda-frontend mamba
 
 # Print date after finishing, for good measure ------------------------------
 

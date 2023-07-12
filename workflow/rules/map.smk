@@ -61,7 +61,7 @@ if config["DNA_seq"]:
             "results/bam_sorted_bwa/{sample}_sorted.bam.bai"
         log:
             "logs/samtools/index_bwa/{sample}.log"
-        threads: 8
+        threads: 16
         conda:
             "../envs/qc_map.yaml"
         params:
@@ -90,7 +90,7 @@ else:
         params:
             # optional parameters
             extra="",
-        threads: 8
+        threads: 16
         conda:
             "../envs/map_rna.yaml" 
         wrapper:
@@ -101,7 +101,7 @@ else:
             fasta="{genome}.fasta",
         output:
             directory("{genome}"),
-        threads: 1
+        threads: 16
         params:
             extra="",
         log:

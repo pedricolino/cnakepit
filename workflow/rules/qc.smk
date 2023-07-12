@@ -8,7 +8,7 @@ rule fastqc:
     "logs/fastqc/{sample}_{i}.log"
   conda:
     "../envs/qc.yaml"
-  threads: 8
+  threads: 16
   wrapper:
     "v1.4.0/bio/fastqc"
 
@@ -28,8 +28,7 @@ rule trim:
   params:
     base = lambda wildcards: f"results/trimmed/{wildcards.sample}.fq.gz",
     adapter = config["adapter"]
-  threads:
-    8
+  threads: 16
   conda:
     "../envs/qc.yaml"
   shell:
@@ -46,7 +45,7 @@ rule fastqc_trim:
     "logs/fastqc_trim/{sample}_{i}P.log"
   conda:
     "../envs/qc.yaml"
-  threads: 8
+  threads: 16
   wrapper:
     "v1.4.0/bio/fastqc"
 

@@ -1,18 +1,23 @@
 bedtargets = 'results/cnvkit/'+bedname+'_target.bed'
+bedantitargets = 'results/cnvkit/'+bedname+'_antitarget.bed'
 bedname=bedname
 
 rule cnvkit_autobin:
     input:
         bams = expand("results/bam_sorted_bwa/{sample}_sorted.bam", sample=glob_wildcards("results/bam_sorted_bwa/{sample}_sorted.bam").sample),
-        targets = config["bed"],
+        targets = config["bed_w_chr"],
         access = config["mappability"],
     output:
-        output_target = 'results/cnvkit/{bedname}_target.bed',
-        output_antitarget = 'results/cnvkit/{bedname}_antitarget.bed',
+        output_target = bedtargets,
+        output_antitarget = bedantitargets,
     params:
         extra = '--method amplicon',
         samplenames = samples.index
-    threads: 1
+    threads: 8
+    log:
+        "logs/cnvkit_autobin/log",
+    conda:
+        "../envs/cnvkit.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/autobin',
     shell:
@@ -29,7 +34,11 @@ rule cnvkit_coverage:
         antitarget_coverage = 'results/cnvkit/{sample}.antitargetcoverage.cnn',
     params:
         extra = '',
-    threads: 1
+    threads: 8
+    log:
+        "logs/cnvkit_coverage/{sample}.log",
+    conda:
+        "../envs/cnvkit.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/coverage'
     shell:
@@ -44,7 +53,11 @@ rule cnvkit_ref_generic:
         FlatReference_cnn = 'results/cnvkit/FlatReference.cnn',
     params:
         extra = '',
-    threads: 1
+    threads: 8
+    log:
+        "logs/cnvkit_ref_generic/log",
+    conda:
+        "../envs/cnvkit.yaml"
     shell:
         'cnvkit.py reference -o {output.FlatReference_cnn} -f {input.fasta} -t {input.targets} {params.extra}'
 
@@ -57,7 +70,11 @@ rule cnvkit_fix:
         'results/cnvkit/{sample}.cnr'
     params:
         extra = '',
-    threads: 1
+    threads: 8
+    log:
+        "logs/cnvkit_fix/{sample}.log",
+    conda:
+        "../envs/cnvkit.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/fix'
     shell:
@@ -70,7 +87,11 @@ rule cnvkit_segment:
         'results/cnvkit/{sample}.cns',
     params:
         extra = '',
-    threads: 1
+    threads: 8
+    log:
+        "logs/cnvkit_segment/{sample}.log",
+    conda:
+        "../envs/cnvkit.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/segment'
     shell:
@@ -90,8 +111,11 @@ rule cnvkit_scatter:
         #segment_color = '',
         # Plot title. [Default: sample ID, from filename or -i]
         #title = '',
-    threads: 1
-    log: 'results/cnvkit/{sample}.log'
+    threads: 8
+    log:
+        "logs/cnvkit_scatter/{sample}.log",
+    conda:
+        "../envs/cnvkit-amplicon-nocontrol.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/scatter'
     shell:
@@ -111,8 +135,11 @@ rule cnvkit_diagram:
         #segment_color = '',
         # Plot title. [Default: sample ID, from filename or -i]
         #title = '',
-    threads: 1
-    log: 'results/cnvkit/{sample}.log'
+    threads: 8
+    log:
+        "logs/cnvkit_diagram/{sample}.log",
+    conda:
+        "../envs/cnvkit.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/diagram'
     shell:
@@ -126,7 +153,11 @@ rule export_seg:
         'results/cnvkit/{sample}.seg'
     params:
         extra = '--enumerate-chroms',
-    threads: 1
+    threads: 8
+    log:
+        "logs/export_seg/{sample}.log",
+    conda:
+        "../envs/cnvkit.yaml"
     shell:
         'cnvkit.py export seg {input.cns} -o {output} {params.extra}'
 

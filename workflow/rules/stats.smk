@@ -23,6 +23,7 @@ rule stats:
         "logs/samtools/stats/{sample}.log"
     conda:
         "../envs/stats.yaml"
+    threads: 16
     shell:
         "samtools idxstats {input[0]} > {output} 2> {log}"
 
@@ -32,6 +33,7 @@ rule rpk:
         "results/stats/{sample}.stats"
     output:
         "results/stats/{sample}.stats_aug"
+    threads: 16
     script:
         "../scripts/calc_rpk.py"
 

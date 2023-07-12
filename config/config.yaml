@@ -24,6 +24,7 @@ adapter: "resources/adapter/panel-adapter.fa"
 
 # path/to/paneldesign.bed
 bed: "resources/paneldesign/S3287512_Covered-mod.bed"
+bed_w_chr: "resources/paneldesign/S3287512_Covered.bed"
 
 # path/to/mappability file
 mappability: "resources/mappability/access-5k-mappable.hg19.bed"
