@@ -5,8 +5,8 @@
 # Set a required running time for the master job.
 #SBATCH --time=7-00:00:00
 # Reserve some resources
-#SBATCH --mem=64G
-#SBATCH --ntasks=96
+#SBATCH --mem=32G
+#SBATCH --ntasks=16
 # Keep current environment variables
 #SBATCH --export=all
 # Send a mail upon job completion and error
@@ -15,7 +15,7 @@
 # Logs should be written into "slurm_log" sub directory.
 #SBATCH --output logs/slurm_log/%x-%J.log
 # Use more descriptive name in Slurm.
-#SBATCH --job-name smk-test
+#SBATCH --job-name smk-1s
 
 
 # Enforce existence of TMPDIR -----------------------------------------------
@@ -37,7 +37,7 @@ set -x
 
 # Kick off Snakemake --------------------------------------------------------
 
-snakemake --use-conda --cores 96 --conda-frontend mamba
+snakemake --use-conda --cores 16 --conda-frontend mamba
 
 # Print date after finishing, for good measure ------------------------------
 

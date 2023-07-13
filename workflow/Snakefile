@@ -18,7 +18,7 @@ elif config["data_dir"]:
 else:
   print("no samples detected")
 
-#print(samples)  # Print the head of the 'samples' dataframe
+print(samples)  # Print the head of the 'samples' dataframe
 
 rule all:
   input:

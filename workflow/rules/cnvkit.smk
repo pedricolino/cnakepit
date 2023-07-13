@@ -4,7 +4,7 @@ bedname=bedname
 
 rule cnvkit_autobin:
     input:
-        bams = expand("results/bam_sorted_bwa/{sample}_sorted.bam", sample=glob_wildcards("results/bam_sorted_bwa/{sample}_sorted.bam").sample),
+        bams = expand("results/bam_sorted_bwa/{sample}_sorted.bam", sample=samples.index),
         targets = config["bed_w_chr"],
         access = config["mappability"],
     output:
