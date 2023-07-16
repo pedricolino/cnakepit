@@ -2,6 +2,18 @@ bedtargets = 'results/cnvkit/'+bedname+'_target.bed'
 bedantitargets = 'results/cnvkit/'+bedname+'_antitarget.bed'
 bedname=bedname
 
+from snakemake.remote import AUTO
+
+rule get_mappability:
+    input:
+        http_file=AUTO.remote(
+            'https://github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed'
+        )
+    output:
+        config["mappability"]
+    shell:
+        "mv {input} {output}"
+
 rule cnvkit_autobin:
     input:
         bams = expand("results/bam_sorted_bwa/{sample}_sorted.bam", sample=samples.index),
