@@ -8,8 +8,8 @@ rule cnvkit_autobin:
         targets = config["bed_w_chr"],
         access = config["mappability"],
     output:
-        output_target = bedtargets,
-        output_antitarget = bedantitargets,
+        target = bedtargets,
+        antitarget = bedantitargets,
     params:
         extra = '--method amplicon',
         samplenames = samples.index
@@ -21,7 +21,7 @@ rule cnvkit_autobin:
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/autobin',
     shell:
-        'cnvkit.py autobin {input.bams} --targets {input.targets} --access {input.access} {params.extra}'
+        'cnvkit.py autobin {input.bams} --targets {input.targets} --access {input.access} --target-output-bed {output.target} --antitarget-output-bed {output.antitarget} {params.extra} 2> {log}'
 
 
 rule cnvkit_coverage:
@@ -43,7 +43,7 @@ rule cnvkit_coverage:
     #     'http://dohlee-bio.info:9193/cnvkit/coverage'
     shell:
         'cnvkit.py coverage {input.bam} {input.targets} -o {output.target_coverage} {params.extra} && '
-        'cnvkit.py coverage {input.bam} {input.antitargets} -o {output.antitarget_coverage} {params.extra}'
+        'cnvkit.py coverage {input.bam} {input.antitargets} -o {output.antitarget_coverage} {params.extra} 2> {log}'
 
 rule cnvkit_ref_generic:
     input:
@@ -59,7 +59,7 @@ rule cnvkit_ref_generic:
     conda:
         "../envs/cnvkit.yaml"
     shell:
-        'cnvkit.py reference -o {output.FlatReference_cnn} -f {input.fasta} -t {input.targets} {params.extra}'
+        'cnvkit.py reference -o {output.FlatReference_cnn} -f {input.fasta} -t {input.targets} {params.extra} 2> {log}'
 
 rule cnvkit_fix:
     input:
@@ -78,7 +78,7 @@ rule cnvkit_fix:
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/fix'
     shell:
-        'cnvkit.py fix {input.target_coverage} {input.antitarget_coverage} {input.reference} -o {output} {params.extra}'
+        'cnvkit.py fix {input.target_coverage} {input.antitarget_coverage} {input.reference} -o {output} {params.extra} 2> {log}'
 
 rule cnvkit_segment:
     input:
@@ -95,7 +95,7 @@ rule cnvkit_segment:
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/segment'
     shell:
-        'cnvkit.py segment {input.copy_ratios} -o {output} {params.extra}'
+        'cnvkit.py segment {input.copy_ratios} -o {output} {params.extra} 2> {log}'
 
 rule cnvkit_scatter:
     input:
@@ -119,7 +119,7 @@ rule cnvkit_scatter:
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/scatter'
     shell:
-        'cnvkit.py scatter {input.copy_ratio} --segment {input.segment} -o {output} {params.extra}'
+        'cnvkit.py scatter {input.copy_ratio} --segment {input.segment} -o {output} {params.extra} 2> {log}'
 
 rule cnvkit_diagram:
     input:
@@ -143,7 +143,7 @@ rule cnvkit_diagram:
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/diagram'
     shell:
-        'cnvkit.py diagram {input.copy_ratio} --segment {input.segment} -o {output} {params.extra}'
+        'cnvkit.py diagram {input.copy_ratio} --segment {input.segment} -o {output} {params.extra} 2> {log}'
 
 rule export_seg:
     # Export the segmentation in DNAcopy format, i.e. create .seg file
@@ -159,7 +159,7 @@ rule export_seg:
     conda:
         "../envs/cnvkit.yaml"
     shell:
-        'cnvkit.py export seg {input.cns} -o {output} {params.extra}'
+        'cnvkit.py export seg {input.cns} -o {output} {params.extra} 2> {log}'
 
 
 # rule cnvkit-batch-amplicon-nocontrol:

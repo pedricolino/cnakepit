@@ -30,7 +30,7 @@ rule all:
 
     # CNVkit and PureCN
     expand('results/cnvkit/{sample}_diagram.cnv.pdf', sample=samples.index),
-    expand('results/purecn/{sample}.rds', sample=samples.index)
+    expand('results/purecn/{sample}/{sample}.rds', sample=samples.index)
 
 include: "rules/qc.smk"
 #include: "rules/filter.smk"

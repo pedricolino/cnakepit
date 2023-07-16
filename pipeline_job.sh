@@ -3,10 +3,10 @@
 # The medium project/queue is a sensible default.
 #SBATCH --partition medium
 # Set a required running time for the master job.
-#SBATCH --time=7-00:00:00
+#SBATCH --time=5-00:00:00
 # Reserve some resources
-#SBATCH --mem=32G
-#SBATCH --ntasks=16
+#SBATCH --mem=64G
+#SBATCH --ntasks=64
 # Keep current environment variables
 #SBATCH --export=all
 # Send a mail upon job completion and error
@@ -37,7 +37,8 @@ set -x
 
 # Kick off Snakemake --------------------------------------------------------
 
-snakemake --use-conda --cores 16 --conda-frontend mamba
+snakemake --use-conda --cores 64 --conda-frontend mamba 
+#--rerun-incomplete
 
 # Print date after finishing, for good measure ------------------------------
 

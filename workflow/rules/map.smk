@@ -1,6 +1,26 @@
 #ref_ref = str(Path("results") / "reference" / ref_file.stem)
 stem = str(Path("results") / "ref" / ref_file.stem)
 
+import os
+from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
+
+HTTP = HTTPRemoteProvider()
+
+rule get_ref:
+    input:
+        HTTP.remote("storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta", keep_local=True)
+    output:
+        config["ref"]
+    shell:
+        "mv {input} {output}"
+
+rule get_ref_index:
+    input:
+        HTTP.remote("storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta.fai", keep_local=True)
+    output:
+        config["ref_index"]
+    shell:
+        "mv {input} {output}"
 
 if config["DNA_seq"]:
     # bwa if DNA sequencing
@@ -22,6 +42,7 @@ if config["DNA_seq"]:
 
     rule bwa_mem:
         input:
+            ref_index=config["ref_index"],
             reads=["results/trimmed/{sample}_1P.fq.gz", "results/trimmed/{sample}_2P.fq.gz"],
             idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
         output:
