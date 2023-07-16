@@ -1,5 +1,4 @@
-#ref_ref = str(Path("results") / "reference" / ref_file.stem)
-
+#ref_ref = str(Path("results") / "reference" / ref_file.stem) 
 import os
 from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 
@@ -57,6 +56,7 @@ rule mutect2_bam:
 #     shell:
 #         "samtools dict {input} > {output} 2> {log}"
 
+# get the dict from the web
 rule get_ref_dict:
     input:
         HTTP.remote("storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dict", keep_local=True)
