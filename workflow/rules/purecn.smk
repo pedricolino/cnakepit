@@ -5,16 +5,7 @@ rule purecn:
         seg='results/cnvkit/{sample}.seg',
         #script="workflow/scripts/purecn.R"
     output:
-        "results/purecn/{sample}/{sample}_loh.csv"
-        "results/purecn/{sample}/{sample}_chromosomes.pdf"
-        "results/purecn/{sample}/{sample}_variants.csv"
-        "results/purecn/{sample}/{sample}_local_optima.pdf"
-        "results/purecn/{sample}/{sample}_genes.csv"
-        "results/purecn/{sample}/{sample}_dnacopy.seg"
-        "results/purecn/{sample}/{sample}.pdf"
-        "results/purecn/{sample}/{sample}_segmentation.pdf"
         "results/purecn/{sample}/{sample}.rds"
-        "results/purecn/{sample}/{sample}.csv"
     threads: 16
     log:
         "logs/purecn/{sample}.log",
@@ -25,5 +16,15 @@ rule purecn:
         extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation Hclust"
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out {output} {params.extra}
+        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/{params.sampleid} {params.extra} && mv results/purecn/{params.sampleid}/{params.sampleid}.log logs/purecn/{params.sampleid}.log
         """
+
+# rule check_end:
+#     input:
+#         expand('results/purecn/{sample}/{sample}.rds', sample=samples.index)
+#     output:
+#         "results/.check_end"
+#     log:
+#         "logs/purecn/check_end.log"
+#     shell:
+#         "touch {output} 2> {log}"
