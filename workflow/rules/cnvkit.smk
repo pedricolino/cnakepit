@@ -2,13 +2,14 @@ bedtargets = 'results/cnvkit/'+bedname+'_target.bed'
 bedantitargets = 'results/cnvkit/'+bedname+'_antitarget.bed'
 bedname=bedname
 
-from snakemake.remote import AUTO
+import os
+from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
+
+HTTP = HTTPRemoteProvider()
 
 rule get_mappability:
     input:
-        http_file=AUTO.remote(
-            'https://github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed'
-        )
+        HTTP.remote("github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed", keep_local=True)
     output:
         config["mappability"]
     shell:
