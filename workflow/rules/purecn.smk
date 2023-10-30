@@ -10,7 +10,7 @@ rule purecn:
     log:
         "logs/purecn/{sample}.log",
     conda:
-        "../envs/purecn.yaml"
+        "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
         extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation Hclust"

@@ -10,7 +10,7 @@ rule bcf_stats:
     params:
         ""
     conda:
-        "../envs/bcf.yaml"
+        "../envs/primary_env.yaml"
     wrapper:
         "v1.7.1/bio/bcftools/stats"
 
@@ -27,7 +27,7 @@ rule bcftools_call:
     log:
         "logs/bcftools_call/{sample}.log",
     conda:
-        "../envs/bcf.yaml"
+        "../envs/primary_env.yaml"
     wrapper:
         "v1.7.1/bio/bcftools/call"
 
@@ -44,7 +44,7 @@ rule bcftools_mpileup:
     log:
         "logs/bcftools_mpileup/{sample}.log",
     conda:
-        "../envs/bcf.yaml"
+        "../envs/primary_env.yaml"
     threads: 
         8
     shell:
@@ -62,6 +62,6 @@ rule index:
     threads:
         4
     conda:
-        "../envs/stats.yaml"
+        "../envs/primary_env.yaml"
     shell:
         "samtools index {input} -@ {threads} 2> {log}"

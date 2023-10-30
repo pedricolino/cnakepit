@@ -30,7 +30,7 @@ rule cnvkit_autobin:
     log:
         "logs/cnvkit_autobin/log",
     conda:
-        "../envs/cnvkit.yaml"
+        "../envs/primary_env.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/autobin',
     shell:
@@ -51,7 +51,7 @@ rule cnvkit_coverage:
     log:
         "logs/cnvkit_coverage/{sample}.log",
     conda:
-        "../envs/cnvkit.yaml"
+        "../envs/primary_env.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/coverage'
     shell:
@@ -70,7 +70,7 @@ rule cnvkit_ref_generic:
     log:
         "logs/cnvkit_ref_generic/log",
     conda:
-        "../envs/cnvkit.yaml"
+        "../envs/primary_env.yaml"
     shell:
         'cnvkit.py reference -o {output.FlatReference_cnn} -f {input.fasta} -t {input.targets} {params.extra} 2> {log}'
 
@@ -87,7 +87,7 @@ rule cnvkit_fix:
     log:
         "logs/cnvkit_fix/{sample}.log",
     conda:
-        "../envs/cnvkit.yaml"
+        "../envs/primary_env.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/fix'
     shell:
@@ -104,7 +104,7 @@ rule cnvkit_segment:
     log:
         "logs/cnvkit_segment/{sample}.log",
     conda:
-        "../envs/cnvkit.yaml"
+        "../envs/primary_env.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/segment'
     shell:
@@ -128,7 +128,7 @@ rule cnvkit_scatter:
     log:
         "logs/cnvkit_scatter/{sample}.log",
     conda:
-        "../envs/cnvkit-amplicon-nocontrol.yaml"
+        "../envs/primary_env.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/scatter'
     shell:
@@ -152,7 +152,7 @@ rule cnvkit_diagram:
     log:
         "logs/cnvkit_diagram/{sample}.log",
     conda:
-        "../envs/cnvkit.yaml"
+        "../envs/primary_env.yaml"
     # wrapper:
     #     'http://dohlee-bio.info:9193/cnvkit/diagram'
     shell:
@@ -170,7 +170,7 @@ rule export_seg:
     log:
         "logs/export_seg/{sample}.log",
     conda:
-        "../envs/cnvkit.yaml"
+        "../envs/primary_env.yaml"
     shell:
         'cnvkit.py export seg {input.cns} -o {output} {params.extra} 2> {log}'
 
@@ -199,7 +199,7 @@ rule export_seg:
 #     log:
 #         "logs/cnvkit/{sample}_sorted.log"
 #     conda:
-#         "envs/cnvkit.yaml"
+#         "envs/primary_env.yaml"
 #     shell:
 #         ""
         

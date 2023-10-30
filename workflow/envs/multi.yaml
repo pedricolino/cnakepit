@@ -1,8 +1,0 @@
-name: multi
-channels:
-  - bioconda
-  - conda-forge
-  - defaults
-dependencies:
-  #- python==3.8
-  - multiqc=1.11

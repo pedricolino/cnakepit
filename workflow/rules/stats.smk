@@ -9,7 +9,7 @@
 #     threads:
 #         4
 #     conda:
-#         "../envs/stats.yaml"
+#         "../envs/primary_env.yaml"
 #     shell:
 #         "samtools index {input} -@ {threads} 2> {log}"
 
@@ -22,7 +22,7 @@ rule stats:
     log:
         "logs/samtools/stats/{sample}.log"
     conda:
-        "../envs/stats.yaml"
+        "../envs/primary_env.yaml"
     threads: 16
     shell:
         "samtools idxstats {input[0]} > {output} 2> {log}"

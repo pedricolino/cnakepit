@@ -7,7 +7,7 @@ rule fastqc:
   log:
     "logs/fastqc/{sample}_{i}.log"
   conda:
-    "../envs/qc.yaml"
+    "../envs/primary_env.yaml"
   threads: 16
   wrapper:
     "v1.4.0/bio/fastqc"
@@ -30,7 +30,7 @@ rule trim:
     adapter = config["adapter"]
   threads: 16
   conda:
-    "../envs/qc.yaml"
+    "../envs/primary_env.yaml"
   shell:
     "trimmomatic PE -threads {threads} {input.mate1} {input.mate2} -baseout {params.base} ILLUMINACLIP:{params.adapter}:2:30:10 2> {log}"
 
@@ -44,24 +44,23 @@ rule fastqc_trim:
   log:
     "logs/fastqc_trim/{sample}_{i}P.log"
   conda:
-    "../envs/qc.yaml"
+    "../envs/primary_env.yaml"
   threads: 16
   wrapper:
     "v1.4.0/bio/fastqc"
 
 
-rule multiqc:
-	input:
-		fastqc_html = expand("results/qc/fastqc/{sample}_{i}.html", sample = list(samples.index), i = ["1", "2"]),
-		fastqc_trim_html = expand("results/qc/fastqc_trim/{sample}_{i}P.html", sample = list(samples.index), i = ["1", "2"]),
-	output:
-		"results/qc/multiqc_report.html"
-	log:
-		"logs/multiqc.log"
-#  conda:
-#    "../envs/multi.yaml"
-#  shell:
-#    "multiqc ./results/qc/ -o results/qc 2> {log}" 
-	wrapper:
-		"v2.0.0/bio/multiqc"
+rule multiqc_fastqc:
+  input:
+    fastqc_html = expand("results/qc/fastqc/{sample}_{i}.html", sample = list(samples.index), i = ["1", "2"]),
+    fastqc_trim_html = expand("results/qc/fastqc_trim/{sample}_{i}P.html", sample = list(samples.index), i = ["1", "2"]),
+  output:
+    "results/qc/multiqc_report_fastqc.html"
+  log:
+    "logs/multiqc.log"
+  conda:
+    "../envs/primary_env.yaml"
+  shell:
+    "multiqc ./results/qc/ -o results/qc 2> {log}" 
+    "multiqc --force -o results/qc -n multiqc_report_fastqc.html results/qc/fastqc_trim results/qc/fastqc"
 

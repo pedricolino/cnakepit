@@ -1,6 +1,0 @@
-name: bcf
-channels:
-  - bioconda
-  - defaults
-dependencies:
-  - bcftools==1.11

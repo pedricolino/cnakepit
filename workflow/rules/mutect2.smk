@@ -40,7 +40,7 @@ rule mutect2_bam:
     log:
         "logs/mutect2/{sample}.log",
     conda:
-        "../envs/mutect2.yaml"
+        "../envs/primary_env.yaml"
     shell:
         "gatk Mutect2 -R {input.fasta} -I {input.map} -L {input.targets} -O {output.vcf} {params.extra} --germline-resource {input.gnomad} 2> {log}"
 
@@ -73,7 +73,7 @@ rule filter_mutect_calls:
     log:
         "logs/filter_mutect_calls/{sample}.log",
     conda:
-        "../envs/mutect2.yaml"
+        "../envs/primary_env.yaml"
     output:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
     shell:
