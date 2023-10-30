@@ -7,17 +7,17 @@
 DNA_seq: True
 
 # path/to/refgenome.fa
-ref: "resources/reference/hg38.fa"
-ref_index: "resources/reference/hg38.fa.fai"
+ref: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa" #"resources/reference/hg38.fa"
+ref_index: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa.fai" #"resources/reference/hg38.fa.fai"
 
 #TESTING PURPOSES:
 ref_fil: "results/filter_ref/hg38_filtered.fa"
 
 # set either data_dir or samples, the other one should be false
 # directory where the data is (or the symlink to the data)
-data_dir: "resources/data"
+data_dir: False
 # path to sample sheet as tsv provided by user which looks like sample|fq1|fq2
-samples: False
+samples: "resources/data/sample_sheet.tsv"
 
 # for trimming, path/to/adaptersequence.fa
 adapter: "resources/adapter/panel-adapter.fa"
