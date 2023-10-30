@@ -23,20 +23,19 @@ print(samples)  # Print the head of the 'samples' dataframe
 rule all:
   input:
     # for QC analysis only
-    "results/qc/multiqc_report.html", # qc report for reads, untrimmed and trimmed
+    "results/qc/multiqc_report_fastqc.html", # qc report for reads, untrimmed and trimmed
         
     # for QC analysis up until mapping and mapping QC with qualimap:
     "results/qc_map_bwa/multiqc_report.html",
 
     # CNVkit and PureCN
     expand('results/cnvkit/{sample}_diagram.cnv.pdf', sample=samples.index),
-    expand("results/purecn/{sample}/{sample}.rds", sample=samples.index),
+    expand("results/purecn/{sample}/{sample}.rds", sample=samples.index)
     #"results/.check_end"
 
-
-include: "rules/qc.smk"
 #include: "rules/filter.smk"
 include: "rules/map.smk"
+include: "rules/qc.smk"
 #include: "rules/map_bowtie2.smk"
 include: "rules/qc_map.smk"
 #include: "rules/bcf.smk"
