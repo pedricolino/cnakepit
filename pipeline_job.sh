@@ -15,7 +15,7 @@
 # Logs should be written into "slurm_log" sub directory.
 #SBATCH --output logs/slurm_log/%x-%J.log
 # Use more descriptive name in Slurm.
-#SBATCH --job-name smk-1s
+#SBATCH --job-name sj_3s
 
 
 # Enforce existence of TMPDIR -----------------------------------------------
@@ -38,6 +38,7 @@ set -x
 # Kick off Snakemake --------------------------------------------------------
 
 snakemake --use-conda --cores 96 --conda-frontend mamba 
+#--unlock
 #--rerun-incomplete
 
 # Print date after finishing, for good measure ------------------------------
