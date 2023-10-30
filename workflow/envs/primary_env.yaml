@@ -1,0 +1,38 @@
+name: first-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  # preprocessing
+  - bcftools==1.11 # version set by Nina, maybe can be removed
+  - trimmomatic
+
+  # quality control
+  - fastqc
+  - multiqc #=1.17
+  - samtools
+  - qualimap
+
+  # cnvkit
+  - cnvkit
+  - pomegranate # required by cnvkit for hmm segmentation methods
+
+  # purecn
+  - bioconductor-purecn
+  - r-optparse
+  - gatk4=4.2
+  - snakemake-wrapper-utils=0.3
+
+
+#  - chanelname::modulename=X.Y.Z
+# mamba env create --dry-run -f test.yaml
+# this yaml combines (former):
+#   bcf.yaml
+#   cnvkit.yaml
+#   multiqc.yaml
+#   mutect2.yaml
+#   purecn.yaml
+#   qc_map.yaml
+#   qc.yaml
+#   stats.yaml
