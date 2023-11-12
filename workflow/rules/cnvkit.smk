@@ -158,6 +158,21 @@ rule cnvkit_diagram:
     shell:
         'cnvkit.py diagram {input.copy_ratio} --segment {input.segment} -o {output} {params.extra} 2> {log}'
 
+rule cnvkit_heatmap:
+    input:
+        segment = 'results/cnvkit/{sample}.cns'
+    output:
+        'results/cnvkit/{sample}_heatmap.cnv.pdf'
+    params:
+        extra = '',
+    threads: 8
+    log:
+        "logs/cnvkit_heatmap/{sample}.log",
+    conda:
+        "../envs/primary_env.yaml"
+    shell:
+        'cnvkit.py heatmap -o {output} {input.segment} {params.extra} 2> {log}'
+
 rule export_seg:
     # Export the segmentation in DNAcopy format, i.e. create .seg file
     input:
@@ -203,3 +218,102 @@ rule export_seg:
 #     shell:
 #         ""
         
+
+############# added rules for additional segmentation method hmm
+
+rule cnvkit_segment_hmm:
+    input:
+        copy_ratios = 'results/cnvkit/{sample}.cnr',
+    output:
+        'results/cnvkit_hmm/{sample}.cns',
+    params:
+        extra = '-m hmm',
+    threads: 8
+    log:
+        "logs/cnvkit_segment_hmm/{sample}.log",
+    conda:
+        "../envs/primary_env.yaml"
+    # wrapper:
+    #     'http://dohlee-bio.info:9193/cnvkit/segment'
+    shell:
+        'cnvkit.py segment {input.copy_ratios} -o {output} {params.extra} 2> {log}'
+
+
+rule cnvkit_scatter_hmm:
+    input:
+        copy_ratio = 'results/cnvkit/{sample}.cnr',
+        segment = 'results/cnvkit_hmm/{sample}.cns',
+    output:
+        'results/cnvkit_hmm/{sample}_scatter.cnv.pdf'
+    params:
+        # Optional parameters. Omit if unneeded.
+        extra = '',
+        # Plot segment lines in this color. value can be any string
+        # accepted by matplotlib, e.g. 'red' or '#CC0000'
+        #segment_color = '',
+        # Plot title. [Default: sample ID, from filename or -i]
+        #title = '',
+    threads: 8
+    log:
+        "logs/cnvkit_scatter_hmm/{sample}.log",
+    conda:
+        "../envs/primary_env.yaml"
+    # wrapper:
+    #     'http://dohlee-bio.info:9193/cnvkit/scatter'
+    shell:
+        'cnvkit.py scatter {input.copy_ratio} --segment {input.segment} -o {output} {params.extra} 2> {log}'
+
+rule cnvkit_diagram_hmm:
+    input:
+        copy_ratio = 'results/cnvkit/{sample}.cnr',
+        segment = 'results/cnvkit_hmm/{sample}.cns',
+    output:
+        'results/cnvkit_hmm/{sample}_diagram.cnv.pdf'
+    params:
+        # Optional parameters. Omit if unneeded.
+        extra = '',
+        # Plot segment lines in this color. value can be any string
+        # accepted by matplotlib, e.g. 'red' or '#CC0000'
+        #segment_color = '',
+        # Plot title. [Default: sample ID, from filename or -i]
+        #title = '',
+    threads: 8
+    log:
+        "logs/cnvkit_diagram_hmm/{sample}.log",
+    conda:
+        "../envs/primary_env.yaml"
+    # wrapper:
+    #     'http://dohlee-bio.info:9193/cnvkit/diagram'
+    shell:
+        'cnvkit.py diagram {input.copy_ratio} --segment {input.segment} -o {output} {params.extra} 2> {log}'
+
+rule cnvkit_heatmap_hmm:
+    input:
+        segment = 'results/cnvkit_hmm/{sample}.cns'
+    output:
+        'results/cnvkit_hmm/{sample}_heatmap.cnv.pdf'
+    params:
+        extra = '',
+    threads: 8
+    log:
+        "logs/cnvkit_heatmap_hmm/{sample}.log",
+    conda:
+        "../envs/primary_env.yaml"
+    shell:
+        'cnvkit.py heatmap -o {output} {input.segment} {params.extra} 2> {log}'
+
+rule export_seg_hmm:
+    # Export the segmentation in DNAcopy format, i.e. create .seg file
+    input:
+        cns = 'results/cnvkit_hmm/{sample}.cns',
+    output:
+        'results/cnvkit_hmm/{sample}.seg'
+    params:
+        extra = '--enumerate-chroms',
+    threads: 8
+    log:
+        "logs/export_seg_hmm/{sample}.log",
+    conda:
+        "../envs/primary_env.yaml"
+    shell:
+        'cnvkit.py export seg {input.cns} -o {output} {params.extra} 2> {log}'
