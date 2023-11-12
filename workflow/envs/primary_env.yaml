@@ -23,6 +23,7 @@ dependencies:
   - r-optparse
   - gatk4=4.2
   - snakemake-wrapper-utils=0.3
+  - r-biocmanager # to install patched version of PSCBS with support of interval weights
 
 
 #  - chanelname::modulename=X.Y.Z
