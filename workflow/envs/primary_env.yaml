@@ -16,7 +16,7 @@ dependencies:
 
   # cnvkit
   - cnvkit
-  - pomegranate # required by cnvkit for hmm segmentation methods
+  - pomegranate<=0.14.8 # required by cnvkit for hmm segmentation methods, version 1.0.0 contains major breaking changes
 
   # purecn
   - bioconductor-purecn
