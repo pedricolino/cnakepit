@@ -79,3 +79,21 @@ rule export_seg_hmm:
         "../envs/primary_env.yaml"
     shell:
         'cnvkit.py export seg {input.cns} -o {output} {params.extra} 2> {log}'
+
+rule cnvkit_call_hmm:
+    input:
+        copy_ratio = 'results/cnvkit/general/{sample}.cnr',
+        vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz"
+    output:
+        'results/cnvkit/hmm/{sample}.call.cns'
+    benchmark:
+        'benchmarks/cnvkit/hmm/{sample}.call.txt'
+    params:
+        extra = '',
+    threads: 8
+    log:
+        "logs/cnvkit/hmm/call/{sample}.log",
+    conda:
+        "../envs/primary_env.yaml"
+    shell:
+        'cnvkit.py call {input.copy_ratio} -v {input.vcf_filt} -o {output} {params.extra} 2> {log}'
