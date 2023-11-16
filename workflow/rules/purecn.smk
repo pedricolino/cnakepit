@@ -26,7 +26,7 @@ rule purecn_cbs_pscbs:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation PSCBS"
+        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation PSCBS --sex F"
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
         Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
@@ -50,7 +50,7 @@ rule purecn_hmm_pscbs:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation PSCBS"
+        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation PSCBS --sex F"
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
         Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
@@ -72,7 +72,7 @@ rule purecn_cbs_hclust:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation Hclust"
+        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation Hclust --sex F"
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
         Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
@@ -92,7 +92,7 @@ rule purecn_hmm_hclust:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation Hclust"
+        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation Hclust --sex F"
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
         Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
