@@ -6,7 +6,7 @@ rule cnvkit_segment_cbs:
     benchmark:
         'benchmarks/cnvkit/cbs_segment/{sample}.txt'
     params:
-        extra = '',
+        extra = '-m cbs',
     threads: 8
     log:
         "logs/cnvkit/cbs/segment/{sample}.log",

@@ -5,7 +5,7 @@ rule cnvkit_segment_hmm:
         'results/cnvkit/hmm/{sample}.cns',
     benchmark: 'benchmarks/cnvkit/hmm/{sample}.txt'
     params:
-        extra = '',
+        extra = '-m hmm',
     threads: 8
     log:
         "logs/cnvkit/hmm/segment/{sample}.log",
