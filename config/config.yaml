@@ -33,6 +33,10 @@ mappability: "resources/mappability/access-5k-mappable.hg19.bed"
 germline-resource: "resources/germline-resource/af-only-gnomad.hg38.vcf.gz"
 germline-resource-index: "resources/germline-resource/af-only-gnomad.hg38.vcf.gz.tbi"
 
+# path/to/common-biallelic file
+common-biallelic: "resources/common-biallelic/small_exac_common_3.hg38.vcf.gz"
+common-biallelic-index: "resources/common-biallelic/small_exac_common_3.hg38.vcf.gz.tbi"
+
 ### variance calling parameters: bcf tools
 
 # bcftools call:
