@@ -16,7 +16,6 @@ rule purecn_cbs_pscbs:
         copy_ratios='results/cnvkit/general/{sample}.cnr',
         seg='results/cnvkit/cbs/{sample}.seg',
         install="results/purecn/pscbs_check"
-        #script="workflow/scripts/purecn.R"
     output:
         "results/purecn/cbs_pscbs/{sample}/{sample}.rds"
     benchmark: "benchmarks/purecn/cbs_pscbs/{sample}.txt"
@@ -42,7 +41,6 @@ rule purecn_hmm_pscbs:
         copy_ratios='results/cnvkit/general/{sample}.cnr',
         seg='results/cnvkit/hmm/{sample}.seg',
         install="results/purecn/pscbs_check"
-        #script="workflow/scripts/purecn.R"
     output:
         "results/purecn/hmm_pscbs/{sample}/{sample}.rds"
     threads: 16
@@ -85,7 +83,6 @@ rule purecn_hmm_hclust:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
         copy_ratios='results/cnvkit/general/{sample}.cnr',
         seg='results/cnvkit/hmm/{sample}.seg',
-        #script="workflow/scripts/purecn.R"
     output:
         "results/purecn/hmm_hclust/{sample}/{sample}.rds"
     threads: 16
