@@ -10,6 +10,8 @@ rule install_lima1_pscbs:
         "Rscript workflow/scripts/install_lima1_pscbs.R && touch {output} 2> {log}"
 
 
+########## Segmentation with different methods ##########
+
 rule purecn_cbs_pscbs:
     input:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
