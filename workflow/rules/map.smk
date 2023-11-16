@@ -31,6 +31,7 @@ if config["DNA_seq"]:
         output:
             #idx=multiext(ref_ref, ".amb", ".ann", ".bwt", ".pac", ".sa"),
             idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        benchmark: "benchmarks/bwa_index.txt"
         log:
             "logs/bwa_index/bwa_index.log",
         params:
@@ -47,6 +48,7 @@ if config["DNA_seq"]:
             idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
         output:
             "results/mapped/{sample}.bam",
+        benchmark: 'benchmarks/bwa_mem/{sample}.txt'
         log:
             "logs/bwa_mem/{sample}.log",
         params:
@@ -80,6 +82,7 @@ if config["DNA_seq"]:
             "results/bam_sorted_bwa/{sample}_sorted.bam"
         output:
             "results/bam_sorted_bwa/{sample}_sorted.bam.bai"
+        benchmark: "benchmarks/samtools_index_bwa/{sample}.txt"
         log:
             "logs/samtools/index_bwa/{sample}.log"
         threads: 16

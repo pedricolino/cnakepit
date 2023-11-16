@@ -3,6 +3,8 @@ rule cnvkit_segment_cbs:
         copy_ratios = 'results/cnvkit/general/{sample}.cnr',
     output:
         'results/cnvkit/cbs/{sample}.cns',
+    benchmark:
+        'benchmarks/cnvkit/cbs_segment/{sample}.txt'
     params:
         extra = '',
     threads: 8
@@ -19,6 +21,8 @@ rule cnvkit_scatter_cbs:
         segment = 'results/cnvkit/cbs/{sample}.cns',
     output:
         'results/cnvkit/cbs/{sample}_scatter.cnv.pdf'
+    benchmark:
+        'benchmarks/cnvkit/cbs/{sample}_scatter.txt'
     params:
         extra = '',
     threads: 8
@@ -35,6 +39,8 @@ rule cnvkit_diagram_cbs:
         segment = 'results/cnvkit/cbs/{sample}.cns',
     output:
         'results/cnvkit/cbs/{sample}_diagram.cnv.pdf'
+    benchmark:
+        'benchmarks/cnvkit/cbs/{sample}_diagram.txt'
     params:
         extra = '',
     threads: 8
@@ -47,18 +53,18 @@ rule cnvkit_diagram_cbs:
 
 rule cnvkit_heatmap_cbs:
     input:
-        segment = 'results/cnvkit/cbs/{sample}.cns'
+        segments = expand("results/cnvkit/cbs/{sample}.cns", sample=samples.index)
     output:
-        'results/cnvkit/cbs/{sample}_heatmap.cnv.pdf'
-    params:
-        extra = '',
+        'results/cnvkit/cbs/heatmap.cnv.pdf'
+    benchmark:
+        'benchmarks/cnvkit/cbs/heatmap.txt'
     threads: 8
     log:
-        "logs/cnvkit/cbs/heatmap/{sample}.log",
+        "logs/cnvkit/cbs/heatmap.log",
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py heatmap -o {output} {input.segment} {params.extra} 2> {log}'
+        'cnvkit.py heatmap -o {output} {input.segments} &> {log}'
 
 rule export_seg_cbs:
     # Export the segmentation in DNAcopy format, i.e. create .seg file
@@ -66,6 +72,8 @@ rule export_seg_cbs:
         cns = 'results/cnvkit/cbs/{sample}.cns',
     output:
         'results/cnvkit/cbs/{sample}.seg'
+    benchmark:
+        'benchmarks/cnvkit/cbs/export_seg/{sample}.txt'
     params:
         extra = '--enumerate-chroms',
     threads: 8

@@ -19,6 +19,7 @@ rule stats:
         "results/bam_sorted_bwa/{sample}_sorted.bam.bai"
     output:
         "results/stats/{sample}.stats"
+    benchmark: "benchmarks/stats/{sample}.stats.benchmark.txt"
     log:
         "logs/samtools/stats/{sample}.log"
     conda:
@@ -33,6 +34,7 @@ rule rpk:
         "results/stats/{sample}.stats"
     output:
         "results/stats/{sample}.stats_aug"
+    benchmark: "benchmarks/stats/{sample}.stats_aug.benchmark.txt"
     threads: 16
     script:
         "../scripts/calc_rpk.py"

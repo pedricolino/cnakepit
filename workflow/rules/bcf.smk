@@ -5,6 +5,8 @@ rule bcf_stats:
     output:
         #"{prefix}.stats.txt"
         "results/bcf/stats/{sample}.stats.txt"
+    benchmark:
+        "benchmarks/bcf_stats/{sample}.bcftools.stats.txt"
     log:
         "logs/bcf_stats/{sample}.bcftools.stats.log"
     params:
@@ -19,6 +21,8 @@ rule bcftools_call:
         pileup="results/bcf/pileup/{sample}.pileup.bcf",
     output:
         calls="results/bcf/call/{sample}.calls.bcf",
+    benchmark:
+        "benchmarks/bcf_call/{sample}.bcftools.call.txt"
     params:
         #caller="-m", # valid options include -c/--consensus-caller or -m/--multiallelic-caller
         caller = config["caller"],
@@ -38,6 +42,8 @@ rule bcftools_mpileup:
         alignments="results/mapped/{sample}.bam",
     output:
         pileup="results/bcf/pileup/{sample}.pileup.bcf",
+    benchmark:
+        "benchmarks/bcf_mpileup/{sample}.bcftools.mpileup.txt"
     params:
         #options="--max-depth 100 --min-BQ 15",
         options = config["mpileup_options"],
@@ -57,6 +63,8 @@ rule index:
         "results/bam_sorted_bwa/{sample}_sorted.bam"
     output:
         "results/bam_sorted_bwa/{sample}_sorted.bam.bai"
+    benchmark:
+        "benchmarks/samtools/index/{sample}.samtools.index.txt"
     log:
         "logs/samtools/index/{sample}.log"
     threads:

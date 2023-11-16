@@ -12,6 +12,8 @@ rule get_mappability:
         HTTP.remote("github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed", keep_local=True)
     output:
         config["mappability"]
+    benchmark:
+        "benchmarks/cnvkit/general/get_mappability.txt"
     log:
         "logs/cnvkit/general/get_mappability/log",
     shell:
@@ -25,6 +27,8 @@ rule cnvkit_autobin:
     output:
         target = bedtargets,
         antitarget = bedantitargets,
+    benchmark:
+        "benchmarks/cnvkit/general/autobin.txt"
     params:
         extra = '--method amplicon',
         samplenames = samples.index
@@ -45,6 +49,7 @@ rule cnvkit_coverage:
     output:
         target_coverage = 'results/cnvkit/general/{sample}.targetcoverage.cnn',
         antitarget_coverage = 'results/cnvkit/general/{sample}.antitargetcoverage.cnn',
+    benchmark: "benchmarks/cnvkit/general/coverage/{sample}.txt"
     params:
         extra = '',
     threads: 8
@@ -62,6 +67,7 @@ rule cnvkit_ref_generic:
         targets = bedtargets
     output:
         FlatReference_cnn = 'results/cnvkit/general/FlatReference.cnn',
+    benchmark: "benchmarks/cnvkit/general/ref_generic.txt"
     params:
         extra = '',
     threads: 8
@@ -79,6 +85,7 @@ rule cnvkit_fix:
         reference = 'results/cnvkit/general/FlatReference.cnn',
     output:
         'results/cnvkit/general/{sample}.cnr'
+    benchmark: "benchmarks/cnvkit/general/fix/{sample}.txt"
     params:
         extra = '',
     threads: 8

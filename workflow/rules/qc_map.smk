@@ -1,9 +1,13 @@
+################ BWA ######################
+
 # qualimap needs sorted bam files as input
 rule sort_bwa:
     input:
         "results/mapped/{sample}.bam"
     output:
         "results/bam_sorted_bwa/{sample}_sorted.bam"
+    benchmark:
+        "benchmarks/sort_bwa/{sample}.txt"
     log:
         "logs/samtools/sort_bwa/{sample}.log"
     threads:
@@ -11,7 +15,39 @@ rule sort_bwa:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        "samtools sort -o {output} {input} -@ {threads} 2> {log}"
+        "samtools sort -o {output} {input} -@ {threads} 2> {log}" 
+
+rule qualimap_bwa:
+    input:
+       "results/bam_sorted_bwa/{sample}_sorted.bam"
+    output:
+        "results/qc/qualimap/qualimap_bwa/{sample}/qualimapReport.html"
+    benchmark:
+        "benchmarks/qualimap_bwa/{sample}.txt"
+    log:
+        "logs/qualimap_bwa/{sample}.log"
+    params:
+        outdir = "results/qc/qualimap/qualimap_bwa/{sample}"
+    conda:
+        "../envs/qc_map.yaml"
+    shell:
+        "qualimap bamqc -bam {input} -outdir {params.outdir} 2> {log}"
+
+rule multiqc_map_bwa:
+    input:
+        expand("results/qc/qualimap/qualimap_bwa/{sample}/qualimapReport.html", sample = list(samples.index))
+    output:
+        "results/qc_map_bwa/multiqc_report.html"
+    benchmark:
+        "benchmarks/multiqc_map_bwa.txt"
+    log:
+        "logs/qc_map_bwa/multiqc.log"
+    conda:
+        "../envs/primary_env.yaml"
+    shell:
+        "multiqc ./results/qc/qualimap/qualimap_bwa -o results/qc_map_bwa 2> {log}"
+
+################# Bowtie2 ######################
 
 rule sort_bowtie2:
     input:
@@ -25,21 +61,7 @@ rule sort_bowtie2:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        "samtools sort -o {output} {input} -@ {threads} 2> {log}"
-        
-
-rule multiqc_map_bwa:
-    input:
-        expand("results/qc/qualimap/qualimap_bwa/{sample}/qualimapReport.html", sample = list(samples.index))
-    output:
-        "results/qc_map_bwa/multiqc_report.html"
-    log:
-        "logs/qc_map_bwa/multiqc.log"
-    conda:
-        "../envs/primary_env.yaml"
-    shell:
-        "multiqc ./results/qc/qualimap/qualimap_bwa -o results/qc_map_bwa 2> {log}"
-
+        "samtools sort -o {output} {input} -@ {threads} 2> {log}"  
 
 rule qualimap_bowtie2:
     input:
@@ -54,8 +76,6 @@ rule qualimap_bowtie2:
         "../envs/primary_env.yaml"
     shell:
         "qualimap bamqc -bam {input} -outdir {params.outdir}"
-
-
 
 rule multiqc_map_bowtie2:
     input:

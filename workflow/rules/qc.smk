@@ -4,6 +4,7 @@ rule fastqc:
   output:
     html = "results/qc/fastqc/{sample}_{i}.html",
     zip = "results/qc/fastqc/{sample}_{i}_fastqc.zip"
+  benchmark: "benchmarks/fastqc/{sample}_{i}.txt"
   log:
     "logs/fastqc/{sample}_{i}.log"
   conda:
@@ -23,6 +24,7 @@ rule trim:
     # reads where trimming entirely removed the mate
     r1_unpaired = "results/trimmed/{sample}_1U.fq.gz",
     r2_unpaired = "results/trimmed/{sample}_2U.fq.gz"
+  benchmark: "benchmarks/trimmomatic/{sample}.txt"
   log:
     "logs/trimmomatic/{sample}.log"
   params:
@@ -41,6 +43,7 @@ rule fastqc_trim:
   output:
     html = "results/qc/fastqc_trim/{sample}_{i}P.html",
     zip = "results/qc/fastqc_trim/{sample}_{i}P_fastqc.zip"
+  benchmark: "benchmarks/fastqc_trim/{sample}_{i}P.txt"
   log:
     "logs/fastqc_trim/{sample}_{i}P.log"
   conda:
@@ -56,6 +59,7 @@ rule multiqc_fastqc:
     fastqc_trim_html = expand("results/qc/fastqc_trim/{sample}_{i}P.html", sample = list(samples.index), i = ["1", "2"]),
   output:
     "results/qc/multiqc_report_fastqc.html"
+  benchmark: "benchmarks/multiqc_fastqc.txt"
   log:
     "logs/multiqc.log"
   conda:

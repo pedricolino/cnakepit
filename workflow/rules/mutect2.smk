@@ -34,6 +34,7 @@ rule mutect2_bam:
         #bam="results/mutect2/variant_bam/{sample}.bam",
     #message:
         #"Testing Mutect2 with {wildcards.sample}"
+    benchmark: "benchmarks/mutect2_bam/{sample}.txt"
     params:
         extra="--genotype-germline-sites true --genotype-pon-sites true --interval-padding 75"
     threads: 16
@@ -76,5 +77,6 @@ rule filter_mutect_calls:
         "../envs/primary_env.yaml"
     output:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
+    benchmark: "benchmarks/filter_mutect_calls/{sample}.txt"
     shell:
         "gatk FilterMutectCalls -R {input.reference} -V {input.vcf} -O {output.vcf_filt} 2> {log}"
