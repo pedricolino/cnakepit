@@ -15,7 +15,7 @@
 # Logs should be written into "slurm_log" sub directory.
 #SBATCH --output logs/slurm_log/%x-%J.log
 # Use more descriptive name in Slurm.
-#SBATCH --job-name sj_3s
+#SBATCH --job-name sj_2s
 
 
 # Enforce existence of TMPDIR -----------------------------------------------
