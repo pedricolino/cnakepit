@@ -4,3 +4,4 @@ logs/
 *fastq.gz
 .snakemake/
 workflow/scripts/__pycache__/samples_auto.cpython-311.pyc
+benchmarks/
