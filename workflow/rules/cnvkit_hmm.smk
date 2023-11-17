@@ -1,9 +1,11 @@
 rule cnvkit_segment_hmm:
     input:
         copy_ratios = 'results/cnvkit/general/{sample}.cnr',
+        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf.gz"
     output:
         'results/cnvkit/hmm/{sample}.cns',
-    benchmark: 'benchmarks/cnvkit/hmm/{sample}.txt'
+    benchmark:
+        'benchmarks/cnvkit/hmm_segment/{sample}.txt'
     params:
         extra = '-m hmm',
     threads: 8
@@ -12,15 +14,17 @@ rule cnvkit_segment_hmm:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py segment {input.copy_ratios} -o {output} {params.extra} 2> {log}'
+        'cnvkit.py segment {input.copy_ratios} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
 
 rule cnvkit_scatter_hmm:
     input:
         copy_ratio = 'results/cnvkit/general/{sample}.cnr',
         segment = 'results/cnvkit/hmm/{sample}.cns',
+        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf.gz"
     output:
         'results/cnvkit/hmm/{sample}_scatter.cnv.pdf'
-    benchmark: 'benchmarks/cnvkit/hmm/{sample}.txt'
+    benchmark:
+        'benchmarks/cnvkit/hmm/{sample}_scatter.txt'
     params:
         extra = '',
     threads: 8
@@ -29,7 +33,7 @@ rule cnvkit_scatter_hmm:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py scatter {input.copy_ratio} --segment {input.segment} -o {output} {params.extra} 2> {log}'
+        'cnvkit.py scatter {input.copy_ratio} --segment {input.segment} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
 
 rule cnvkit_diagram_hmm:
     input:
@@ -37,7 +41,8 @@ rule cnvkit_diagram_hmm:
         segment = 'results/cnvkit/hmm/{sample}.cns',
     output:
         'results/cnvkit/hmm/{sample}_diagram.cnv.pdf'
-    benchmark: 'benchmarks/cnvkit/hmm/{sample}.txt'
+    benchmark:
+        'benchmarks/cnvkit/hmm/{sample}_diagram.txt'
     params:
         extra = '',
     threads: 8
@@ -69,7 +74,8 @@ rule export_seg_hmm:
         cns = 'results/cnvkit/hmm/{sample}.cns',
     output:
         'results/cnvkit/hmm/{sample}.seg'
-    benchmark: 'benchmarks/cnvkit/hmm/{sample}.txt'
+    benchmark:
+        'benchmarks/cnvkit/hmm/export_seg/{sample}.txt'
     params:
         extra = '--enumerate-chroms',
     threads: 8
@@ -83,7 +89,7 @@ rule export_seg_hmm:
 rule cnvkit_call_hmm:
     input:
         copy_ratio = 'results/cnvkit/general/{sample}.cnr',
-        vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz"
+        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf.gz"
     output:
         'results/cnvkit/hmm/{sample}.call.cns'
     benchmark:
@@ -96,4 +102,4 @@ rule cnvkit_call_hmm:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py call {input.copy_ratio} -v {input.vcf_filt} -o {output} {params.extra} 2> {log}'
+        'cnvkit.py call {input.copy_ratio} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'

@@ -1,6 +1,7 @@
 rule cnvkit_segment_cbs:
     input:
         copy_ratios = 'results/cnvkit/general/{sample}.cnr',
+        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf.gz"
     output:
         'results/cnvkit/cbs/{sample}.cns',
     benchmark:
@@ -13,12 +14,13 @@ rule cnvkit_segment_cbs:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py segment {input.copy_ratios} -o {output} {params.extra} 2> {log}'
+        'cnvkit.py segment {input.copy_ratios} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
 
 rule cnvkit_scatter_cbs:
     input:
         copy_ratio = 'results/cnvkit/general/{sample}.cnr',
         segment = 'results/cnvkit/cbs/{sample}.cns',
+        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf.gz"
     output:
         'results/cnvkit/cbs/{sample}_scatter.cnv.pdf'
     benchmark:
@@ -31,7 +33,7 @@ rule cnvkit_scatter_cbs:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py scatter {input.copy_ratio} --segment {input.segment} -o {output} {params.extra} 2> {log}'
+        'cnvkit.py scatter {input.copy_ratio} --segment {input.segment} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
 
 rule cnvkit_diagram_cbs:
     input:
@@ -87,7 +89,7 @@ rule export_seg_cbs:
 rule cnvkit_call_cbs:
     input:
         copy_ratio = 'results/cnvkit/general/{sample}.cnr',
-        vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz"
+        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf.gz"
     output:
         'results/cnvkit/cbs/{sample}.call.cns'
     benchmark:
@@ -100,4 +102,4 @@ rule cnvkit_call_cbs:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py call {input.copy_ratio} -v {input.vcf_filt} -o {output} {params.extra} 2> {log}'
+        'cnvkit.py call {input.copy_ratio} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
