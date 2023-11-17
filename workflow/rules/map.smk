@@ -45,7 +45,7 @@ if config["DNA_seq"]:
             "v1.7.0/bio/bwa/index"
 
     def myrule_mem(wildcards, attempt):
-        mem = 2 * attempt
+        mem = 4 * attempt
         return '%dG' % mem
 
     rule bwa_mem:
