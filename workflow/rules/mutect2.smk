@@ -83,7 +83,9 @@ rule read_orientation_model:
 rule get_pile_up_summaries:
     input:
         bam="results/bam_sorted_bwa/{sample}_sorted.bam",
+        bam_idx="results/bam_sorted_bwa/{sample}_sorted.bam.bai",
         common=config["common-biallelic"],
+        common_index=config["common-biallelic-index"],
     output:
         "results/mutect2/pile_up_summaries/{sample}.table"
     benchmark: "benchmarks/pile_up_summaries/{sample}.txt"
@@ -157,8 +159,8 @@ rule extract_germline_variants:
         "results/mutect2/filtered/{sample}_filtered.vcf.gz"
     log: 
         "logs/extract_germline_variants/{sample}.log"
-    output:
     threads: 1
+    output:
         "results/mutect2/germline/{sample}_germline.vcf.gz"
     benchmark:
         "benchmarks/extract_germline_variants/{sample}.txt"
