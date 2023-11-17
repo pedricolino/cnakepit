@@ -23,7 +23,7 @@ rule qualimap_bwa:
         "results/qc/qualimap/qualimap_bwa/{sample}/qualimapReport.html"
     benchmark:
         "benchmarks/qualimap_bwa/{sample}.txt"
-    threads: 4
+    threads: 16
     log:
         "logs/qualimap_bwa/{sample}.log"
     params:
@@ -31,7 +31,7 @@ rule qualimap_bwa:
     conda:
         "../envs/qc_map.yaml"
     shell:
-        "qualimap bamqc -bam {input} -outdir {params.outdir} 2> {log}"
+        "qualimap bamqc -bam {input} -nt {threads} -outdir {params.outdir} 2> {log}"
 
 rule multiqc_map_bwa:
     input:
@@ -40,7 +40,6 @@ rule multiqc_map_bwa:
         "results/qc_map_bwa/multiqc_report.html"
     benchmark:
         "benchmarks/multiqc_map_bwa.txt"
-    threads: 2
     log:
         "logs/qc_map_bwa/multiqc.log"
     conda:

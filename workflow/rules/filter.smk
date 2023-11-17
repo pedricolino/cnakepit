@@ -6,7 +6,6 @@ rule filter_ref:
     "results/filter_ref/hg38_filtered.fa"
   log:
     "logs/filter/filter_ref.log"
-  threads: 8
   conda:
     "../envs/filter.yaml"
   shell:
@@ -19,7 +18,6 @@ rule idx_ref_f:
     "results/filter_ref/hg38_filtered.fa.fai"
   log:
     "logs/filter/idx_ref.log"
-  threads: 8
   conda:
     "../envs/filter.yaml"
   shell:

@@ -14,7 +14,6 @@ rule get_mappability:
         config["mappability"]
     benchmark:
         "benchmarks/cnvkit/general/get_mappability.txt"
-    threads: 1
     log:
         "logs/cnvkit/general/get_mappability/log",
     shell:
@@ -33,7 +32,6 @@ rule cnvkit_autobin:
     params:
         extra = '--method amplicon',
         samplenames = samples.index
-    threads: 4
     log:
         "logs/cnvkit/general/autobin/log",
     conda:
@@ -53,14 +51,14 @@ rule cnvkit_coverage:
     benchmark: "benchmarks/cnvkit/general/coverage/{sample}.txt"
     params:
         extra = '',
-    threads: 4
+    threads: 8
     log:
         "logs/cnvkit/general/coverage/{sample}.log",
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py coverage {input.bam} {input.targets} -o {output.target_coverage} {params.extra} && '
-        'cnvkit.py coverage {input.bam} {input.antitargets} -o {output.antitarget_coverage} {params.extra} 2> {log}'
+        'cnvkit.py coverage {input.bam} {input.targets} --processes {threads} -o {output.target_coverage} {params.extra} && '
+        'cnvkit.py coverage {input.bam} {input.antitargets} --processes {threads} -o {output.antitarget_coverage} {params.extra} 2> {log}'
 
 rule cnvkit_ref_generic:
     input:
@@ -71,7 +69,6 @@ rule cnvkit_ref_generic:
     benchmark: "benchmarks/cnvkit/general/ref_generic.txt"
     params:
         extra = '',
-    threads: 8
     log:
         "logs/cnvkit/general/ref_generic/log",
     conda:
@@ -89,7 +86,6 @@ rule cnvkit_fix:
     benchmark: "benchmarks/cnvkit/general/fix/{sample}.txt"
     params:
         extra = '',
-    threads: 4
     log:
         "logs/cnvkit/general/fix/{sample}.log",
     conda:

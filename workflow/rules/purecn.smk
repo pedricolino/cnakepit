@@ -4,7 +4,6 @@ rule install_lima1_pscbs:
         "results/purecn/pscbs_check"
     conda:
         "../envs/primary_env.yaml"
-    threads: 1
     log:
         "logs/purecn/install_lima1_pscbs.log"
     shell:
@@ -22,7 +21,6 @@ rule purecn_cbs_pscbs:
     output:
         "results/purecn/cbs_pscbs/{sample}/{sample}.rds"
     benchmark: "benchmarks/purecn/cbs_pscbs/{sample}.txt"
-    threads: 8
     log:
         "logs/purecn/cbs_pscbs/{sample}.log",
     conda:
@@ -46,7 +44,6 @@ rule purecn_hmm_pscbs:
         install="results/purecn/pscbs_check"
     output:
         "results/purecn/hmm_pscbs/{sample}/{sample}.rds"
-    threads: 8
     log:
         "logs/purecn/hmm_pscbs/{sample}.log",
     conda:
@@ -68,7 +65,6 @@ rule purecn_cbs_hclust:
     output:
         "results/purecn/cbs_hclust/{sample}/{sample}.rds"
     benchmark: "benchmarks/purecn/cbs_hclust/{sample}.txt"
-    threads: 8
     log:
         "logs/purecn/cbs_hclust/{sample}.log",
     conda:
@@ -88,7 +84,6 @@ rule purecn_hmm_hclust:
         seg='results/cnvkit/hmm/{sample}.seg',
     output:
         "results/purecn/hmm_hclust/{sample}/{sample}.rds"
-    threads: 8
     log:
         "logs/purecn/hmm_hclust/{sample}.log",
     conda:

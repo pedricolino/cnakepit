@@ -30,7 +30,7 @@ rule trim:
   params:
     base = lambda wildcards: f"results/trimmed/{wildcards.sample}.fq.gz",
     adapter = config["adapter"]
-  threads: 2
+  threads: 8
   conda:
     "../envs/primary_env.yaml"
   shell:
@@ -48,7 +48,7 @@ rule fastqc_trim:
     "logs/fastqc_trim/{sample}_{i}P.log"
   conda:
     "../envs/primary_env.yaml"
-  threads: 16
+  threads: 2 # two files per job
   wrapper:
     "v1.4.0/bio/fastqc"
 
@@ -60,7 +60,6 @@ rule multiqc_fastqc:
   output:
     "results/qc/multiqc_report_fastqc.html"
   benchmark: "benchmarks/multiqc_fastqc.txt"
-  threads: 2
   log:
     "logs/multiqc.log"
   conda:

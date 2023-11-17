@@ -8,13 +8,13 @@ rule cnvkit_segment_hmm:
         'benchmarks/cnvkit/hmm_segment/{sample}.txt'
     params:
         extra = '-m hmm',
-    threads: 4
+    threads: 8
     log:
         "logs/cnvkit/hmm/segment/{sample}.log",
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py segment {input.copy_ratios} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
+        'cnvkit.py segment {input.copy_ratios} --vcf {input.germline_vcf} -o {output} --processes {threads} {params.extra} 2> {log}'
 
 rule cnvkit_scatter_hmm:
     input:
@@ -27,7 +27,6 @@ rule cnvkit_scatter_hmm:
         'benchmarks/cnvkit/hmm/{sample}_scatter.txt'
     params:
         extra = '',
-    threads: 1
     log:
         "logs/cnvkit/hmm/scatter/{sample}.log",
     conda:
@@ -45,7 +44,6 @@ rule cnvkit_diagram_hmm:
         'benchmarks/cnvkit/hmm/{sample}_diagram.txt'
     params:
         extra = '',
-    threads: 1
     log:
         "logs/cnvkit/hmm/diagram/{sample}.log",
     conda:
@@ -60,7 +58,6 @@ rule cnvkit_heatmap_hmm:
         'results/cnvkit/hmm/heatmap.cnv.pdf'
     benchmark:
         'benchmarks/cnvkit/hmm/heatmap.txt'
-    threads: 4
     log:
         "logs/cnvkit/hmm/heatmap.log",
     conda:
@@ -78,7 +75,6 @@ rule export_seg_hmm:
         'benchmarks/cnvkit/hmm/export_seg/{sample}.txt'
     params:
         extra = '--enumerate-chroms',
-    threads: 1
     log:
         "logs/cnvkit/hmm/export_seg/{sample}.log",
     conda:
@@ -96,7 +92,6 @@ rule cnvkit_call_hmm:
         'benchmarks/cnvkit/hmm/{sample}.call.txt'
     params:
         extra = '',
-    threads: 1
     log:
         "logs/cnvkit/hmm/call/{sample}.log",
     conda:
