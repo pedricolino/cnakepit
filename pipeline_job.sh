@@ -1,14 +1,15 @@
 #!/bin/bash
 #
 #SBATCH --job-name=CNVsnake
+#SBATCH --partition medium
+#SBATCH --mem=16G
+#SBATCH --ntasks=1
 #SBATCH --time=7-00:00:00
 #SBATCH --nodes=1
 #SBATCH --export=all # Keep current environment variables
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=cedric.moris@bih-charite.de
 #SBATCH --output=logs/slurm_log/%x-%J.log
-# #SBATCH --mem=64G
-# #SBATCH --ntasks=96
 
 # Ensure logs folder exists -------------------------------------------------
 
@@ -47,8 +48,8 @@ snakemake \
     --retries 2 \
     --profile cubi-v1 \
     --rerun-incomplete \
-    --jobs=20 \
-    --default-resources time=01:00:00
+    --jobs=20
+    --default-resources "runtime=01:00:00"
 
 # Finish up -----------------------------------------------------------------
 
