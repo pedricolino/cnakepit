@@ -59,7 +59,7 @@ rule mutect2_bam:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        "gatk Mutect2 -R {input.fasta} -I {input.map} -L {input.targets} -O {output.vcf} {params.extra} --germline-resource {input.gnomad} --f1r2-tar-gz {output.f1r2} --tmp-dir ${TMPDIR} &> {log}"
+        "gatk Mutect2 -R {input.fasta} -I {input.map} -L {input.targets} -O {output.vcf} {params.extra} --germline-resource {input.gnomad} --f1r2-tar-gz {output.f1r2} --tmp-dir ${{TMPDIR}} &> {log}"
 
 rule read_orientation_model:
     input:
@@ -73,7 +73,7 @@ rule read_orientation_model:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        "gatk LearnReadOrientationModel -I {input.f1r2} -O {output} --tmp-dir ${TMPDIR} &> {log}"
+        "gatk LearnReadOrientationModel -I {input.f1r2} -O {output} --tmp-dir ${{TMPDIR}} &> {log}"
 
 rule get_pile_up_summaries:
     input:
@@ -87,7 +87,7 @@ rule get_pile_up_summaries:
     conda:  
         "../envs/primary_env.yaml"
     shell:
-        "gatk GetPileupSummaries -I {input.bam} -V {input.common} -L {input.common} -O {output} --tmp-dir ${TMPDIR} &> {log}"
+        "gatk GetPileupSummaries -I {input.bam} -V {input.common} -L {input.common} -O {output} --tmp-dir ${{TMPDIR}} &> {log}"
 
 rule calculate_contamination:
     input:
@@ -102,7 +102,7 @@ rule calculate_contamination:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        "gatk CalculateContamination -I {input.pileup} -O {output} --tmp-dir ${TMPDIR} &> {log}"
+        "gatk CalculateContamination -I {input.pileup} -O {output} --tmp-dir ${{TMPDIR}} &> {log}"
 
 # rule mutect2_ref_dict:
 #     input:
@@ -131,7 +131,7 @@ rule filter_mutect_calls:
         vcf="results/mutect2/unfiltered/{sample}.vcf.gz",
         reference=config["ref"],
         rom="results/mutect2/read_orientation_model/{sample}.tar.gz",
-        contamination-table="results/mutect2/contamination/{sample}.txt"
+        contamination_table="results/mutect2/contamination/{sample}.txt"
     threads: 16
     log:
         "logs/filter_mutect_calls/{sample}.log",
@@ -141,4 +141,17 @@ rule filter_mutect_calls:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
     benchmark: "benchmarks/filter_mutect_calls/{sample}.txt"
     shell:
-        "gatk FilterMutectCalls -R {input.reference} -V {input.vcf} --orientation-bias-artifact-priors {input.rom} --contamination-table {input.contamination-table}  -O {output.vcf_filt} --tmp-dir ${TMPDIR} &> {log}"
+        "gatk FilterMutectCalls -R {input.reference} -V {input.vcf} --orientation-bias-artifact-priors {input.rom} --contamination-table {input.contamination_table}  -O {output.vcf_filt} --tmp-dir ${{TMPDIR}} &> {log}"
+
+# for CNVkit, extract only variants classified as germline
+rule extract_germline_variants:
+    input:
+        "results/mutect2/filtered/{sample}_filtered.vcf.gz"
+    log: 
+        "logs/extract_germline_variants/{sample}.log"
+    output:
+        "results/mutect2/germline/{sample}_germline.vcf.gz"
+    benchmark:
+        "benchmarks/extract_germline_variants/{sample}.txt"
+    shell:
+        """bcftools view -i 'FILTER~"germline"' {input} | bgzip -c > {output} &> {log}"""
