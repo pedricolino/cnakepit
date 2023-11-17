@@ -17,6 +17,10 @@
 # Use more descriptive name in Slurm.
 #SBATCH --job-name sj_2s
 
+# Check preconditions -------------------------------------------------------
+
+# Ensure slurm_log is a directory
+test -d slurm_log || { >&2 echo "${PWD}/slurm_log does not exist"; exit 1; }
 
 # Enforce existence of TMPDIR -----------------------------------------------
 
@@ -37,9 +41,14 @@ set -x
 
 # Kick off Snakemake --------------------------------------------------------
 
-snakemake --use-conda --cores 96 --conda-frontend mamba 
-#--unlock
-#--rerun-incomplete
+snakemake \
+    --profile=cubi-v1 \
+    --use-conda \
+    --conda-frontend mamba \
+    --cores 96 \
+    --retries 2
+    #--unlock
+    #--rerun-incomplete
 
 # Print date after finishing, for good measure ------------------------------
 
