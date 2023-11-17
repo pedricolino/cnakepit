@@ -42,7 +42,7 @@ if config["DNA_seq"]:
             "v1.7.0/bio/bwa/index"
 
     def myrule_mem(wildcards, attempt):
-        mem = 4 * attempt
+        mem = 8 * attempt # 4GB is not enough, start trying with 8GB
         return '%dG' % mem
 
     rule bwa_mem:
