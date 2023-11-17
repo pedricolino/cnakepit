@@ -41,6 +41,10 @@ if config["DNA_seq"]:
         wrapper:
             "v1.7.0/bio/bwa/index"
 
+    def myrule_mem(wildcards, attempt):
+        mem = 2 * attempt
+        return '%dG' % mem
+
     rule bwa_mem:
         input:
             ref_index=config["ref_index"],
@@ -57,6 +61,9 @@ if config["DNA_seq"]:
             sort_order="queryname",  # Can be 'queryname' or 'coordinate'.
             sort_extra="",  # Extra args for samtools/picard.
         threads: 16
+        resources:
+            mem=myrule_mem,
+            time='02:00:00'
         conda:
             "../envs/map.yaml"
         wrapper:
