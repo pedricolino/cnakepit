@@ -1,26 +1,19 @@
 #!/bin/bash
-
-# The medium project/queue is a sensible default.
-#SBATCH --partition medium
-# Set a required running time for the master job.
-#SBATCH --time=5-00:00:00
-# Reserve some resources
-#SBATCH --mem=64G
-#SBATCH --ntasks=96
-# Keep current environment variables
-#SBATCH --export=all
-# Send a mail upon job completion and error
+#
+#SBATCH --job-name=CNVsnake
+#SBATCH --time=7-00:00:00
+#SBATCH --nodes=1
+#SBATCH --export=all # Keep current environment variables
 #SBATCH --mail-type=END,FAIL
-#SBATCH --mail-user cedric.moris@bih-charite.de
-# Logs should be written into "slurm_log" sub directory.
-#SBATCH --output logs/slurm_log/%x-%J.log
-# Use more descriptive name in Slurm.
-#SBATCH --job-name sj_2s
+#SBATCH --mail-user=cedric.moris@bih-charite.de
+#SBATCH --output=logs/slurm_log/%x-%J.log
+# #SBATCH --mem=64G
+# #SBATCH --ntasks=96
 
-# Check preconditions -------------------------------------------------------
+# Ensure logs folder exists -------------------------------------------------
 
-# Ensure slurm_log is a directory
-test -d slurm_log || { >&2 echo "${PWD}/slurm_log does not exist"; exit 1; }
+mkdir -p logs/slurm_log
+export SBATCH_DEFAULTS=" --output=logs/slurm_log/%x-%j.log"
 
 # Enforce existence of TMPDIR -----------------------------------------------
 
@@ -31,7 +24,8 @@ mkdir -p ${TMPDIR}
 
 set -x
 >&2 hostname
->&2 date
+start_time=$(date +"%Y-%m-%d %H:%M:%S")
+>&2 echo "Job started at $start_time"
 
 # Activate conda environment ------------------------------------------------
 
@@ -39,18 +33,43 @@ set -x
 #eval "$(conda shell.bash hook)"
 #conda activate snakemake-vanilla
 
+# Workflow specific parameters ----------------------------------------------
+
+# For Mutect2 multithreading, see https://www.biostars.org/p/9549710/#9550707
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+
 # Kick off Snakemake --------------------------------------------------------
 
 snakemake \
-    --profile=cubi-v1 \
     --use-conda \
     --conda-frontend mamba \
-    --cores 96 \
-    --retries 2
+    --cores 128 \
+    --retries 2 \
+    --profile cubi-v1 \
+    --rerun-incomplete \
+    --jobs=20 \
+    --default-resources time=01:00:00
+    # --profile=cubi-v1 \
     #--unlock
-    #--rerun-incomplete
 
-# Print date after finishing, for good measure ------------------------------
+# Finish up -----------------------------------------------------------------
 
->&2 date
+end_time=$(date +"%Y-%m-%d %H:%M:%S")
+>&2 echo "Job ended at $end_time"
+
+# Calculate and print the total runtime in hours and minutes
+start_seconds=$(date -d "$start_time" +"%s")
+end_seconds=$(date -d "$end_time" +"%s")
+runtime_seconds=$((end_seconds - start_seconds))
+
+runtime_hours=$((runtime_seconds / 3600))
+runtime_minutes=$(( (runtime_seconds % 3600) / 60 ))
+
+>&2 echo "Total runtime: $runtime_hours hours and $runtime_minutes minutes"
+
+# Append runtime information to the log file
+>&2 echo "Job started at $start_time" >> your_log_file.log
+>&2 echo "Job ended at $end_time" >> your_log_file.log
+>&2 echo "Total runtime: $runtime_hours hours and $runtime_minutes minutes" >> your_log_file.log
+
 >&2 echo "All done. Have a nice day."
