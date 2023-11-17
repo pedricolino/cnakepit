@@ -14,6 +14,7 @@ rule get_mappability:
         config["mappability"]
     benchmark:
         "benchmarks/cnvkit/general/get_mappability.txt"
+    threads: 1
     log:
         "logs/cnvkit/general/get_mappability/log",
     shell:
@@ -32,7 +33,7 @@ rule cnvkit_autobin:
     params:
         extra = '--method amplicon',
         samplenames = samples.index
-    threads: 8
+    threads: 4
     log:
         "logs/cnvkit/general/autobin/log",
     conda:
@@ -52,7 +53,7 @@ rule cnvkit_coverage:
     benchmark: "benchmarks/cnvkit/general/coverage/{sample}.txt"
     params:
         extra = '',
-    threads: 8
+    threads: 4
     log:
         "logs/cnvkit/general/coverage/{sample}.log",
     conda:
@@ -88,7 +89,7 @@ rule cnvkit_fix:
     benchmark: "benchmarks/cnvkit/general/fix/{sample}.txt"
     params:
         extra = '',
-    threads: 8
+    threads: 4
     log:
         "logs/cnvkit/general/fix/{sample}.log",
     conda:

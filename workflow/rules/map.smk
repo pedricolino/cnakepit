@@ -11,6 +11,7 @@ rule get_ref:
         HTTP.remote("storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta", keep_local=True)
     output:
         config["ref"]
+    threads: 1
     shell:
         "mv {input} {output}"
 
@@ -19,6 +20,7 @@ rule get_ref_index:
         HTTP.remote("storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta.fai", keep_local=True)
     output:
         config["ref_index"]
+    threads: 1
     shell:
         "mv {input} {output}"
 
@@ -34,6 +36,7 @@ if config["DNA_seq"]:
         benchmark: "benchmarks/bwa_index.txt"
         log:
             "logs/bwa_index/bwa_index.log",
+        threads: 4
         params:
             algorithm="bwtsw",
         conda:
@@ -92,7 +95,7 @@ if config["DNA_seq"]:
         benchmark: "benchmarks/samtools_index_bwa/{sample}.txt"
         log:
             "logs/samtools/index_bwa/{sample}.log"
-        threads: 16
+        threads: 8
         conda:
             "../envs/qc_map.yaml"
         params:
@@ -132,7 +135,7 @@ else:
             fasta="{genome}.fasta",
         output:
             directory("{genome}"),
-        threads: 16
+        threads: 8
         params:
             extra="",
         log:

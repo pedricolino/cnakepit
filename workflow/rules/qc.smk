@@ -60,6 +60,7 @@ rule multiqc_fastqc:
   output:
     "results/qc/multiqc_report_fastqc.html"
   benchmark: "benchmarks/multiqc_fastqc.txt"
+  threads: 2
   log:
     "logs/multiqc.log"
   conda:

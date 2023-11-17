@@ -10,8 +10,7 @@ rule sort_bwa:
         "benchmarks/sort_bwa/{sample}.txt"
     log:
         "logs/samtools/sort_bwa/{sample}.log"
-    threads:
-        16
+    threads: 8
     conda:
         "../envs/primary_env.yaml"
     shell:
@@ -24,6 +23,7 @@ rule qualimap_bwa:
         "results/qc/qualimap/qualimap_bwa/{sample}/qualimapReport.html"
     benchmark:
         "benchmarks/qualimap_bwa/{sample}.txt"
+    threads: 4
     log:
         "logs/qualimap_bwa/{sample}.log"
     params:
@@ -40,6 +40,7 @@ rule multiqc_map_bwa:
         "results/qc_map_bwa/multiqc_report.html"
     benchmark:
         "benchmarks/multiqc_map_bwa.txt"
+    threads: 2
     log:
         "logs/qc_map_bwa/multiqc.log"
     conda:

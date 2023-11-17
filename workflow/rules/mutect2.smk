@@ -9,6 +9,7 @@ rule get_gnomad:
         HTTP.remote("www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.hg38.vcf.gz", keep_local=True)
     output:
         config["germline-resource"]
+    threads: 1
     shell:
         "mv {input} {output}"
 
@@ -17,6 +18,7 @@ rule get_gnomad_index:
         HTTP.remote("www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.hg38.vcf.gz.tbi", keep_local=True)
     output:
         config["germline-resource-index"]
+    threads: 1
     shell:
         "mv {input} {output}"
 
@@ -25,12 +27,14 @@ rule get_common_biallelic:
         HTTP.remote("http://storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz", keep_local=True)
     output:
         config["common-biallelic"]
+    threads: 1
     shell:
         "mv {input} {output}"
 
 rule get_common_biallelic_index:
     input:
         HTTP.remote("http://storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz.tbi", keep_local=True)
+    threads: 1
     output:
         config["common-biallelic-index"]
     shell:
@@ -68,6 +72,7 @@ rule read_orientation_model:
     output:
         "results/mutect2/read_orientation_model/{sample}.tar.gz"
     benchmark: "benchmarks/read_orientation_model/{sample}.txt"
+    threads: 8
     log:
         "logs/read_orientation_model/{sample}.log"
     conda:
@@ -82,6 +87,7 @@ rule get_pile_up_summaries:
     output:
         "results/mutect2/pile_up_summaries/{sample}.table"
     benchmark: "benchmarks/pile_up_summaries/{sample}.txt"
+    threads: 8
     log:
         "logs/pile_up_summaries/{sample}.log"
     conda:  
@@ -97,6 +103,7 @@ rule calculate_contamination:
     output:
         "results/mutect2/contamination/{sample}.txt"
     benchmark: "benchmarks/calculate_contamination/{sample}.txt"
+    threads: 8
     log:
         "logs/calculate_contamination/{sample}.log"
     conda:
@@ -122,6 +129,7 @@ rule get_ref_dict:
         HTTP.remote("storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dict", keep_local=True)
     output:
         "resources/reference/hg38.dict"
+    threads: 1
     benchmark: "benchmarks/get_ref_dict.log"
     shell:
         "mv {input} {output}"
@@ -132,7 +140,7 @@ rule filter_mutect_calls:
         reference=config["ref"],
         rom="results/mutect2/read_orientation_model/{sample}.tar.gz",
         contamination_table="results/mutect2/contamination/{sample}.txt"
-    threads: 16
+    threads: 8
     log:
         "logs/filter_mutect_calls/{sample}.log",
     conda:
@@ -150,6 +158,7 @@ rule extract_germline_variants:
     log: 
         "logs/extract_germline_variants/{sample}.log"
     output:
+    threads: 1
         "results/mutect2/germline/{sample}_germline.vcf.gz"
     benchmark:
         "benchmarks/extract_germline_variants/{sample}.txt"

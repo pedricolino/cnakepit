@@ -8,7 +8,7 @@ rule cnvkit_segment_hmm:
         'benchmarks/cnvkit/hmm_segment/{sample}.txt'
     params:
         extra = '-m hmm',
-    threads: 8
+    threads: 4
     log:
         "logs/cnvkit/hmm/segment/{sample}.log",
     conda:
@@ -27,7 +27,7 @@ rule cnvkit_scatter_hmm:
         'benchmarks/cnvkit/hmm/{sample}_scatter.txt'
     params:
         extra = '',
-    threads: 8
+    threads: 1
     log:
         "logs/cnvkit/hmm/scatter/{sample}.log",
     conda:
@@ -45,7 +45,7 @@ rule cnvkit_diagram_hmm:
         'benchmarks/cnvkit/hmm/{sample}_diagram.txt'
     params:
         extra = '',
-    threads: 8
+    threads: 1
     log:
         "logs/cnvkit/hmm/diagram/{sample}.log",
     conda:
@@ -60,7 +60,7 @@ rule cnvkit_heatmap_hmm:
         'results/cnvkit/hmm/heatmap.cnv.pdf'
     benchmark:
         'benchmarks/cnvkit/hmm/heatmap.txt'
-    threads: 8
+    threads: 4
     log:
         "logs/cnvkit/hmm/heatmap.log",
     conda:
@@ -78,7 +78,7 @@ rule export_seg_hmm:
         'benchmarks/cnvkit/hmm/export_seg/{sample}.txt'
     params:
         extra = '--enumerate-chroms',
-    threads: 8
+    threads: 1
     log:
         "logs/cnvkit/hmm/export_seg/{sample}.log",
     conda:
@@ -96,7 +96,7 @@ rule cnvkit_call_hmm:
         'benchmarks/cnvkit/hmm/{sample}.call.txt'
     params:
         extra = '',
-    threads: 8
+    threads: 1
     log:
         "logs/cnvkit/hmm/call/{sample}.log",
     conda:
