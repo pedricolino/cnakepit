@@ -49,8 +49,6 @@ snakemake \
     --rerun-incomplete \
     --jobs=20 \
     --default-resources time=01:00:00
-    # --profile=cubi-v1 \
-    #--unlock
 
 # Finish up -----------------------------------------------------------------
 
@@ -66,10 +64,4 @@ runtime_hours=$((runtime_seconds / 3600))
 runtime_minutes=$(( (runtime_seconds % 3600) / 60 ))
 
 >&2 echo "Total runtime: $runtime_hours hours and $runtime_minutes minutes"
-
-# Append runtime information to the log file
->&2 echo "Job started at $start_time" >> your_log_file.log
->&2 echo "Job ended at $end_time" >> your_log_file.log
->&2 echo "Total runtime: $runtime_hours hours and $runtime_minutes minutes" >> your_log_file.log
-
 >&2 echo "All done. Have a nice day."
