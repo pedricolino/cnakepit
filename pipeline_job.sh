@@ -12,8 +12,8 @@
 
 # Ensure logs folder exists -------------------------------------------------
 
-mkdir -p logs/slurm_log
-export SBATCH_DEFAULTS=" --output=logs/slurm_log/%x-%j.log"
+mkdir -p logs/slurm_log/snakejobs
+export SBATCH_DEFAULTS=" --output=logs/slurm_log/snakejobs/%x-%j.log"
 
 # Enforce existence of TMPDIR -----------------------------------------------
 
