@@ -1,0 +1,140 @@
+digraph snakemake_dag {
+    graph[bgcolor=white, margin=0];
+    node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
+    edge[penwidth=2, color=grey];
+	0[label = "all", color = "0.33 0.6 0.85", style="rounded"];
+	1[label = "multiqc_fastqc", color = "0.35 0.6 0.85", style="rounded"];
+	2[label = "fastqc", color = "0.29 0.6 0.85", style="rounded"];
+	3[label = "fastqc_trim", color = "0.55 0.6 0.85", style="rounded"];
+	4[label = "trim", color = "0.62 0.6 0.85", style="rounded"];
+	5[label = "multiqc_map_bwa", color = "0.17 0.6 0.85", style="rounded"];
+	6[label = "qualimap_bwa", color = "0.54 0.6 0.85", style="rounded"];
+	7[label = "sort_bwa", color = "0.44 0.6 0.85", style="rounded"];
+	8[label = "bwa_mem", color = "0.51 0.6 0.85", style="rounded"];
+	9[label = "get_ref_index", color = "0.53 0.6 0.85", style="rounded"];
+	10[label = "bwa_index", color = "0.27 0.6 0.85", style="rounded"];
+	11[label = "get_ref", color = "0.64 0.6 0.85", style="rounded"];
+	12[label = "cnvkit_diagram_cbs", color = "0.46 0.6 0.85", style="rounded"];
+	13[label = "cnvkit_fix", color = "0.15 0.6 0.85", style="rounded"];
+	14[label = "cnvkit_coverage", color = "0.50 0.6 0.85", style="rounded"];
+	15[label = "cnvkit_autobin", color = "0.10 0.6 0.85", style="rounded"];
+	16[label = "get_mappability", color = "0.49 0.6 0.85", style="rounded"];
+	17[label = "cnvkit_ref_generic", color = "0.23 0.6 0.85", style="rounded"];
+	18[label = "cnvkit_segment_cbs", color = "0.00 0.6 0.85", style="rounded"];
+	19[label = "extract_germline_variants", color = "0.60 0.6 0.85", style="rounded"];
+	20[label = "filter_mutect_calls", color = "0.08 0.6 0.85", style="rounded"];
+	21[label = "mutect2_bam", color = "0.45 0.6 0.85", style="rounded"];
+	22[label = "get_ref_dict", color = "0.36 0.6 0.85", style="rounded"];
+	23[label = "index_bwa", color = "0.40 0.6 0.85", style="rounded"];
+	24[label = "get_gnomad", color = "0.09 0.6 0.85", style="rounded"];
+	25[label = "get_gnomad_index", color = "0.59 0.6 0.85", style="rounded"];
+	26[label = "read_orientation_model", color = "0.03 0.6 0.85", style="rounded"];
+	27[label = "calculate_contamination", color = "0.26 0.6 0.85", style="rounded"];
+	28[label = "get_pile_up_summaries", color = "0.06 0.6 0.85", style="rounded"];
+	29[label = "get_common_biallelic", color = "0.01 0.6 0.85", style="rounded"];
+	30[label = "get_common_biallelic_index", color = "0.41 0.6 0.85", style="rounded"];
+	31[label = "cnvkit_scatter_cbs", color = "0.31 0.6 0.85", style="rounded"];
+	32[label = "cnvkit_call_cbs", color = "0.42 0.6 0.85", style="rounded"];
+	33[label = "cnvkit_heatmap_cbs", color = "0.37 0.6 0.85", style="rounded"];
+	34[label = "purecn_cbs_pscbs", color = "0.24 0.6 0.85", style="rounded"];
+	35[label = "export_seg_cbs", color = "0.56 0.6 0.85", style="rounded"];
+	36[label = "install_lima1_pscbs", color = "0.19 0.6 0.85", style="rounded"];
+	37[label = "purecn_cbs_hclust", color = "0.21 0.6 0.85", style="rounded"];
+	38[label = "cnvkit_diagram_hmm", color = "0.58 0.6 0.85", style="rounded"];
+	39[label = "cnvkit_segment_hmm", color = "0.47 0.6 0.85", style="rounded"];
+	40[label = "cnvkit_scatter_hmm", color = "0.14 0.6 0.85", style="rounded"];
+	41[label = "cnvkit_call_hmm", color = "0.28 0.6 0.85", style="rounded"];
+	42[label = "cnvkit_heatmap_hmm", color = "0.12 0.6 0.85", style="rounded"];
+	43[label = "purecn_hmm_pscbs", color = "0.05 0.6 0.85", style="rounded"];
+	44[label = "export_seg_hmm", color = "0.18 0.6 0.85", style="rounded"];
+	45[label = "purecn_hmm_hclust", color = "0.04 0.6 0.85", style="rounded"];
+	37 -> 0
+	5 -> 0
+	33 -> 0
+	34 -> 0
+	38 -> 0
+	45 -> 0
+	43 -> 0
+	41 -> 0
+	31 -> 0
+	32 -> 0
+	42 -> 0
+	1 -> 0
+	40 -> 0
+	12 -> 0
+	3 -> 1
+	2 -> 1
+	4 -> 3
+	6 -> 5
+	7 -> 6
+	8 -> 7
+	10 -> 8
+	9 -> 8
+	4 -> 8
+	11 -> 10
+	13 -> 12
+	18 -> 12
+	17 -> 13
+	14 -> 13
+	7 -> 14
+	15 -> 14
+	7 -> 15
+	16 -> 15
+	15 -> 17
+	11 -> 17
+	13 -> 18
+	19 -> 18
+	20 -> 19
+	11 -> 20
+	27 -> 20
+	21 -> 20
+	26 -> 20
+	23 -> 21
+	25 -> 21
+	24 -> 21
+	7 -> 21
+	11 -> 21
+	22 -> 21
+	7 -> 23
+	21 -> 26
+	23 -> 26
+	11 -> 27
+	28 -> 27
+	22 -> 27
+	30 -> 28
+	7 -> 28
+	23 -> 28
+	29 -> 28
+	13 -> 31
+	18 -> 31
+	19 -> 31
+	18 -> 32
+	19 -> 32
+	18 -> 33
+	20 -> 34
+	35 -> 34
+	13 -> 34
+	36 -> 34
+	18 -> 35
+	20 -> 37
+	35 -> 37
+	13 -> 37
+	39 -> 38
+	13 -> 38
+	13 -> 39
+	19 -> 39
+	39 -> 40
+	13 -> 40
+	19 -> 40
+	39 -> 41
+	19 -> 41
+	39 -> 42
+	20 -> 43
+	13 -> 43
+	36 -> 43
+	44 -> 43
+	39 -> 44
+	20 -> 45
+	13 -> 45
+	44 -> 45
+}            
