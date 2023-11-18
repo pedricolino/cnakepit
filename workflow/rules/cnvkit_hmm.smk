@@ -84,10 +84,10 @@ rule export_seg_hmm:
 
 rule cnvkit_call_hmm:
     input:
-        copy_ratio = 'results/cnvkit/general/{sample}.cnr',
+        cns = 'results/cnvkit/hmm/{sample}.cns',
         germline_vcf = "results/mutect2/germline/{sample}_germline.vcf"
     output:
-        'results/cnvkit/hmm/{sample}.call.cns'
+        'results/cnvkit/hmm/{sample}.icns' # integer copy number
     benchmark:
         'benchmarks/cnvkit/hmm/{sample}.call.txt'
     params:
@@ -97,4 +97,4 @@ rule cnvkit_call_hmm:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py call {input.copy_ratio} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
+        'cnvkit.py call {input.cns} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'

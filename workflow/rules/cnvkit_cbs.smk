@@ -84,10 +84,10 @@ rule export_seg_cbs:
 
 rule cnvkit_call_cbs:
     input:
-        copy_ratio = 'results/cnvkit/general/{sample}.cnr',
+        cns = 'results/cnvkit/cbs/{sample}.cns',
         germline_vcf = "results/mutect2/germline/{sample}_germline.vcf"
     output:
-        'results/cnvkit/cbs/{sample}.call.cns'
+        'results/cnvkit/cbs/{sample}.icns' # integer copy number
     benchmark:
         'benchmarks/cnvkit/cbs/{sample}.call.txt'
     params:
@@ -97,4 +97,4 @@ rule cnvkit_call_cbs:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py call {input.copy_ratio} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
+        'cnvkit.py call {input.cns} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
