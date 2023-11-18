@@ -1,4 +1,8 @@
-# Forked from Nina's FPPE-panel-pipeline
+# Snakemake pipeline to map and call CNVs with different methods
+
+- Forked from Nina's FPPE-panel-pipeline
+- Without any kind of normal samples
+- On panels, i.e. targeted sequencing data
 
 ## General workflow
 
