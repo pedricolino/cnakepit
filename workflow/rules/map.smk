@@ -32,6 +32,8 @@ if config["DNA_seq"]:
             #idx=multiext(ref_ref, ".amb", ".ann", ".bwt", ".pac", ".sa"),
             idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
         benchmark: "benchmarks/bwa_index.txt"
+        resources:
+            runtime=9000 # need almost two hours, allow for 2.5h
         log:
             "logs/bwa_index/bwa_index.log",
         params:
