@@ -151,8 +151,12 @@ rule extract_germline_variants:
     log: 
         "logs/extract_germline_variants/{sample}.log"
     output:
-        "results/mutect2/germline/{sample}_germline.vcf.gz"
+        "results/mutect2/germline/{sample}_germline.vcf"
     benchmark:
         "benchmarks/extract_germline_variants/{sample}.txt"
+    conda:
+        "../envs/primary_env.yaml"
     shell:
-        """bcftools view -i 'FILTER~"germline"' {input} | bgzip -c > {output} &> {log}"""
+        """
+        bcftools view -i 'FILTER~"germline"' {input} > {output} 2> {log}
+        """
