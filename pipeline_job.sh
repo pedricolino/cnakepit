@@ -48,8 +48,8 @@ snakemake \
     --retries 2 \
     --profile cubi-v1 \
     --rerun-incomplete \
-    --jobs=20
-    --default-resources "runtime=01:00:00"
+    --jobs=20 \
+    --default-resources "runtime=3600" # 1 hour
 
 # Finish up -----------------------------------------------------------------
 
