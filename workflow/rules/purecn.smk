@@ -12,6 +12,10 @@ rule install_lima1_pscbs:
 
 ########## Segmentation with different methods ##########
 
+def myrule_mem(wildcards, attempt):
+        mem = 4 * attempt
+        return '%dG' % mem
+
 rule purecn_cbs_pscbs:
     input:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
@@ -20,6 +24,8 @@ rule purecn_cbs_pscbs:
         install="results/purecn/pscbs_check"
     output:
         "results/purecn/cbs_pscbs/{sample}/{sample}.rds"
+    resources:
+        mem=myrule_mem
     benchmark: "benchmarks/purecn/cbs_pscbs/{sample}.txt"
     log:
         "logs/purecn/cbs_pscbs/{sample}.log",
@@ -44,6 +50,8 @@ rule purecn_hmm_pscbs:
         install="results/purecn/pscbs_check"
     output:
         "results/purecn/hmm_pscbs/{sample}/{sample}.rds"
+    resources:
+        mem=myrule_mem
     log:
         "logs/purecn/hmm_pscbs/{sample}.log",
     conda:
@@ -64,6 +72,8 @@ rule purecn_cbs_hclust:
         #script="workflow/scripts/purecn.R"
     output:
         "results/purecn/cbs_hclust/{sample}/{sample}.rds"
+    resources:
+        mem=myrule_mem
     benchmark: "benchmarks/purecn/cbs_hclust/{sample}.txt"
     log:
         "logs/purecn/cbs_hclust/{sample}.log",
@@ -84,6 +94,8 @@ rule purecn_hmm_hclust:
         seg='results/cnvkit/hmm/{sample}.seg',
     output:
         "results/purecn/hmm_hclust/{sample}/{sample}.rds"
+    resources:
+        mem=myrule_mem
     log:
         "logs/purecn/hmm_hclust/{sample}.log",
     conda:

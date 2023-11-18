@@ -1,7 +1,7 @@
 rule cnvkit_segment_cbs:
     input:
         copy_ratios = 'results/cnvkit/general/{sample}.cnr',
-        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf.gz"
+        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf"
     output:
         'results/cnvkit/cbs/{sample}.cns',
     benchmark:
@@ -20,7 +20,7 @@ rule cnvkit_scatter_cbs:
     input:
         copy_ratio = 'results/cnvkit/general/{sample}.cnr',
         segment = 'results/cnvkit/cbs/{sample}.cns',
-        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf.gz"
+        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf"
     output:
         'results/cnvkit/cbs/{sample}_scatter.cnv.pdf'
     benchmark:
@@ -85,7 +85,7 @@ rule export_seg_cbs:
 rule cnvkit_call_cbs:
     input:
         copy_ratio = 'results/cnvkit/general/{sample}.cnr',
-        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf.gz"
+        germline_vcf = "results/mutect2/germline/{sample}_germline.vcf"
     output:
         'results/cnvkit/cbs/{sample}.call.cns'
     benchmark:
