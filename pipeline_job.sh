@@ -44,12 +44,13 @@ export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 snakemake \
     --use-conda \
     --conda-frontend mamba \
-    --cores 128 \
+    --cores 2000 \
     --retries 2 \
     --profile cubi-v1 \
     --rerun-incomplete \
-    --jobs=20 \
-    --default-resources "runtime=3600" # 1 hour
+    --jobs=80 \
+    --slurm \
+    --default-resources slurm_account=hpc-ag-cubi slurm_partition=short "runtime=240"
 
 # Finish up -----------------------------------------------------------------
 
