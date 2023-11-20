@@ -32,8 +32,6 @@ if config["DNA_seq"]:
             #idx=multiext(ref_ref, ".amb", ".ann", ".bwt", ".pac", ".sa"),
             idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
         benchmark: "benchmarks/bwa_index.txt"
-        resources:
-            runtime=9000 # need almost two hours, allow for 2.5h
         log:
             "logs/bwa_index/bwa_index.log",
         params:
@@ -65,7 +63,6 @@ if config["DNA_seq"]:
         threads: 16
         resources:
             mem=myrule_mem,
-            time='02:00:00'
         conda:
             "../envs/map.yaml"
         wrapper:
