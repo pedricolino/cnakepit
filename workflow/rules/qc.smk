@@ -52,6 +52,9 @@ rule fastqc_trim:
   wrapper:
     "v1.4.0/bio/fastqc"
 
+def myrule_mem(wildcards, attempt):
+    mem = 8 * attempt
+    return '%dG' % mem
 
 rule multiqc_fastqc:
   input:
@@ -62,6 +65,8 @@ rule multiqc_fastqc:
   benchmark: "benchmarks/multiqc_fastqc.txt"
   log:
     "logs/multiqc.log"
+  resources:
+    mem=myrule_mem
   conda:
     "../envs/primary_env.yaml"
   shell:
