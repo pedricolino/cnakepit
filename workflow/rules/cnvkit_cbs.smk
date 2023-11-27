@@ -7,7 +7,7 @@ rule cnvkit_segment_cbs:
     benchmark:
         'benchmarks/cnvkit/cbs_segment/{sample}.txt'
     params:
-        extra = '-m cbs',
+        extra = '-m cbs --drop-low-coverage --smooth-cbs'
     threads: 8
     log:
         "logs/cnvkit/cbs/segment/{sample}.log",
@@ -91,7 +91,8 @@ rule cnvkit_call_cbs:
     benchmark:
         'benchmarks/cnvkit/cbs/{sample}.call.txt'
     params:
-        extra = '',
+        extra = '--drop-low-coverage', # https://cnvkit.readthedocs.io/en/stable/tumor.html
+        # maybe include --center median
     log:
         "logs/cnvkit/cbs/call/{sample}.log",
     conda:
