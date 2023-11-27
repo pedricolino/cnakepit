@@ -52,10 +52,6 @@ rule fastqc_trim:
   wrapper:
     "v1.4.0/bio/fastqc"
 
-def myrule_mem(wildcards, attempt):
-    mem = 8 * attempt
-    return '%dG' % mem
-
 rule multiqc_fastqc:
   input:
     fastqc_html = expand("results/qc/fastqc/{sample}_{i}.html", sample = list(samples.index), i = ["1", "2"]),
@@ -63,10 +59,13 @@ rule multiqc_fastqc:
   output:
     "results/qc/multiqc_report_fastqc.html"
   benchmark: "benchmarks/multiqc_fastqc.txt"
+  priority: -2 # error-prone rule, run it last
   log:
     "logs/multiqc.log"
   resources:
-    mem=myrule_mem
+    mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
+    runtime=24*60, # 24h
+    slurm_partition='medium'
   conda:
     "../envs/primary_env.yaml"
   shell:
