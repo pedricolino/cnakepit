@@ -11,6 +11,10 @@ rule sort_bwa:
     log:
         "logs/samtools/sort_bwa/{sample}.log"
     threads: 8
+    resources:
+        mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
+        runtime=24*60, # 24h
+        slurm_partition='medium'
     conda:
         "../envs/primary_env.yaml"
     shell:
@@ -24,6 +28,11 @@ rule qualimap_bwa:
     benchmark:
         "benchmarks/qualimap_bwa/{sample}.txt"
     threads: 16
+    priority: -2 # error-prone rule, run it last
+    resources:
+        mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
+        runtime=5*24*60, # 24h seems to be not enough for many samples
+        slurm_partition='medium'
     log:
         "logs/qualimap_bwa/{sample}.log"
     params:
@@ -40,6 +49,11 @@ rule multiqc_map_bwa:
         "results/qc_map_bwa/multiqc_report.html"
     benchmark:
         "benchmarks/multiqc_map_bwa.txt"
+    priority: -2 # error-prone rule, run it last
+    resources:
+        mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
+        runtime=24*60, # 24h
+        slurm_partition='medium'
     log:
         "logs/qc_map_bwa/multiqc.log"
     conda:
