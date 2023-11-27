@@ -6,6 +6,9 @@
 # sequencing type: either DNA (DNA = true) or RNA (DNA = false)
 DNA_seq: True
 
+# is amplicon sequencing used as a targeted capture method -> no off-target reads
+amplicon: True
+
 # path/to/refgenome.fa
 ref: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa" #"resources/reference/hg38.fa"
 ref_index: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa.fai" #"resources/reference/hg38.fa.fai"

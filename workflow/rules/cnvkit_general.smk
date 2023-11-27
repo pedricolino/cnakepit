@@ -1,5 +1,6 @@
 bedtargets = 'results/cnvkit/general/'+bedname+'_target.bed'
 bedantitargets = 'results/cnvkit/general/'+bedname+'_antitarget.bed'
+amplicontargets = 'results/cnvkit/general/'+bedname+'_amplicon.bed'
 bedname=bedname
 
 import os
@@ -7,6 +8,7 @@ from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 
 HTTP = HTTPRemoteProvider()
 
+# use remote file instead of cnvkit.py access output which causes problems
 rule get_mappability:
     input:
         HTTP.remote("github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed", keep_local=True)
@@ -19,10 +21,28 @@ rule get_mappability:
     shell:
         "mv {input} {output}"
 
+# only for amplicon sequencing
+if config["amplicon"]:
+    rule cnvkit_target:
+        input:
+            config["bed_w_chr"],
+        output:
+            amplicontargets,
+        benchmark:
+            "benchmarks/cnvkit/general/target.txt"
+        log:
+            "logs/cnvkit/general/target/log",
+        params:
+            extra = '--split',
+        conda:
+            "../envs/primary_env.yaml"
+        shell:
+            'cnvkit.py target {input} -o {output} {params.extra} 2> {log}'
+
 rule cnvkit_autobin:
     input:
         bams = expand("results/bam_sorted_bwa/{sample}_sorted.bam", sample=samples.index),
-        targets = config["bed_w_chr"],
+        targets = config["bed_w_chr"] if not config["amplicon"] else amplicontargets,
         access = config["mappability"],
     output:
         target = bedtargets,
@@ -43,7 +63,7 @@ rule cnvkit_autobin:
 rule cnvkit_coverage:
     input:
         bam = 'results/bam_sorted_bwa/{sample}_sorted.bam',
-        targets = bedtargets,
+        targets = bedtargets if not config["amplicon"] else amplicontargets,
         antitargets = bedantitargets,
     output:
         target_coverage = 'results/cnvkit/general/{sample}.targetcoverage.cnn',
@@ -63,18 +83,19 @@ rule cnvkit_coverage:
 rule cnvkit_ref_generic:
     input:
         fasta=config["ref"],
-        targets = bedtargets
+        targets = bedtargets if not config["amplicon"] else amplicontargets,
     output:
         FlatReference_cnn = 'results/cnvkit/general/FlatReference.cnn',
     benchmark: "benchmarks/cnvkit/general/ref_generic.txt"
     params:
-        extra = '',
+        extra = '--sample-sex female',
+        amplicon = '--no-edge' if config["amplicon"] else '',
     log:
         "logs/cnvkit/general/ref_generic/log",
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py reference -o {output.FlatReference_cnn} -f {input.fasta} -t {input.targets} {params.extra} 2> {log}'
+        'cnvkit.py reference -o {output.FlatReference_cnn} -f {input.fasta} -t {input.targets} {params.extra} {params.amplicon} 2> {log}'
 
 rule cnvkit_fix:
     input:
@@ -86,9 +107,10 @@ rule cnvkit_fix:
     benchmark: "benchmarks/cnvkit/general/fix/{sample}.txt"
     params:
         extra = '',
+        amplicon = '--no-edge' if config["amplicon"] else '',
     log:
         "logs/cnvkit/general/fix/{sample}.log",
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py fix {input.target_coverage} {input.antitarget_coverage} {input.reference} -o {output} {params.extra} 2> {log}'
+        'cnvkit.py fix {input.target_coverage} {input.antitarget_coverage} {input.reference} -o {output} {params.extra} {params.amplicon} 2> {log}'
