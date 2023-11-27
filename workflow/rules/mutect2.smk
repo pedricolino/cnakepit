@@ -73,6 +73,8 @@ rule read_orientation_model:
         idx="results/bam_sorted_bwa/{sample}_sorted.bam.bai"
     output:
         "results/mutect2/read_orientation_model/{sample}.tar.gz"
+    resources:
+        mem=lambda wildcards, attempt: '%dG' % (2 * attempt),
     benchmark: "benchmarks/read_orientation_model/{sample}.txt"
     log:
         "logs/read_orientation_model/{sample}.log"
