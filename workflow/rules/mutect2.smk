@@ -51,9 +51,15 @@ rule mutect2_bam:
     #message:
         #"Testing Mutect2 with {wildcards.sample}"
     benchmark: "benchmarks/mutect2_bam/{sample}.txt"
+    #priority: -1 # Mutect2 is very slow, so we want to run downstream rules of already Mutect2-processed samples first
     params:
         extra="--genotype-germline-sites true --genotype-pon-sites true --interval-padding 75"
-    threads: 16 # does it work? See https://www.biostars.org/p/9549710/#9550707
+    threads: 16 # Confirmed in log files that it works, see https://www.biostars.org/p/9549710/#9550707
+    resources:
+        mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
+        runtime=48*60, # 48h
+        slurm_partition='medium'
+        #runtime = lambda wildcards, attempt: attempt * 4 * 60
     log:
         "logs/mutect2/{sample}.log",
     conda:
