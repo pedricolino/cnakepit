@@ -41,12 +41,14 @@ if config["amplicon"]:
 
 rule cnvkit_autobin:
     input:
-        bams = expand("results/bam_sorted_bwa/{sample}_sorted.bam", sample=samples.index),
+        bams = expand("results/bam_sorted_bwa/{sample}_sorted.bam", sample=samples.index), # maybe use only fraction of samples here?
         targets = config["bed_w_chr"] if not config["amplicon"] else amplicontargets,
         access = config["mappability"],
     output:
         target = bedtargets,
         antitarget = bedantitargets,
+    resources:
+        mem_mb=8000 # otherwise 4TB for 600 samples with default Snakemake...
     benchmark:
         "benchmarks/cnvkit/general/autobin.txt"
     params:
