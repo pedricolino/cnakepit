@@ -14,7 +14,7 @@
 # Ensure logs folder exists -------------------------------------------------
 
 mkdir -p logs/slurm_log/snakejobs
-export SBATCH_DEFAULTS=" --output=logs/slurm_log/snakejobs/%x-%j.log"
+export SBATCH_DEFAULTS=" --job-name {rule}.{wildcards} --output=logs/slurm_log/snakejobs/%x-%j.log"
 
 # Enforce existence of TMPDIR -----------------------------------------------
 
@@ -44,13 +44,15 @@ export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 snakemake \
     --use-conda \
     --conda-frontend mamba \
-    --cores 2000 \
-    --retries 2 \
+    --retries 3 \
     --profile cubi-v1 \
     --rerun-incomplete \
-    --jobs=80 \
+    --jobs=50 \
     --slurm \
     --default-resources slurm_account=hpc-ag-cubi slurm_partition=short "runtime=240"
+#    --batch cnvkit_heatmap_hmm=1/6 # does not work well bc rule autobin requires all files/samples, quite early on in the pipeline
+
+    #--cores 2000 \ # for local execution
 
 # Finish up -----------------------------------------------------------------
 
