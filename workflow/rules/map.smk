@@ -41,10 +41,6 @@ if config["DNA_seq"]:
         wrapper:
             "v1.7.0/bio/bwa/index"
 
-    def myrule_mem(wildcards, attempt):
-        mem = 8 * attempt # 4GB is not enough, start trying with 8GB
-        return '%dG' % mem
-
     rule bwa_mem:
         input:
             ref_index=config["ref_index"],
@@ -62,7 +58,9 @@ if config["DNA_seq"]:
             sort_extra="",  # Extra args for samtools/picard.
         threads: 16
         resources:
-            mem=myrule_mem,
+            mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
+            runtime=24*60, # 24h
+            slurm_partition='medium'
         conda:
             "../envs/map.yaml"
         wrapper:
@@ -92,6 +90,8 @@ if config["DNA_seq"]:
         log:
             "logs/samtools/index_bwa/{sample}.log"
         threads: 4
+        resources:
+            mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
         conda:
             "../envs/qc_map.yaml"
         params:
