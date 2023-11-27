@@ -22,12 +22,6 @@ else:
 
 rule all:
   input:
-    # for QC analysis only
-    "results/qc/multiqc_report_fastqc.html", # qc report for reads, untrimmed and trimmed
-        
-    # for QC analysis up until mapping and mapping QC with qualimap:
-    "results/qc_map_bwa/multiqc_report.html",
-
     # CNVkit CBS
     expand('results/cnvkit/cbs/{sample}_diagram.cnv.pdf', sample=samples.index),
     expand('results/cnvkit/cbs/{sample}_scatter.cnv.pdf', sample=samples.index),
@@ -48,6 +42,13 @@ rule all:
     ## and PureCN Hclust
     expand("results/purecn/hmm_hclust/{sample}/{sample}.rds", sample=samples.index)
     
+    # if the following lines are commented, then they must be at the end to avoid syntax error
+    # for QC analysis only
+    #"results/qc/multiqc_report_fastqc.html", # qc report for reads, untrimmed and trimmed
+        
+    # for QC analysis up until mapping and mapping QC with qualimap:
+    #"results/qc_map_bwa/multiqc_report.html", # causes errors, thus do this later
+
     #"results/.check_end"
 
 include: "rules/map.smk"
