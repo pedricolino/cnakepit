@@ -47,7 +47,7 @@ snakemake \
     --retries 3 \
     --profile cubi-v1 \
     --rerun-incomplete \
-    --jobs=50 \
+    --jobs=100 \
     --slurm \
     --default-resources slurm_account=hpc-ag-cubi slurm_partition=short "runtime=240"
 #    --batch cnvkit_heatmap_hmm=1/6 # does not work well bc rule autobin requires all files/samples, quite early on in the pipeline
