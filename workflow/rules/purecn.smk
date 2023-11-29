@@ -23,7 +23,7 @@ rule purecn_cbs_pscbs:
         seg='results/cnvkit/cbs/{sample}.seg',
         install="results/purecn/pscbs_check"
     output:
-        "results/purecn/cbs_pscbs/{sample}/{sample}.rds"
+        "results/purecn/cbs_pscbs/{sample}/{sample}.csv"
     resources:
         mem=myrule_mem
     benchmark: "benchmarks/purecn/cbs_pscbs/{sample}.txt"
@@ -33,7 +33,7 @@ rule purecn_cbs_pscbs:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation PSCBS --sex F"
+        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F"
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
         Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
@@ -49,7 +49,7 @@ rule purecn_hmm_pscbs:
         seg='results/cnvkit/hmm/{sample}.seg',
         install="results/purecn/pscbs_check"
     output:
-        "results/purecn/hmm_pscbs/{sample}/{sample}.rds"
+        "results/purecn/hmm_pscbs/{sample}/{sample}.csv"
     resources:
         mem=myrule_mem
     log:
@@ -58,7 +58,7 @@ rule purecn_hmm_pscbs:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation PSCBS --sex F"
+        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F"
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
         Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
@@ -71,7 +71,7 @@ rule purecn_cbs_hclust:
         seg='results/cnvkit/cbs/{sample}.seg',
         #script="workflow/scripts/purecn.R"
     output:
-        "results/purecn/cbs_hclust/{sample}/{sample}.rds"
+        "results/purecn/cbs_hclust/{sample}/{sample}.csv"
     resources:
         mem=myrule_mem
     benchmark: "benchmarks/purecn/cbs_hclust/{sample}.txt"
@@ -81,7 +81,7 @@ rule purecn_cbs_hclust:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation Hclust --sex F"
+        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F"
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
         Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
@@ -93,7 +93,7 @@ rule purecn_hmm_hclust:
         copy_ratios='results/cnvkit/general/{sample}.cnr',
         seg='results/cnvkit/hmm/{sample}.seg',
     output:
-        "results/purecn/hmm_hclust/{sample}/{sample}.rds"
+        "results/purecn/hmm_hclust/{sample}/{sample}.csv"
     resources:
         mem=myrule_mem
     log:
@@ -102,7 +102,7 @@ rule purecn_hmm_hclust:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --seed 123 --funsegmentation Hclust --sex F"
+        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F"
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
         Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
