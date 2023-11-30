@@ -1,3 +1,5 @@
+from random import randint
+
 # required for patched PSCBS segm. method
 rule install_lima1_pscbs:
     output:
@@ -33,10 +35,12 @@ rule purecn_cbs_pscbs:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F"
+        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F",
+        seed_str="--seed",
+        random_nb=randint(1,1000),
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
+        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 {params.seed_str} {params.random_nb} &> {log}
         """
 
 # "The --stats-file is only supported for Mutect 1.1.7. Mutect 2 provides the filter flags directly in the VCF.""
@@ -58,10 +62,12 @@ rule purecn_hmm_pscbs:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F"
+        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F",
+        seed_str="--seed",
+        random_nb=randint(1,1000),
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
+        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 {params.seed_str} {params.random_nb} &> {log}
         """
 
 rule purecn_cbs_hclust:
@@ -81,10 +87,12 @@ rule purecn_cbs_hclust:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F"
+        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F",
+        seed_str="--seed",
+        random_nb=randint(1,1000),
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
+        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 {params.seed_str} {params.random_nb} &> {log}
         """
 
 rule purecn_hmm_hclust:
@@ -102,10 +110,12 @@ rule purecn_hmm_hclust:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F"
+        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F",
+        seed_str="--seed",
+        random_nb=randint(1,1000),
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 &> {log}
+        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 {params.seed_str} {params.random_nb} &> {log}
         """
 
 
