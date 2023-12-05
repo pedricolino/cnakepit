@@ -58,6 +58,8 @@ rule cnvkit_heatmap_cbs:
         'results/cnvkit/cbs/heatmap.cnv.pdf'
     benchmark:
         'benchmarks/cnvkit/cbs/heatmap.txt'
+    resources:
+        mem=lambda wildcards, attempt: '%dG' % (16 * attempt)
     log:
         "logs/cnvkit/cbs/heatmap.log",
     conda:
