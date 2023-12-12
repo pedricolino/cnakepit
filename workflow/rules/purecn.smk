@@ -117,14 +117,3 @@ rule purecn_hmm_hclust:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
         Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 {params.seed_str} {params.random_nb} &> {log}
         """
-
-
-# rule check_end:
-#     input:
-#         expand('results/purecn/{sample}/{sample}.rds', sample=samples.index)
-#     output:
-#         "results/.check_end"
-#     log:
-#         "logs/purecn/check_end.log"
-#     shell:
-#         "touch {output} 2> {log}"
