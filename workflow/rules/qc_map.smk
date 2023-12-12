@@ -30,7 +30,7 @@ rule qualimap_bwa:
     threads: 16
     priority: -2 # error-prone rule, run it last
     resources:
-        mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
+        mem=lambda wildcards, attempt: '%dG' % (32 * attempt),
         runtime=5*24*60, # 24h seems to be not enough for many samples
         slurm_partition='medium'
     log:
@@ -40,7 +40,7 @@ rule qualimap_bwa:
     conda:
         "../envs/qc_map.yaml"
     shell:
-        "qualimap bamqc -bam {input} -nt {threads} -outdir {params.outdir} 2> {log}"
+        "qualimap bamqc -bam {input} -nt {threads} --java-mem-size={resources.mem} -outdir {params.outdir} 2> {log}"
 
 rule multiqc_map_bwa:
     input:
