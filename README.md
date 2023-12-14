@@ -2,9 +2,9 @@
 
 ## Definition
 
-> A snake pit is, in a literal sense, a hole filled with snakes. In idiomatic speech, "snake pits" are places of horror, torture and death in European legends and fairy tales. [(from Wikipedia)](https://en.wikipedia.org/wiki/Snake_pit)
+> A snake pit is, in a literal sense, a hole filled with snakes. In idiomatic speech, "snake pits" are places of horror, torture and death in European legends and fairy tales. [(Wikipedia)](https://en.wikipedia.org/wiki/Snake_pit)
 
-In the field of bioinformatics, a cnakepit is now a **C**opy **N**umber **A**lterations detection sna**KE**make **PI**peline for tumor-only **T**argeted sequencing data. In the truest sense of the word, this pit is filled with snakes such as pythons, mambas and anacondas.
+In the field of bioinformatics, a cnakepit is now a **C**opy **N**umber **A**lterations detection sna**KE**make **PI**peline for tumor-only **T**argeted sequencing data. In the truest sense of the word, this horrific pit is filled with snakes such as [python](https://www.python.org/)s, [mamba](https://github.com/mamba-org/mamba)s and ana[conda](https://docs.conda.io/en)s.
 
 ## What is it?
 
