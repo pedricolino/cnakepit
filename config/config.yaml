@@ -1,46 +1,76 @@
-####
-# Only this file is to be changed when running the pipeline (and the Snakefile rule all)
-####
+##################################################################################
+# Only this file is to be changed when running the pipeline
+# (and the Snakefile rule all and maybe pipeline_job.sh for cluster submission)
+##################################################################################
 
+#--- sequencing type -------------------------------------------------------------
 
-# sequencing type: either DNA (DNA = true) or RNA (DNA = false)
+# either DNA (DNA = true) or RNA (DNA = false)
 DNA_seq: True
 
-# is amplicon sequencing used as a targeted capture method -> no off-target reads
-amplicon: True
 
-# path/to/refgenome.fa
-ref: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa" #"resources/reference/hg38.fa"
-ref_index: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa.fai" #"resources/reference/hg38.fa.fai"
+#--- amplicon- or hybrid-capture -------------------------------------------------
+
+# is amplicon sequencing used as a targeted capture method
+#   -> no off-target reads
+# if set to false, assume hybrid-capure method
+#   -> different BWA arguments, flagging of PCR duplicates and CNVkit will use off-target reads
+amplicon: false
+
+
+#--- path to reference genome ----------------------------------------------------
+
+ref: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa"
+# ref: "resources/reference/hg38.fa"
+
+ref_index: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa.fai"
+# ref_index: "resources/reference/hg38.fa.fai"
 
 #TESTING PURPOSES:
 ref_fil: "results/filter_ref/hg38_filtered.fa"
 
+
+#--- data -------------------------------------------------------------------------
+
 # set either data_dir or samples, the other one should be false
+
 # directory where the data is (or the symlink to the data)
 data_dir: False
+
 # path to sample sheet as tsv provided by user which looks like sample|fq1|fq2
 samples: "resources/data/sample_sheet.tsv"
+
+
+#--- path to adapter sequence -----------------------------------------------------
 
 # for trimming, path/to/adaptersequence.fa
 adapter: "resources/adapter/panel-adapter.fa"
 
-# path/to/paneldesign.bed
+
+#--- path to panel design ---------------------------------------------------------
+
 bed: "resources/paneldesign/S3287512_Covered-mod.bed"
 bed_w_chr: "resources/paneldesign/S3287512_Covered.bed"
 
-# path/to/mappability file
+
+#--- path to mappability file -----------------------------------------------------
+
 mappability: "resources/mappability/access-5k-mappable.hg19.bed"
 
-# path/to/af-gnomad file
+
+#--- path to gnomad file ----------------------------------------------------------
+
 germline-resource: "resources/germline-resource/af-only-gnomad.hg38.vcf.gz"
 germline-resource-index: "resources/germline-resource/af-only-gnomad.hg38.vcf.gz.tbi"
 
-# path/to/common-biallelic file
+
+#--- path to common biallelic file ------------------------------------------------
+
 common-biallelic: "resources/common-biallelic/small_exac_common_3.hg38.vcf.gz"
 common-biallelic-index: "resources/common-biallelic/small_exac_common_3.hg38.vcf.gz.tbi"
 
-### variance calling parameters: bcf tools
+
+#--- variance calling parameters: bcf tools --------------------------------------
 
 # bcftools call:
 # caller: valid options include -c/--consensus-caller or -m/--multiallelic-caller
