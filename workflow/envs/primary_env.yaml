@@ -14,8 +14,12 @@ dependencies:
   - samtools
   - qualimap
 
+  # mapping
+  - bwa==0.7.17
+  - sambamba
+
   # cnvkit
-  - cnvkit
+  - cnvkit # ==0.9.10
   - pomegranate<=0.14.8 # required by cnvkit for hmm segmentation methods, version 1.0.0 contains major breaking changes
 
   # purecn
