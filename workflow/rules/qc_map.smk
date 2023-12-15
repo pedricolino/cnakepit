@@ -1,7 +1,7 @@
 ################ BWA ######################
 
 # qualimap needs sorted bam files as input
-rule sort_bwa:
+rule bwa_sort_samples:
     input:
         "results/mapped/{sample}.bam"
     output:

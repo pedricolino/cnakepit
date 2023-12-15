@@ -1,4 +1,4 @@
-rule fastqc:
+rule fastqc_raw_reads:
   input:
     lambda wildcards: samples.at[wildcards.sample, 'fq1'] if wildcards.i == "1" else samples.at[wildcards.sample, 'fq2']
   output:
@@ -37,7 +37,7 @@ rule trim:
     "trimmomatic PE -threads {threads} {input.mate1} {input.mate2} -baseout {params.base} ILLUMINACLIP:{params.adapter}:2:30:10 2> {log}"
 
 
-rule fastqc_trim:
+rule fastqc_trimmed:
   input:
     "results/trimmed/{sample}_{i}P.fq.gz"
   output:

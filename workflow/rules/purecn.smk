@@ -14,7 +14,7 @@ rule install_lima1_pscbs:
 
 ########## Segmentation with different methods ##########
 
-def myrule_mem(wildcards, attempt):
+def increase_mem(wildcards, attempt):
         mem = 4 * attempt
         return '%dG' % mem
 
@@ -27,7 +27,7 @@ rule purecn_cbs_pscbs:
     output:
         "results/purecn/cbs_pscbs/{sample}/{sample}.csv"
     resources:
-        mem=myrule_mem
+        mem=increase_mem
     benchmark: "benchmarks/purecn/cbs_pscbs/{sample}.txt"
     log:
         "logs/purecn/cbs_pscbs/{sample}.log",
@@ -55,7 +55,7 @@ rule purecn_hmm_pscbs:
     output:
         "results/purecn/hmm_pscbs/{sample}/{sample}.csv"
     resources:
-        mem=myrule_mem
+        mem=increase_mem
     log:
         "logs/purecn/hmm_pscbs/{sample}.log",
     conda:
@@ -79,7 +79,7 @@ rule purecn_cbs_hclust:
     output:
         "results/purecn/cbs_hclust/{sample}/{sample}.csv"
     resources:
-        mem=myrule_mem
+        mem=increase_mem
     benchmark: "benchmarks/purecn/cbs_hclust/{sample}.txt"
     log:
         "logs/purecn/cbs_hclust/{sample}.log",
@@ -103,7 +103,7 @@ rule purecn_hmm_hclust:
     output:
         "results/purecn/hmm_hclust/{sample}/{sample}.csv"
     resources:
-        mem=myrule_mem
+        mem=increase_mem
     log:
         "logs/purecn/hmm_hclust/{sample}.log",
     conda:
