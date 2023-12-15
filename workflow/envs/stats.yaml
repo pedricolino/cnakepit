@@ -1,7 +1,0 @@
-name: stats
-channels:
-  - bioconda
-  - conda-forge
-  - defaults
-dependencies:
-  - samtools
