@@ -4,7 +4,7 @@ from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 
 HTTP = HTTPRemoteProvider()
 
-rule get_gnomad:
+rule download_gnomad:
     input:
         HTTP.remote("www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.hg38.vcf.gz", keep_local=True)
     output:
@@ -12,7 +12,7 @@ rule get_gnomad:
     shell:
         "mv {input} {output}"
 
-rule get_gnomad_index:
+rule download_gnomad_index:
     input:
         HTTP.remote("www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.hg38.vcf.gz.tbi", keep_local=True)
     output:
@@ -20,7 +20,7 @@ rule get_gnomad_index:
     shell:
         "mv {input} {output}"
 
-rule get_common_biallelic:
+rule download_common_biallelic:
     input:
         HTTP.remote("http://storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz", keep_local=True)
     output:
@@ -28,7 +28,7 @@ rule get_common_biallelic:
     shell:
         "mv {input} {output}"
 
-rule get_common_biallelic_index:
+rule download_common_biallelic_index:
     input:
         HTTP.remote("http://storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz.tbi", keep_local=True)
     output:
@@ -67,7 +67,7 @@ rule mutect2_bam:
     shell:
         "gatk Mutect2 -R {input.fasta} -I {input.map} -L {input.targets} -O {output.vcf} {params.extra} --native-pair-hmm-threads {threads} --germline-resource {input.gnomad} --f1r2-tar-gz {output.f1r2} --tmp-dir ${{TMPDIR}} &> {log}"
 
-rule read_orientation_model:
+rule learn_read_orientation_model:
     input:
         f1r2="results/mutect2/f1r2/{sample}.tar.gz",
         idx="results/bam_sorted_bwa/{sample}_sorted.bam.bai"
@@ -127,12 +127,12 @@ rule calculate_contamination:
 #         "samtools dict {input} > {output} 2> {log}"
 
 # instead, get the dict from the web
-rule get_ref_dict:
+rule download_ref_dict:
     input:
         HTTP.remote("storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dict", keep_local=True)
     output:
         "resources/reference/hg38.dict"
-    benchmark: "benchmarks/get_ref_dict.log"
+    benchmark: "benchmarks/download_ref_dict.log"
     shell:
         "mv {input} {output}"
 
