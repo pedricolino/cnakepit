@@ -1,4 +1,4 @@
-# CNAKEPIT
+# cnakepit 🐍
 
 ## Definition
 
