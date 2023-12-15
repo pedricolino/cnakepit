@@ -1,4 +1,4 @@
-name: first-env
+name: primary-env
 channels:
   - conda-forge
   - bioconda
