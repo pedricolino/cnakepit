@@ -1,4 +1,4 @@
-name: primary-env
+name: primary_env
 channels:
   - conda-forge
   - bioconda
@@ -32,7 +32,7 @@ dependencies:
 
 #  - chanelname::modulename=X.Y.Z
 # mamba env create --dry-run -f test.yaml
-# this yaml combines (former):
+# this yaml combines (former) environments:
 #   bcf.yaml
 #   cnvkit.yaml
 #   multiqc.yaml
