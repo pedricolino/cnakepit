@@ -9,15 +9,15 @@ from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 HTTP = HTTPRemoteProvider()
 
 # use remote file instead of cnvkit.py access output which causes problems
-rule get_mappability:
+rule download_mappability:
     input:
         HTTP.remote("github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed", keep_local=True)
     output:
         config["mappability"]
     benchmark:
-        "benchmarks/cnvkit/general/get_mappability.txt"
+        "benchmarks/cnvkit/general/download_mappability.txt"
     log:
-        "logs/cnvkit/general/get_mappability/log",
+        "logs/cnvkit/general/download_mappability/log",
     shell:
         "mv {input} {output}"
 
