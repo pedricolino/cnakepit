@@ -39,7 +39,7 @@ rule download_common_biallelic_index:
 rule mutect2_bam:
     input:
         fasta=config["ref"],
-        map="results/bam_sorted_bwa/{sample}_sorted.bam",
+        map="results/bam_sorted_bwa/{sample}_sorted_marked.bam",
         dict="resources/reference/hg38.dict",
         idx="results/bam_sorted_bwa/{sample}_sorted.bam.bai",
         targets=config["bed_w_chr"],
@@ -85,7 +85,7 @@ rule learn_read_orientation_model:
 
 rule get_pile_up_summaries:
     input:
-        bam="results/bam_sorted_bwa/{sample}_sorted.bam",
+        bam="results/bam_sorted_bwa/{sample}_sorted_marked.bam",
         bam_idx="results/bam_sorted_bwa/{sample}_sorted.bam.bai",
         common=config["common-biallelic"],
         common_index=config["common-biallelic-index"],

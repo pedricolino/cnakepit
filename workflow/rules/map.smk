@@ -36,7 +36,7 @@ rule bwa_index_reference:
     params:
         algorithm="bwtsw",
     conda:
-        "../envs/map.yaml"
+        "../envs/primary_env.yaml"
     wrapper:
         "v1.7.0/bio/bwa/index"
 
@@ -61,7 +61,7 @@ rule bwa_mem_samples:
         runtime=24*60, # 24h
         slurm_partition='medium'
     conda:
-        "../envs/map.yaml"
+        "../envs/primary_env.yaml"
     wrapper:
         "v1.7.0/bio/bwa/mem"
 
@@ -92,8 +92,28 @@ rule bwa_index_samples:
     resources:
         mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
     conda:
-        "../envs/qc_map.yaml"
+        "../envs/primary_env.yaml"
     params:
         extra="",  # optional params string
     wrapper:
         "v2.0.0/bio/samtools/index"
+
+# if the data is based on hybrid-capture, flag PCR duplicates
+if not config["amplicon"]:
+    rule sambamba_mark_duplicates:
+        input:
+            "results/bam_sorted_bwa/{sample}_sorted.bam"
+        output:
+            "results/bam_sorted_bwa/{sample}_sorted_marked.bam"
+        benchmark: "benchmarks/sambamba_mark_duplicates/{sample}.txt"
+        log:
+            "logs/sambamba_mark_duplicates/{sample}.log"
+        threads: 8
+        resources:
+            mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
+        conda:
+            "../envs/primary_env.yaml"
+        params:
+            extra=""
+        wrapper:
+            "v2.0.0/bio/sambamba/markdup"

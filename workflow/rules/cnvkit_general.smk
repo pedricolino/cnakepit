@@ -41,7 +41,7 @@ if config["amplicon"]:
 
 rule cnvkit_autobin:
     input:
-        bams = expand("results/bam_sorted_bwa/{sample}_sorted.bam", sample=samples.index), # maybe use only fraction of samples here?
+        bams = expand("results/bam_sorted_bwa/{sample}_sorted_marked.bam", sample=samples.index), # maybe use only fraction of samples here?
         targets = config["bed_w_chr"] if not config["amplicon"] else amplicontargets,
         access = config["mappability"],
     output:
@@ -52,19 +52,20 @@ rule cnvkit_autobin:
     benchmark:
         "benchmarks/cnvkit/general/autobin.txt"
     params:
-        extra = '--method amplicon',
+        extra = '',
+        method = 'amplicon' if config["amplicon"] else 'hybrid',
         samplenames = samples.index
     log:
         "logs/cnvkit/general/autobin/log",
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py autobin {input.bams} --targets {input.targets} --access {input.access} --target-output-bed {output.target} --antitarget-output-bed {output.antitarget} {params.extra} 2> {log}'
+        'cnvkit.py autobin {input.bams} --targets {input.targets} --access {input.access} --target-output-bed {output.target} --antitarget-output-bed {output.antitarget} --method {params.method} {params.extra} 2> {log}'
 
 
 rule cnvkit_coverage:
     input:
-        bam = 'results/bam_sorted_bwa/{sample}_sorted.bam',
+        bam = 'results/bam_sorted_bwa/{sample}_sorted_marked.bam',
         targets = bedtargets if not config["amplicon"] else amplicontargets,
         antitargets = bedantitargets,
     output:
@@ -82,7 +83,7 @@ rule cnvkit_coverage:
         'cnvkit.py coverage {input.bam} {input.targets} --processes {threads} -o {output.target_coverage} {params.extra} && '
         'cnvkit.py coverage {input.bam} {input.antitargets} --processes {threads} -o {output.antitarget_coverage} {params.extra} 2> {log}'
 
-rule cnvkit_ref_generic:
+rule cnvkit_generic_ref:
     input:
         fasta=config["ref"],
         targets = bedtargets if not config["amplicon"] else amplicontargets,
