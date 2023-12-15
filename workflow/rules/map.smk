@@ -24,7 +24,7 @@ rule get_ref_index:
 
 if config["DNA_seq"]:
     # bwa if DNA sequencing
-    rule bwa_index:
+    rule bwa_index_reference:
         input:
             ref = ref_file,
             #ref = "results/filter_ref/hg38_filtered.fa",
@@ -41,7 +41,7 @@ if config["DNA_seq"]:
         wrapper:
             "v1.7.0/bio/bwa/index"
 
-    rule bwa_mem:
+    rule bwa_mem_samples:
         input:
             ref_index=config["ref_index"],
             reads=["results/trimmed/{sample}_1P.fq.gz", "results/trimmed/{sample}_2P.fq.gz"],
@@ -52,10 +52,10 @@ if config["DNA_seq"]:
         log:
             "logs/bwa_mem/{sample}.log",
         params:
-            extra=r"-R '@RG\tID:{sample}\tSM:{sample}'",
-            sorting="none",  # Can be 'none', 'samtools' or 'picard'.
-            sort_order="queryname",  # Can be 'queryname' or 'coordinate'.
-            sort_extra="",  # Extra args for samtools/picard.
+            extra=r"-a -R '@RG\tID:{sample}\tSM:{sample}'", # -a to mark secondary alignments (for CNVkit)
+            sorting="samtools",  # Can be 'none', 'samtools' or 'picard'.
+            sort_order="coordinate",  # Can be 'queryname' or 'coordinate'.
+            sort_extra="-@ {threads}",  # Extra args for samtools/picard.
         threads: 16
         resources:
             mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
@@ -81,7 +81,7 @@ if config["DNA_seq"]:
     #    shell:
     #        "samtools sort -o {output} {input} -@ {threads} 2> {log}"
 
-    rule index_bwa:
+    rule bwa_index_samples:
         input:
             "results/bam_sorted_bwa/{sample}_sorted.bam"
         output:
