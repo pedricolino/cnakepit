@@ -3,12 +3,6 @@
 # (and the Snakefile rule all and maybe pipeline_job.sh for cluster submission)
 ##################################################################################
 
-#--- sequencing type -------------------------------------------------------------
-
-# either DNA (DNA = true) or RNA (DNA = false)
-DNA_seq: True
-
-
 #--- amplicon- or hybrid-capture -------------------------------------------------
 
 # is amplicon sequencing used as a targeted capture method
