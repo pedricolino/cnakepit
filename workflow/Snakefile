@@ -51,8 +51,8 @@ rule all:
 
     #"results/.check_end"
 
-include: "rules/map.smk"
-include: "rules/qc.smk"
+include: "rules/map_bwa.smk"
+include: "rules/qc_fastq.smk"
 include: "rules/qc_map.smk"
 include: "rules/mutect2.smk"
 include: "rules/stats.smk"
@@ -60,7 +60,6 @@ include: "rules/cnvkit_general.smk"
 include: "rules/cnvkit_cbs.smk"
 include: "rules/cnvkit_hmm.smk"
 include: "rules/purecn.smk"
-#include: "rules/filter.smk"
 #include: "rules/map_bowtie2.smk"
 #include: "rules/bcf.smk"
 
