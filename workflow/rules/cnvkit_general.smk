@@ -2,6 +2,7 @@ bedtargets = 'results/cnvkit/general/'+bedname+'_target.bed'
 bedantitargets = 'results/cnvkit/general/'+bedname+'_antitarget.bed'
 amplicontargets = 'results/cnvkit/general/'+bedname+'_amplicon.bed'
 bedname=bedname
+method_specific_bam = 'results/bam_sorted_bwa/{sample}_sorted_marked.bam' if not config["amplicon"] else 'results/bam_sorted_bwa/{sample}_sorted.bam'
 
 import os
 from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
@@ -41,7 +42,7 @@ if config["amplicon"]:
 
 rule cnvkit_autobin:
     input:
-        bams = expand("results/bam_sorted_bwa/{sample}_sorted_marked.bam", sample=samples.index), # maybe use only fraction of samples here?
+        bams = expand(method_specific_bam, sample=samples.index), # maybe use only fraction of samples here?
         targets = config["bed_w_chr"] if not config["amplicon"] else amplicontargets,
         access = config["mappability"],
     output:
@@ -65,7 +66,7 @@ rule cnvkit_autobin:
 
 rule cnvkit_coverage:
     input:
-        bam = 'results/bam_sorted_bwa/{sample}_sorted_marked.bam',
+        bam = method_specific_bam,
         targets = bedtargets if not config["amplicon"] else amplicontargets,
         antitargets = bedantitargets,
     output:

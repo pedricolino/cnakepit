@@ -54,7 +54,7 @@ rule bwa_mem_samples:
         extra=r"-a -R '@RG\tID:{sample}\tSM:{sample}'", # -a to mark secondary alignments (for CNVkit)
         sorting="samtools",  # Can be 'none', 'samtools' or 'picard'.
         sort_order="coordinate",  # Can be 'queryname' or 'coordinate'.
-        sort_extra="-@ {threads}",  # Extra args for samtools/picard.
+        sort_extra="-@ {snakemake.threads}",  # Extra args for samtools/picard.
     threads: 16
     resources:
         mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
