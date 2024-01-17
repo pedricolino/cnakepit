@@ -20,6 +20,22 @@ This is a pipeline to (attempt to) call CNAs / CNVs by addressing the following 
 
 This pipeline was originally forked (and later *unforked*) from [this private repo named FFPE-panel-pipeline](https://github.com/Pregelnuss/FFPE-panel-pipeline) which pre-processes raw reads and later maps them.
 
+## Installation
+
+1. Install conda (usually already installed on clusters)
+2. [Install a conda environment with SnakeMake:](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html):
+    - Optionally but highly recommended to first install mamba: ``conda install -n base -c conda-forge mamba``
+    - Install a SnakeMake environment: ``mamba create -c conda-forge -c bioconda -n snakemake snakemake`` (replace with ``mamba`` with ``conda`` if you want to waste time with waiting longer)
+All other required tools and dependencies will be installed automatically by SnakeMake during the first run of the pipeline.
+
+## Usage
+
+1. Set your configuration in the config/config.yaml file. Most options are documented or self-explanatory.
+2. In the resources directory, add your panel design BED file and your samples (sheet) to the data subdirectory.
+3. Activate your conda environment with SnakeMake installed: ``mamba activate snakemake``.
+4. Before actually running the pipeline, test your configuration with a [dry run](https://snakemake.readthedocs.io/en/stable/executing/cli.html#useful-command-line-arguments) by adding ``-n`` to the SnakeMake command.
+The pipeline can be run either by submitting the job script with ``sbatch pipeline_job.sh`` or by calling SnakeMake directly with a command like ``snakemake --use-conda or snakemake --use-conda -c 8`` (preferably on a compute node).
+
 ## General workflow
 
 - Read preprocessing: QC of the raw data, trimming, QC of the trimmed data
