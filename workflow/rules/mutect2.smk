@@ -3,6 +3,7 @@ import os
 from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 
 method_specific_bam = 'results/bam_sorted_bwa/{sample}_sorted_marked.bam' if not config["amplicon"] else 'results/bam_sorted_bwa/{sample}_sorted.bam'
+method_specific_bam_index = 'results/bam_sorted_bwa/{sample}_sorted_marked.bam.bai' if not config["amplicon"] else 'results/bam_sorted_bwa/{sample}_sorted.bam.bai'
 
 HTTP = HTTPRemoteProvider()
 
@@ -42,8 +43,8 @@ rule mutect2_bam:
     input:
         fasta=config["ref"],
         map=method_specific_bam,
+        idx=method_specific_bam_index,
         dict="resources/reference/hg38.dict",
-        idx="results/bam_sorted_bwa/{sample}_sorted.bam.bai",
         targets=config["bed_w_chr"],
         gnomad=config["germline-resource"],
         gnomad_index=config["germline-resource-index"]
@@ -72,7 +73,7 @@ rule mutect2_bam:
 rule learn_read_orientation_model:
     input:
         f1r2="results/mutect2/f1r2/{sample}.tar.gz",
-        idx="results/bam_sorted_bwa/{sample}_sorted.bam.bai"
+        idx=method_specific_bam_index
     output:
         "results/mutect2/read_orientation_model/{sample}.tar.gz"
     resources:
@@ -88,7 +89,7 @@ rule learn_read_orientation_model:
 rule get_pile_up_summaries:
     input:
         bam=method_specific_bam,
-        bam_idx="results/bam_sorted_bwa/{sample}_sorted.bam.bai",
+        bam_idx=method_specific_bam_index,
         common=config["common-biallelic"],
         common_index=config["common-biallelic-index"],
     output:
