@@ -11,6 +11,9 @@
 #SBATCH --mail-user=cedric.moris@bih-charite.de
 #SBATCH --output=logs/slurm_log/%x-%J.log
 
+start_time=$(date +"%Y-%m-%d %H:%M:%S")
+echo "Starting CNAkepit pipeline at $start_time. Look out for snakes..."
+
 # Ensure logs folder exists -------------------------------------------------
 
 mkdir -p logs/slurm_log/snakejobs
@@ -25,8 +28,6 @@ mkdir -p ${TMPDIR}
 
 set -x
 >&2 hostname
-start_time=$(date +"%Y-%m-%d %H:%M:%S")
->&2 echo "Job started at $start_time"
 
 # Activate conda environment ------------------------------------------------
 
@@ -46,15 +47,16 @@ snakemake \
     --conda-frontend mamba \
     --retries 1 \
     --profile cubi-v1 \
-    --rerun-incomplete \
     --jobs=50 \
     --slurm \
-    --default-resources slurm_account=hpc-ag-cubi slurm_partition=short "runtime=240"
+    --default-resources slurm_account=hpc-ag-cubi slurm_partition=debug "runtime=60"
 #    --batch cnvkit_heatmap_hmm=1/6 # does not work well bc rule autobin requires all files/samples, quite early on in the pipeline
+    # --rerun-incomplete \
 
-    #--cores 2000 \ # for local execution
 
 # Finish up -----------------------------------------------------------------
+
+set +x
 
 end_time=$(date +"%Y-%m-%d %H:%M:%S")
 >&2 echo "Job ended at $end_time"
@@ -68,4 +70,4 @@ runtime_hours=$((runtime_seconds / 3600))
 runtime_minutes=$(( (runtime_seconds % 3600) / 60 ))
 
 >&2 echo "Total runtime: $runtime_hours hours and $runtime_minutes minutes"
->&2 echo "All done. Have a nice day."
+>&2 echo "All done. You may have leave the cnakepit now. Have a nice day."
