@@ -1,127 +1,103 @@
 from random import randint
 
 # required for patched PSCBS segm. method
-rule install_lima1_pscbs:
-    output:
-        "results/purecn/pscbs_check"
-    conda:
-        "../envs/primary_env.yaml"
-    log:
-        "logs/purecn/install_lima1_pscbs.log"
-    shell:
-        "Rscript workflow/scripts/install_lima1_pscbs.R && touch {output} 2> {log}"
+rule install_lima1_PSCBS:
+    output: "results/purecn/PSCBS_check"
+    conda: "../envs/primary_env.yaml"
+    log: "logs/purecn/install_lima1_PSCBS.log"
+    shell: "Rscript workflow/scripts/install_lima1_PSCBS.R && touch {output} 2> {log}"
 
 
-########## Segmentation with different methods ##########
+# Segmentation with default methods CBS from CNVkit and Hclust from PureCN
 
-def increase_mem(wildcards, attempt):
-        mem = 4 * attempt * 8 # 4 GB per thread
-        return '%dG' % mem
-
-rule purecn_cbs_pscbs:
+rule purecn_cbs_Hclust:
     input:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
         copy_ratios='results/cnvkit/general/{sample}.cnr',
         seg='results/cnvkit/cbs/{sample}.seg',
-        install="results/purecn/pscbs_check"
     output:
-        "results/purecn/cbs_pscbs/{sample}/{sample}.csv"
+        "results/purecn/cbs_Hclust/{sample}/{sample}.csv"
     resources:
-        mem=increase_mem
+        mem=lambda wildcards, attempt: '%dG' % (4 * 8 * attempt), # 4 GB per thread, 8 threads
     threads: 8
-    benchmark: "benchmarks/purecn/cbs_pscbs/{sample}.txt"
-    priority: -2 # run it last for specific testing purposes
+    benchmark: "benchmarks/purecn/cbs_Hclust/{sample}.txt"
     log:
-        "logs/purecn/cbs_pscbs/{sample}.log",
+        "logs/purecn/cbs_Hclust/{sample}.log",
+    priority: -2 # run it last for specific testing purposes
     conda:
         "../envs/primary_env.yaml"
     params:
+        cnvkit_method="cbs",
+        purecn_method="Hclust",
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F --min-base-quality 20",
-        seed_str="--seed",
-        random_nb=randint(1,1000),
+        random_nb=randint(1,1000), # use a different seed on retry in case of failure
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 --cores {threads} {params.seed_str} {params.random_nb} &> {log}
+        Rscript $PURECN/PureCN.R \
+            --vcf {input.vcf_filt} \
+            --sampleid {params.sampleid} \
+            --tumor {input.copy_ratios} \
+            --seg-file {input.seg} \
+            --out results/purecn/{params.cnvkit_method}_{params.purecn_method}/{params.sampleid}/{params.sampleid} \
+            --genome hg38 \
+            --sex F \
+            --fun-segmentation {params.purecn_method} \
+            --min-base-quality 20 \
+            --seed {params.random_nb} \
+            --force \
+            --post-optimize \
+            --cores {threads} \
+            &> {log}
         """
 
 # "The --stats-file is only supported for Mutect 1.1.7. Mutect 2 provides the filter flags directly in the VCF.""
 # The --fun-segmentation argument controls if the data should to be re-segmented using germline BAFs (default). Set this value to none if the provided segmentation should be used as is. The recommended Hclust will only cluster provided segments.
 
-rule purecn_hmm_pscbs:
-    input:
-        vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
-        copy_ratios='results/cnvkit/general/{sample}.cnr',
-        seg='results/cnvkit/hmm/{sample}.seg',
-        install="results/purecn/pscbs_check"
-    output:
-        "results/purecn/hmm_pscbs/{sample}/{sample}.csv"
-    resources:
-        mem=increase_mem
-    threads: 8
-    log:
-        "logs/purecn/hmm_pscbs/{sample}.log",
-    conda:
-        "../envs/primary_env.yaml"
-    priority: -2 # run it last for specific testing purposes
-    params:
-        sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F --min-base-quality 20",
-        seed_str="--seed",
-        random_nb=randint(1,1000),
-    shell:
-        """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 --cores {threads} {params.seed_str} {params.random_nb} &> {log}
-        """
 
-rule purecn_cbs_hclust:
+# Segmentation with other methods
+
+use rule purecn_cbs_Hclust as purecn_cbs_PSCBS with:
     input:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
         copy_ratios='results/cnvkit/general/{sample}.cnr',
         seg='results/cnvkit/cbs/{sample}.seg',
-        #script="workflow/scripts/purecn.R"
-    output:
-        "results/purecn/cbs_hclust/{sample}/{sample}.csv"
-    resources:
-        mem=increase_mem
-    threads: 8
-    benchmark: "benchmarks/purecn/cbs_hclust/{sample}.txt"
-    log:
-        "logs/purecn/cbs_hclust/{sample}.log",
-    priority: -2 # run it last for specific testing purposes
-    conda:
-        "../envs/primary_env.yaml"
+        install="results/purecn/PSCBS_check"
+    output: "results/purecn/cbs_PSCBS/{sample}/{sample}.csv"
+    benchmark: "benchmarks/purecn/cbs_PSCBS/{sample}.txt"
+    log: "logs/purecn/cbs_PSCBS/{sample}.log",
     params:
+        cnvkit_method="cbs",
+        purecn_method="PSCBS",
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F --min-base-quality 20",
-        seed_str="--seed",
         random_nb=randint(1,1000),
-    shell:
-        """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 --cores {threads} {params.seed_str} {params.random_nb} &> {log}
-        """
 
-rule purecn_hmm_hclust:
+
+use rule purecn_cbs_Hclust as purecn_hmm_Hclust with:
     input:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
         copy_ratios='results/cnvkit/general/{sample}.cnr',
         seg='results/cnvkit/hmm/{sample}.seg',
-    output:
-        "results/purecn/hmm_hclust/{sample}/{sample}.csv"
-    resources:
-        mem=increase_mem
-    priority: -2 # run it last for specific testing purposes
-    threads: 8
-    log:
-        "logs/purecn/hmm_hclust/{sample}.log",
-    conda:
-        "../envs/primary_env.yaml"
+    output: "results/purecn/hmm_Hclust/{sample}/{sample}.csv"
+    benchmark: "benchmarks/purecn/hmm_Hclust/{sample}.txt"
+    log: "logs/purecn/hmm_Hclust/{sample}.log",
     params:
+        cnvkit_method="hmm",
+        purecn_method="Hclust",
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F --min-base-quality 20",
-        seed_str="--seed",
         random_nb=randint(1,1000),
-    shell:
-        """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 --cores {threads} {params.seed_str} {params.random_nb} &> {log}
-        """
+
+
+use rule purecn_cbs_Hclust as purecn_hmm_PSCBS with:
+    input:
+        vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
+        copy_ratios='results/cnvkit/general/{sample}.cnr',
+        seg='results/cnvkit/hmm/{sample}.seg',
+        install="results/purecn/PSCBS_check"
+    output: "results/purecn/hmm_PSCBS/{sample}/{sample}.csv"
+    benchmark: "benchmarks/purecn/hmm_PSCBS/{sample}.txt"
+    log: "logs/purecn/hmm_PSCBS/{sample}.log",
+    params:
+        cnvkit_method="hmm",
+        purecn_method="PSCBS",
+        sampleid="{sample}",
+        random_nb=randint(1,1000),
