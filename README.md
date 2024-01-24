@@ -16,7 +16,7 @@ This is a pipeline to (attempt to) call CNAs / CNVs by addressing the following 
 - suitable for **panels** (/targeted sequencing)
 - maintained
 - publicly used *(>50 citations if not too new)*
-- *ideally estimates infer tumor structure and estimate tumor characteristics such as tumor ploidy & purity*
+- *ideally infers tumor structure and estimates tumor characteristics such as tumor ploidy & purity*
 
 This pipeline was originally forked (and later *unforked*) from [this private repo named FFPE-panel-pipeline](https://github.com/Pregelnuss/FFPE-panel-pipeline) which pre-processes raw reads and later maps them.
 
