@@ -45,13 +45,13 @@ export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 snakemake \
     --use-conda \
     --conda-frontend mamba \
-    --retries 1 \
+    --retries 2 \
     --profile cubi-v1 \
-    --jobs=50 \
+    --rerun-incomplete \
+    --jobs=200 \
     --slurm \
-    --default-resources slurm_account=hpc-ag-cubi slurm_partition=debug "runtime=60"
+    --default-resources slurm_account=hpc-ag-cubi slurm_partition=short "runtime=240"
 #    --batch cnvkit_heatmap_hmm=1/6 # does not work well bc rule autobin requires all files/samples, quite early on in the pipeline
-    # --rerun-incomplete \
 
 
 # Finish up -----------------------------------------------------------------
