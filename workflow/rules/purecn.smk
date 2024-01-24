@@ -15,7 +15,7 @@ rule install_lima1_pscbs:
 ########## Segmentation with different methods ##########
 
 def increase_mem(wildcards, attempt):
-        mem = 4 * attempt
+        mem = 4 * attempt * 8 # 4 GB per thread
         return '%dG' % mem
 
 rule purecn_cbs_pscbs:
@@ -28,19 +28,21 @@ rule purecn_cbs_pscbs:
         "results/purecn/cbs_pscbs/{sample}/{sample}.csv"
     resources:
         mem=increase_mem
+    threads: 8
     benchmark: "benchmarks/purecn/cbs_pscbs/{sample}.txt"
+    priority: -2 # run it last for specific testing purposes
     log:
         "logs/purecn/cbs_pscbs/{sample}.log",
     conda:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F",
+        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F --min-base-quality 20",
         seed_str="--seed",
         random_nb=randint(1,1000),
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 {params.seed_str} {params.random_nb} &> {log}
+        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 --cores {threads} {params.seed_str} {params.random_nb} &> {log}
         """
 
 # "The --stats-file is only supported for Mutect 1.1.7. Mutect 2 provides the filter flags directly in the VCF.""
@@ -56,18 +58,20 @@ rule purecn_hmm_pscbs:
         "results/purecn/hmm_pscbs/{sample}/{sample}.csv"
     resources:
         mem=increase_mem
+    threads: 8
     log:
         "logs/purecn/hmm_pscbs/{sample}.log",
     conda:
         "../envs/primary_env.yaml"
+    priority: -2 # run it last for specific testing purposes
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F",
+        extra="--genome hg38 --force --postoptimize --funsegmentation PSCBS --sex F --min-base-quality 20",
         seed_str="--seed",
         random_nb=randint(1,1000),
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 {params.seed_str} {params.random_nb} &> {log}
+        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_pscbs/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 --cores {threads} {params.seed_str} {params.random_nb} &> {log}
         """
 
 rule purecn_cbs_hclust:
@@ -80,19 +84,21 @@ rule purecn_cbs_hclust:
         "results/purecn/cbs_hclust/{sample}/{sample}.csv"
     resources:
         mem=increase_mem
+    threads: 8
     benchmark: "benchmarks/purecn/cbs_hclust/{sample}.txt"
     log:
         "logs/purecn/cbs_hclust/{sample}.log",
+    priority: -2 # run it last for specific testing purposes
     conda:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F",
+        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F --min-base-quality 20",
         seed_str="--seed",
         random_nb=randint(1,1000),
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 {params.seed_str} {params.random_nb} &> {log}
+        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/cbs_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 --cores {threads} {params.seed_str} {params.random_nb} &> {log}
         """
 
 rule purecn_hmm_hclust:
@@ -104,16 +110,18 @@ rule purecn_hmm_hclust:
         "results/purecn/hmm_hclust/{sample}/{sample}.csv"
     resources:
         mem=increase_mem
+    priority: -2 # run it last for specific testing purposes
+    threads: 8
     log:
         "logs/purecn/hmm_hclust/{sample}.log",
     conda:
         "../envs/primary_env.yaml"
     params:
         sampleid="{sample}",
-        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F",
+        extra="--genome hg38 --force --postoptimize --funsegmentation Hclust --sex F --min-base-quality 20",
         seed_str="--seed",
         random_nb=randint(1,1000),
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
-        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 {params.seed_str} {params.random_nb} &> {log}
+        Rscript $PURECN/PureCN.R --vcf {input.vcf_filt} --sampleid {params.sampleid} --tumor {input.copy_ratios} --segfile {input.seg} --out results/purecn/hmm_hclust/{params.sampleid}/{params.sampleid} {params.extra} --genome hg38 --cores {threads} {params.seed_str} {params.random_nb} &> {log}
         """
