@@ -104,7 +104,8 @@ if not config["amplicon"]:
         input:
             "results/bam_sorted_bwa/{sample}_sorted.bam"
         output:
-            "results/bam_sorted_bwa/{sample}_sorted_marked.bam"
+            "results/bam_sorted_bwa/{sample}_sorted_marked.bam",
+            "results/bam_sorted_bwa/{sample}_sorted_marked.bam.bai"
         benchmark: "benchmarks/sambamba_mark_duplicates/{sample}.txt"
         log:
             "logs/sambamba_mark_duplicates/{sample}.log"
