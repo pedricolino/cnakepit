@@ -23,22 +23,21 @@ else:
 rule all:
   input:
     # CNVkit CBS
-    expand('results/cnvkit/cbs/{sample}_diagram.cnv.pdf', sample=samples.index),
-    expand('results/cnvkit/cbs/{sample}_scatter.cnv.pdf', sample=samples.index),
-    expand('results/cnvkit/cbs/{sample}.icns', sample=samples.index),
-    'results/cnvkit/cbs/heatmap.cnv.pdf',
+#    expand('results/cnvkit/cbs/{sample}_diagram.cnv.pdf', sample=samples.index),
+#    expand('results/cnvkit/cbs/{sample}_scatter.cnv.pdf', sample=samples.index),
+#    expand('results/cnvkit/cbs/{sample}.icns', sample=samples.index),
+#    'results/cnvkit/cbs/heatmap.cnv.pdf',
     ## and PureCN PSCBS
-    expand("results/purecn/cbs_pscbs/{sample}/{sample}.csv", sample=samples.index), # rds files more important but cause errors sometimes
+#    expand("results/purecn/cbs_pscbs/{sample}/{sample}.csv", sample=samples.index), # rds files more important but cause errors sometimes
     ## and PureCN Hclust
-    expand("results/purecn/cbs_hclust/{sample}/{sample}.csv", sample=samples.index),
-
+#    expand("results/purecn/cbs_hclust/{sample}/{sample}.csv", sample=samples.index),
     # CNVkit HMM
     expand('results/cnvkit/hmm/{sample}_diagram.cnv.pdf', sample=samples.index),
     expand('results/cnvkit/hmm/{sample}_scatter.cnv.pdf', sample=samples.index),
     expand('results/cnvkit/hmm/{sample}.icns', sample=samples.index),
     'results/cnvkit/hmm/heatmap.cnv.pdf',
     ## and PureCN PSCBS
-    expand("results/purecn/hmm_pscbs/{sample}/{sample}.csv", sample=samples.index),
+    #expand("results/purecn/hmm_pscbs/{sample}/{sample}.csv", sample=samples.index),
     ## and PureCN Hclust
     expand("results/purecn/hmm_hclust/{sample}/{sample}.csv", sample=samples.index)
     
