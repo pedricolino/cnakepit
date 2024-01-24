@@ -1,13 +1,19 @@
-bedtargets = 'results/cnvkit/general/'+bedname+'_target.bed'
-bedantitargets = 'results/cnvkit/general/'+bedname+'_antitarget.bed'
-amplicontargets = 'results/cnvkit/general/'+bedname+'_amplicon.bed'
-bedname=bedname
-method_specific_bam = 'results/bam_sorted_bwa/{sample}_sorted_marked.bam' if not config["amplicon"] else 'results/bam_sorted_bwa/{sample}_sorted.bam'
-
 import os
 from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 
 HTTP = HTTPRemoteProvider()
+
+# produced bed files
+my_targets = 'results/cnvkit/general/my_targets.bed'
+my_antitargets = 'results/cnvkit/general/my_antitargets.bed'
+
+autobin_targets = 'results/cnvkit/general/'+bedname+'_target.bed'
+autobin_antitargets = 'results/cnvkit/general/'+bedname+'_antitarget.bed'
+
+bedname=bedname
+
+# right bam files according to method
+method_specific_bam = 'results/bam_sorted_bwa/{sample}_sorted_marked.bam' if not config["amplicon"] else 'results/bam_sorted_bwa/{sample}_sorted.bam'
 
 # use remote file instead of cnvkit.py access output which causes problems
 rule download_mappability:
@@ -22,32 +28,48 @@ rule download_mappability:
     shell:
         "mv {input} {output}"
 
-# only for amplicon sequencing
-if config["amplicon"]:
-    rule cnvkit_target:
-        input:
-            config["bed_w_chr"],
-        output:
-            amplicontargets,
-        benchmark:
-            "benchmarks/cnvkit/general/target.txt"
-        log:
-            "logs/cnvkit/general/target/log",
-        params:
-            extra = '--split',
-        conda:
-            "../envs/primary_env.yaml"
-        shell:
-            'cnvkit.py target {input} -o {output} {params.extra} 2> {log}'
+rule cnvkit_target:
+    input:
+        config["bed_w_chr"],
+    output:
+        my_targets,
+    benchmark:
+        "benchmarks/cnvkit/general/target.txt"
+    log:
+        "logs/cnvkit/general/target/log",
+    params:
+        extra = '--split',
+    conda:
+        "../envs/primary_env.yaml"
+    shell:
+        'cnvkit.py target {input} -o {output} {params.extra} 2> {log}'
+
+rule cnvkit_antitarget:
+    input:
+        bed = config["bed_w_chr"],
+        access = config["mappability"],
+    output:
+        my_antitargets,
+    benchmark:
+        "benchmarks/cnvkit/general/antitarget.txt"
+    log:
+        "logs/cnvkit/general/antitarget/log",
+    params:
+        extra = '',
+    conda:
+        "../envs/primary_env.yaml"
+    shell:
+        'cnvkit.py antitarget {input.bed} --access {input.access} -o {output} {params.extra} 2> {log}'
 
 rule cnvkit_autobin:
     input:
         bams = expand(method_specific_bam, sample=samples.index), # maybe use only fraction of samples here?
-        targets = config["bed_w_chr"] if not config["amplicon"] else amplicontargets,
+        targets = my_targets,
         access = config["mappability"],
+        antitarget = my_antitargets,
     output:
-        target = bedtargets,
-        antitarget = bedantitargets,
+        target = autobin_targets,
+        antitarget = autobin_antitargets,
     resources:
         mem_mb=8000 # otherwise 4TB for 600 samples with default Snakemake...
     benchmark:
@@ -67,8 +89,8 @@ rule cnvkit_autobin:
 rule cnvkit_coverage:
     input:
         bam = method_specific_bam,
-        targets = bedtargets if not config["amplicon"] else amplicontargets,
-        antitargets = bedantitargets,
+        targets = autobin_targets,
+        antitargets = autobin_antitargets,
     output:
         target_coverage = 'results/cnvkit/general/{sample}.targetcoverage.cnn',
         antitarget_coverage = 'results/cnvkit/general/{sample}.antitargetcoverage.cnn',
@@ -87,7 +109,8 @@ rule cnvkit_coverage:
 rule cnvkit_generic_ref:
     input:
         fasta=config["ref"],
-        targets = bedtargets if not config["amplicon"] else amplicontargets,
+        targets = autobin_targets,
+        antitargets = autobin_antitargets,
     output:
         FlatReference_cnn = 'results/cnvkit/general/FlatReference.cnn',
     benchmark: "benchmarks/cnvkit/general/ref_generic.txt"
@@ -99,7 +122,7 @@ rule cnvkit_generic_ref:
     conda:
         "../envs/primary_env.yaml"
     shell:
-        'cnvkit.py reference -o {output.FlatReference_cnn} -f {input.fasta} -t {input.targets} {params.extra} {params.amplicon} 2> {log}'
+        'cnvkit.py reference -o {output.FlatReference_cnn} -f {input.fasta} -t {input.targets} -a {input.antitargets} {params.extra} {params.amplicon} 2> {log}'
 
 rule cnvkit_fix:
     input:
