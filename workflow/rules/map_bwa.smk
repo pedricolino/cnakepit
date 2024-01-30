@@ -57,7 +57,7 @@ rule bwa_mem_samples:
         sort_extra="-@ {snakemake.threads}",  # Extra args for samtools/picard.
     threads: 16
     resources:
-        mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
+        mem=lambda wildcards, attempt: '%dG' % (12 * attempt),
         runtime=24*60, # 24h
         slurm_partition='medium'
     conda:
