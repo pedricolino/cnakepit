@@ -77,3 +77,4 @@ caller_options: "--ploidy 1 --prior 0.001"
 mpileup_options: "--max-depth 100 --min-BQ 15"
 
 
+sv_blacklist: "resources/mappability/sv_blacklist.bed"

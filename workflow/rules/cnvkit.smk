@@ -28,6 +28,36 @@ rule download_mappability:
     shell:
         "mv {input} {output}"
 
+rule download_sv_blacklist:
+    input:
+        HTTP.remote("http://cf.10xgenomics.com/supp/genome/GRCh38/sv_blacklist.bed", keep_local=True)
+    output:
+        config["sv_blacklist"]
+    benchmark:
+        "benchmarks/cnvkit/general/download_sv_blacklist.txt"
+    log:
+        "logs/cnvkit/general/download_sv_blacklist/log",
+    shell:
+        "mv {input} {output}"
+
+rule cnvkit_access:
+    input:
+        ref = config["ref"],
+        sv_blacklist = config["sv_blacklist"],
+    output:
+        'results/cnvkit/general/access.bed'
+    benchmark:
+        "benchmarks/cnvkit/general/access.txt"
+    log:
+        "logs/cnvkit/general/access/log",
+    params:
+        extra = '',
+    conda:
+        "../envs/primary_env.yaml"
+    shell:
+        'cnvkit.py access {input.ref} --exclude {input.sv_blacklist} -o {output} {params.extra} 2> {log}'
+        # 'cnvkit.py access {input} -o {output} {params.extra} 2> {log}'
+
 rule cnvkit_target:
     input:
         config["bed_w_chr"],
@@ -47,7 +77,8 @@ rule cnvkit_target:
 rule cnvkit_antitarget:
     input:
         bed = config["bed_w_chr"],
-        access = config["mappability"],
+        access = 'results/cnvkit/general/access.bed'
+        # access = config["mappability"],
     output:
         my_antitargets,
     benchmark:
