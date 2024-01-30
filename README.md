@@ -25,7 +25,7 @@ This pipeline was originally forked (and later *unforked*) from [this private re
 1. Install conda (usually already installed on clusters)
 2. [Install a conda environment with SnakeMake:](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html):
     - Optionally but highly recommended to first install mamba: ``conda install -n base -c conda-forge mamba``
-    - Install a SnakeMake environment: ``mamba create -c conda-forge -c bioconda -n snakemake snakemake`` (replace with ``mamba`` with ``conda`` if you want to waste time with waiting longer)
+    - Install a SnakeMake environment: ``mamba create -c conda-forge -c bioconda -n snakemake-vanilla snakemake=7.32.3`` (replace ``mamba`` with ``conda`` if you want to waste more time with waiting). Note that I specified an older version of SnakeMake because, as of January '24, the newest version is incompatible with the current SnakeMake profile of the CUBI cluster and our pipeline_job.sh.
 All other required tools and dependencies will be installed automatically by SnakeMake during the first run of the pipeline.
 
 ## Usage
