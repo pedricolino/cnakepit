@@ -28,13 +28,19 @@ rule trim:
   log:
     "logs/trimmomatic/{sample}.log"
   params:
-    base = lambda wildcards: f"results/trimmed/{wildcards.sample}.fq.gz",
+    base = "results/trimmed/{sample}.fq.gz",
+    # base = lambda wildcards: f"results/trimmed/{wildcards.sample}.fq.gz",
     adapter = config["adapter"]
   threads: 8
   conda:
     "../envs/primary_env.yaml"
   shell:
-    "trimmomatic PE -threads {threads} {input.mate1} {input.mate2} -baseout {params.base} ILLUMINACLIP:{params.adapter}:2:30:10 2> {log}"
+    "trimmomatic PE "
+      "-threads {threads} "
+      "{input.mate1} {input.mate2} "
+      "-baseout {params.base} "
+      "ILLUMINACLIP:{params.adapter}:2:30:10 "
+      "2> {log}"
 
 
 rule fastqc_trimmed:
