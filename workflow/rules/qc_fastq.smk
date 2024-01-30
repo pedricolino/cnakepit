@@ -30,7 +30,7 @@ rule trim:
   params:
     base = "results/trimmed/{sample}.fq.gz",
     # base = lambda wildcards: f"results/trimmed/{wildcards.sample}.fq.gz",
-    adapter = config["adapter"]
+    adapter = config["adapter_sequences"]
   threads: 8
   conda:
     "../envs/primary_env.yaml"

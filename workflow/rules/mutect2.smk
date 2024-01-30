@@ -9,45 +9,45 @@ HTTP = HTTPRemoteProvider()
 
 rule download_gnomad:
     input:
-        HTTP.remote("www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.hg38.vcf.gz", keep_local=True)
+        HTTP.remote(config["gnomad_af_only"]["vcf_link"], keep_local=True)
     output:
-        config["germline-resource"]
+        config["gnomad_af_only"]["vcf"]
     shell:
         "mv {input} {output}"
 
 rule download_gnomad_index:
     input:
-        HTTP.remote("www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.hg38.vcf.gz.tbi", keep_local=True)
+        HTTP.remote(config["gnomad_af_only"]["index_link"], keep_local=True)
     output:
-        config["germline-resource-index"]
+        config["gnomad_af_only"]["index"]
     shell:
         "mv {input} {output}"
 
 rule download_common_biallelic:
     input:
-        HTTP.remote("http://storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz", keep_local=True)
+        HTTP.remote(config["common_germline_variants"]["vcf_link"], keep_local=True)
     output:
-        config["common-biallelic"]
+        config["common_germline_variants"]["vcf"]
     shell:
         "mv {input} {output}"
 
 rule download_common_biallelic_index:
     input:
-        HTTP.remote("http://storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz.tbi", keep_local=True)
+        HTTP.remote(config["common_germline_variants"]["index_link"], keep_local=True)
     output:
-        config["common-biallelic-index"]
+        config["common_germline_variants"]["index"]
     shell:
         "mv {input} {output}"
 
 rule mutect2_bam:
     input:
-        fasta=config["ref"],
+        fasta=config["reference"]["fasta"],
         map=method_specific_bam,
         idx=method_specific_bam_index,
         dict="resources/reference/hg38.dict",
-        targets=config["bed_w_chr"],
-        gnomad=config["germline-resource"],
-        gnomad_index=config["germline-resource-index"]
+        targets=config["panel_design"],
+        gnomad=config["gnomad_af_only"]["vcf"],
+        gnomad_index=config["gnomad_af_only"]["index"]
     output:
         vcf="results/mutect2/unfiltered/{sample}.vcf.gz",
         f1r2="results/mutect2/f1r2/{sample}.tar.gz"
@@ -90,8 +90,8 @@ rule get_pile_up_summaries:
     input:
         bam=method_specific_bam,
         bam_idx=method_specific_bam_index,
-        common=config["common-biallelic"],
-        common_index=config["common-biallelic-index"],
+        common=config["common_germline_variants"]["vcf"],
+        common_index=config["common_germline_variants"]["index"],
     output:
         "results/mutect2/pile_up_summaries/{sample}.table"
     benchmark: "benchmarks/pile_up_summaries/{sample}.txt"
@@ -105,7 +105,7 @@ rule get_pile_up_summaries:
 rule calculate_contamination:
     input:
         pileup="results/mutect2/pile_up_summaries/{sample}.table",
-        reference=config["ref"],
+        reference=config["reference"]["fasta"],
         dict="resources/reference/hg38.dict"
     output:
         "results/mutect2/contamination/{sample}.txt"
@@ -119,7 +119,7 @@ rule calculate_contamination:
 
 # rule mutect2_ref_dict:
 #     input:
-#         config["ref"]
+#         config["reference"]["fasta"]
 #     output:
 #         "resources/reference/hg38.dict"
 #     conda:
@@ -132,9 +132,9 @@ rule calculate_contamination:
 # instead, get the dict from the web
 rule download_ref_dict:
     input:
-        HTTP.remote("storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dict", keep_local=True)
+        HTTP.remote(config["reference"]["dict_link"], keep_local=True)
     output:
-        "resources/reference/hg38.dict"
+        config["reference"]["dict"]
     benchmark: "benchmarks/download_ref_dict.log"
     shell:
         "mv {input} {output}"
@@ -142,7 +142,7 @@ rule download_ref_dict:
 rule filter_mutect_calls:
     input:
         vcf="results/mutect2/unfiltered/{sample}.vcf.gz",
-        reference=config["ref"],
+        reference=config["reference"]["fasta"],
         rom="results/mutect2/read_orientation_model/{sample}.tar.gz",
         contamination_table="results/mutect2/contamination/{sample}.txt"
     log:

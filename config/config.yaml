@@ -3,70 +3,62 @@
 # (and the Snakefile rule all and maybe pipeline_job.sh for cluster submission)
 ##################################################################################
 
-#--- amplicon- or hybrid-capture -------------------------------------------------
 
-# is amplicon sequencing used as a targeted capture method
-#   -> no off-target reads
-# if set to false, assume hybrid-capure method
-#   -> different BWA arguments, flagging of PCR duplicates and CNVkit will use off-target reads
+#--- Requires individual changes --------------------------------------------------
+
+# This pipeline is mainly built for hybridization-capture based NGS data, but is also implements changes required for amplicon sequencing data. Those changes include:
+#     - ignoring of off-target reads (theoretically, no off-target reads are sequenced.
+#     - no flagging of PCR duplicates (all of the amplified reads are in fact PCR duplicates by design) 
 amplicon: false
 
-
-#--- path to reference genome ----------------------------------------------------
-
-ref: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa"
-# ref: "resources/reference/hg38.fa"
-
-ref_index: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa.fai"
+# Path to reference genome and its index file. Will be downloaded if absent. Current pipeline settings are for hg38.
+reference:
+  fasta: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa"
+  index: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa.fai"
+# fasta: "resources/reference/hg38.fa" # use this if you wish to download the reference file
 # ref_index: "resources/reference/hg38.fa.fai"
+  dict: "resources/reference/hg38.dict"
+  fasta_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta"
+  index_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
+  dict_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dict"
 
-#TESTING PURPOSES:
-ref_fil: "results/filter_ref/hg38_filtered.fa"
+data:
+  samples_in_directory: false # boolean, are samples or their symlinks in resource/data?
+  # if previous is false, give path to sample sheet
+  sample_sheet_path: "resources/data/sample_sheet.tsv" # tab-separated columns: sample|fq1|fq2
 
-
-#--- data -------------------------------------------------------------------------
-
-# set either data_dir or samples, the other one should be false
-
-# directory where the data is (or the symlink to the data)
-data_dir: False
-
-# path to sample sheet as tsv provided by user which looks like sample|fq1|fq2
-samples: "resources/data/sample_sheet.tsv"
-
-
-#--- path to adapter sequence -----------------------------------------------------
-
-# for trimming, path/to/adaptersequence.fa
-adapter: "resources/adapter/panel-adapter.fa"
-
-
-#--- path to panel design ---------------------------------------------------------
-
+# chromosome column must be like "chr1", not "1"
 # MH panel design
-bed: "resources/paneldesign/MH_Covered_liftover_hg38_no_chr.bed"
-bed_w_chr: "resources/paneldesign/MH_Covered_liftover_hg38.bed"
-
+panel_design: "resources/paneldesign/MH_Covered_liftover_hg38.bed"
 # SIGN-OC panel design
-# bed: "resources/paneldesign/S3287512_Covered-mod.bed"
-# bed_w_chr: "resources/paneldesign/S3287512_Covered.bed"
+# panel_design: "resources/paneldesign/S3287512_Covered.bed"
+
+adapter_sequences: "resources/adapter/panel-adapter.fa" # for trimming
 
 
-#--- path to mappability file -----------------------------------------------------
+#--- Does usually not require changes ---------------------------------------------
+# The paths to reference files which will be downloaded if absent
 
-mappability: "resources/mappability/access-5k-mappable.hg19.bed"
+gnomad_af_only:
+  vcf: "resources/germline-resource/af-only-gnomad.hg38.vcf.gz"
+  index: "resources/germline-resource/af-only-gnomad.hg38.vcf.gz.tbi"
+  vcf_link: "www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.hg38.vcf.gz"
+  index_link: "www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.hg38.vcf.gz.tbi"
 
+common_germline_variants:
+  vcf: "resources/common-biallelic/small_exac_common_3.hg38.vcf.gz"
+  index: "resources/common-biallelic/small_exac_common_3.hg38.vcf.gz.tbi"
+  vcf_link: "http://storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz"
+  index_link: "http://storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz.tbi"
 
-#--- path to gnomad file ----------------------------------------------------------
+mappability:
+  bed: "resources/mappability/access-5k-mappable.hg19.bed"
+  link: "github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed"
 
-germline-resource: "resources/germline-resource/af-only-gnomad.hg38.vcf.gz"
-germline-resource-index: "resources/germline-resource/af-only-gnomad.hg38.vcf.gz.tbi"
+sv_blacklist:
+  bed: "resources/mappability/sv_blacklist.bed"
+  link: "http://cf.10xgenomics.com/supp/genome/GRCh38/sv_blacklist.bed"
 
-
-#--- path to common biallelic file ------------------------------------------------
-
-common-biallelic: "resources/common-biallelic/small_exac_common_3.hg38.vcf.gz"
-common-biallelic-index: "resources/common-biallelic/small_exac_common_3.hg38.vcf.gz.tbi"
 
 
 #--- variance calling parameters: bcf tools --------------------------------------
@@ -82,4 +74,6 @@ caller_options: "--ploidy 1 --prior 0.001"
 mpileup_options: "--max-depth 100 --min-BQ 15"
 
 
-sv_blacklist: "resources/mappability/sv_blacklist.bed"
+
+#TESTING PURPOSES:
+ref_fil: "results/filter_ref/hg38_filtered.fa"

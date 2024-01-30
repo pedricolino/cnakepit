@@ -8,17 +8,17 @@ HTTP = HTTPRemoteProvider()
 
 rule get_ref:
     input:
-        HTTP.remote("storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta", keep_local=True)
+        HTTP.remote(config["reference"] ["fasta_link"], keep_local=True)
     output:
-        config["ref"]
+        config["reference"]["fasta"]
     shell:
         "mv {input} {output}"
 
 rule get_ref_index:
     input:
-        HTTP.remote("storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta.fai", keep_local=True)
+        HTTP.remote(config["reference"] ["index_link"], keep_local=True)
     output:
-        config["ref_index"]
+        config["reference"]["index"]
     shell:
         "mv {input} {output}"
 
@@ -42,7 +42,7 @@ rule bwa_index_reference:
 
 rule bwa_mem_samples:
     input:
-        ref_index=config["ref_index"],
+        ref_index=config["reference"]["index"],
         reads=["results/trimmed/{sample}_1P.fq.gz", "results/trimmed/{sample}_2P.fq.gz"],
         idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
     output:

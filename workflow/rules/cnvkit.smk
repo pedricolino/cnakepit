@@ -18,9 +18,9 @@ method_specific_bam = 'results/bam_sorted_bwa/{sample}_sorted_marked.bam' if not
 # use remote file instead of cnvkit.py access output which causes problems
 rule download_mappability:
     input:
-        HTTP.remote("github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed", keep_local=True)
+        HTTP.remote(config["mappability"]["link"], keep_local=True)
     output:
-        config["mappability"]
+        config["mappability"]["bed"]
     benchmark:
         "benchmarks/cnvkit/general/download_mappability.txt"
     log:
@@ -30,9 +30,9 @@ rule download_mappability:
 
 rule download_sv_blacklist:
     input:
-        HTTP.remote("http://cf.10xgenomics.com/supp/genome/GRCh38/sv_blacklist.bed", keep_local=True)
+        HTTP.remote(config["sv_blacklist"]["link"], keep_local=True)
     output:
-        config["sv_blacklist"]
+        config["sv_blacklist"]["bed"]
     benchmark:
         "benchmarks/cnvkit/general/download_sv_blacklist.txt"
     log:
@@ -42,8 +42,8 @@ rule download_sv_blacklist:
 
 rule cnvkit_access:
     input:
-        ref = config["ref"],
-        sv_blacklist = config["sv_blacklist"],
+        ref = config["reference"]["fasta"],
+        sv_blacklist = config["sv_blacklist"]["bed"],
     output:
         'results/cnvkit/general/access.bed'
     benchmark:
@@ -60,7 +60,7 @@ rule cnvkit_access:
 
 rule cnvkit_target:
     input:
-        config["bed_w_chr"],
+        config["panel_design"],
     output:
         my_targets,
     benchmark:
@@ -76,7 +76,7 @@ rule cnvkit_target:
 
 rule cnvkit_antitarget:
     input:
-        bed = config["bed_w_chr"],
+        bed = config["panel_design"],
         access = 'results/cnvkit/general/access.bed'
         # access = config["mappability"],
     output:
@@ -96,7 +96,7 @@ rule cnvkit_autobin:
     input:
         bams = expand(method_specific_bam, sample=samples.index), # maybe use only fraction of samples here?
         targets = my_targets,
-        access = config["mappability"],
+        access = config["mappability"]["bed"],
         antitarget = my_antitargets,
     output:
         target = autobin_targets,
@@ -139,7 +139,7 @@ rule cnvkit_coverage:
 
 rule cnvkit_generic_ref:
     input:
-        fasta=config["ref"],
+        fasta=config["reference"]["fasta"],
         targets = autobin_targets,
         antitargets = autobin_antitargets,
     output:
