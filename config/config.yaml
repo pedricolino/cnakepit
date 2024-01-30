@@ -43,8 +43,13 @@ adapter: "resources/adapter/panel-adapter.fa"
 
 #--- path to panel design ---------------------------------------------------------
 
-bed: "resources/paneldesign/S3287512_Covered-mod.bed"
-bed_w_chr: "resources/paneldesign/S3287512_Covered.bed"
+# MH panel design
+bed: "resources/paneldesign/MH_Covered_liftover_hg38_no_chr.bed"
+bed_w_chr: "resources/paneldesign/MH_Covered_liftover_hg38.bed"
+
+# SIGN-OC panel design
+# bed: "resources/paneldesign/S3287512_Covered-mod.bed"
+# bed_w_chr: "resources/paneldesign/S3287512_Covered.bed"
 
 
 #--- path to mappability file -----------------------------------------------------
