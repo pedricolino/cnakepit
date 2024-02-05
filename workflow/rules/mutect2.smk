@@ -2,9 +2,6 @@
 import os
 from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 
-method_specific_bam = 'results/bam_sorted_bwa/{sample}_sorted_marked.bam' if not config["amplicon"] else 'results/bam_sorted_bwa/{sample}_sorted.bam'
-method_specific_bam_index = 'results/bam_sorted_bwa/{sample}_sorted_marked.bam.bai' if not config["amplicon"] else 'results/bam_sorted_bwa/{sample}_sorted.bam.bai'
-
 HTTP = HTTPRemoteProvider()
 
 rule download_gnomad:
@@ -42,8 +39,8 @@ rule download_common_biallelic_index:
 rule mutect2_bam:
     input:
         fasta=config["reference"]["fasta"],
-        map=method_specific_bam,
-        idx=method_specific_bam_index,
+        map=BAMs_for_CNV_calling,
+        idx=BAM_index_for_CNV_calling,
         dict="resources/reference/hg38.dict",
         targets=config["panel_design"],
         gnomad=config["gnomad_af_only"]["vcf"],
@@ -51,8 +48,6 @@ rule mutect2_bam:
     output:
         vcf="results/mutect2/unfiltered/{sample}.vcf.gz",
         f1r2="results/mutect2/f1r2/{sample}.tar.gz"
-    #message:
-        #"Testing Mutect2 with {wildcards.sample}"
     benchmark: "benchmarks/mutect2_bam/{sample}.txt"
     #priority: -1 # Mutect2 is very slow, so we want to run downstream rules of already Mutect2-processed samples first
     params:
@@ -60,20 +55,20 @@ rule mutect2_bam:
     threads: 16 # Confirmed in log files that it works, see https://www.biostars.org/p/9549710/#9550707
     resources:
         mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
-        runtime=48*60, # 48h
-        slurm_partition='medium'
-        #runtime = lambda wildcards, attempt: attempt * 4 * 60
+        slurm_partition = lambda wildcards, attempt: 'medium' if attempt > 1 else 'short',
+        runtime=lambda wildcards, attempt: 24*60 if attempt > 1 else 4*60,
+        cores=lambda wc, threads: threads
     log:
         "logs/mutect2/{sample}.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         "gatk Mutect2 -R {input.fasta} -I {input.map} -L {input.targets} -O {output.vcf} {params.extra} --native-pair-hmm-threads {threads} --germline-resource {input.gnomad} --f1r2-tar-gz {output.f1r2} --tmp-dir ${{TMPDIR}} &> {log}"
 
 rule learn_read_orientation_model:
     input:
         f1r2="results/mutect2/f1r2/{sample}.tar.gz",
-        idx=method_specific_bam_index
+        idx=BAM_index_for_CNV_calling
     output:
         "results/mutect2/read_orientation_model/{sample}.tar.gz"
     resources:
@@ -82,14 +77,14 @@ rule learn_read_orientation_model:
     log:
         "logs/read_orientation_model/{sample}.log"
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         "gatk LearnReadOrientationModel -I {input.f1r2} -O {output} --tmp-dir ${{TMPDIR}} &> {log}"
 
 rule get_pile_up_summaries:
     input:
-        bam=method_specific_bam,
-        bam_idx=method_specific_bam_index,
+        bam=BAM_index_for_CNV_calling,
+        bam_idx=BAMs_for_CNV_calling,
         common=config["common_germline_variants"]["vcf"],
         common_index=config["common_germline_variants"]["index"],
     output:
@@ -98,7 +93,7 @@ rule get_pile_up_summaries:
     log:
         "logs/pile_up_summaries/{sample}.log"
     conda:  
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         "gatk GetPileupSummaries -I {input.bam} -V {input.common} -L {input.common} -O {output} --tmp-dir ${{TMPDIR}} &> {log}"
 
@@ -113,7 +108,7 @@ rule calculate_contamination:
     log:
         "logs/calculate_contamination/{sample}.log"
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         "gatk CalculateContamination -I {input.pileup} -O {output} --tmp-dir ${{TMPDIR}} &> {log}"
 
@@ -148,7 +143,7 @@ rule filter_mutect_calls:
     log:
         "logs/filter_mutect_calls/{sample}.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     output:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
     benchmark: "benchmarks/filter_mutect_calls/{sample}.txt"
@@ -166,7 +161,7 @@ rule extract_germline_variants:
     benchmark:
         "benchmarks/extract_germline_variants/{sample}.txt"
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         """
         bcftools view -i 'FILTER~"germline"' {input} > {output} 2> {log}
