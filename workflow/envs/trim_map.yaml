@@ -1,0 +1,14 @@
+name: trim_map
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python<=3.10.6 # 3.10.13 does not work current installed conda version
+
+  # preprocessing
+  - trimmomatic
+
+  # mapping
+  - bwa==0.7.17
+  - samtools

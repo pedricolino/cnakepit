@@ -1,4 +1,4 @@
-name: umi_mapping_env
+name: umi_map
 channels:
   - conda-forge
   - bioconda
