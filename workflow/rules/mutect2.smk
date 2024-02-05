@@ -83,8 +83,8 @@ rule learn_read_orientation_model:
 
 rule get_pile_up_summaries:
     input:
-        bam=BAM_index_for_CNV_calling,
-        bam_idx=BAMs_for_CNV_calling,
+        bam=BAMs_for_CNV_calling,
+        bam_idx=BAM_index_for_CNV_calling,
         common=config["common_germline_variants"]["vcf"],
         common_index=config["common_germline_variants"]["index"],
     output:
