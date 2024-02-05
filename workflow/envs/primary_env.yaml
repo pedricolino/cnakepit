@@ -4,6 +4,8 @@ channels:
   - bioconda
   - defaults
 dependencies:
+  - python<=3.10.6 # 3.10.13 does not work current installed conda version
+
   # preprocessing
   - bcftools==1.11 # version set by Nina, maybe can be removed
   - trimmomatic
