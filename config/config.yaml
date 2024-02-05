@@ -11,6 +11,15 @@
 #     - no flagging of PCR duplicates (all of the amplified reads are in fact PCR duplicates by design) 
 amplicon: false
 
+# Do the samples require specific preprocessing for unique molecular identifiers (UMIs)? (Specifically for HRD dataset)
+contain_UMIs: true
+
+# Experimental filtering of reference genome
+filter_reference: false
+
+# compute mappability for the reference genome or download the premade one from CNVkit?
+compute_mappability: true
+
 # Path to reference genome and its index file. Will be downloaded if absent. Current pipeline settings are for hg38.
 reference:
   fasta: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa"
