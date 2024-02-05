@@ -1,25 +1,6 @@
 ################ BWA ######################
 
 # qualimap needs sorted bam files as input
-rule bwa_sort_samples:
-    input:
-        "results/mapped/{sample}.bam"
-    output:
-        "results/bam_sorted_bwa/{sample}_sorted.bam"
-    benchmark:
-        "benchmarks/sort_bwa/{sample}.txt"
-    log:
-        "logs/samtools/sort_bwa/{sample}.log"
-    threads: 8
-    resources:
-        mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
-        runtime=24*60, # 24h
-        slurm_partition='medium'
-    conda:
-        "../envs/primary_env.yaml"
-    shell:
-        "samtools sort -o {output} {input} -@ {threads} 2> {log}" 
-
 rule qualimap_bwa:
     input:
        "results/bam_sorted_bwa/{sample}_sorted.bam"
@@ -38,7 +19,7 @@ rule qualimap_bwa:
     params:
         outdir = "results/qc/qualimap/qualimap_bwa/{sample}"
     conda:
-        "../envs/qc_map.yaml"
+        "../envs/qc.yaml"
     shell:
         "qualimap bamqc -bam {input} -nt {threads} --java-mem-size={resources.mem} -outdir {params.outdir} 2> {log}"
 
@@ -57,7 +38,7 @@ rule multiqc_map_bwa:
     log:
         "logs/qc_map_bwa/multiqc.log"
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/qc.yaml"
     shell:
         "multiqc ./results/qc/qualimap/qualimap_bwa -o results/qc_map_bwa 2> {log}"
 
@@ -73,7 +54,7 @@ rule sort_bowtie2:
     threads:
         16
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/qc.yaml"
     shell:
         "samtools sort -o {output} {input} -@ {threads} 2> {log}"  
 
@@ -87,7 +68,7 @@ rule qualimap_bowtie2:
     params:
         outdir = "results/qc/qualimap/qualimap_bowtie2/{sample}"
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/qc.yaml"
     shell:
         "qualimap bamqc -bam {input} -outdir {params.outdir}"
 
@@ -99,7 +80,7 @@ rule multiqc_map_bowtie2:
     log:
         "logs/qc_map_bowtie2/multiqc.log"
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/qc.yaml"
     shell:
         "multiqc ./results/qc/qualimap/qualimap_bowtie2 -o results/qc_map_bowtie2 2> {log}"
 
