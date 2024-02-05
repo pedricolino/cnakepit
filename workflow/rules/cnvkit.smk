@@ -12,9 +12,6 @@ autobin_antitargets = 'results/cnvkit/general/'+bedname+'_antitarget.bed'
 
 bedname=bedname
 
-# right bam files according to method
-method_specific_bam = 'results/bam_sorted_bwa/{sample}_sorted_marked.bam' if not config["amplicon"] else 'results/bam_sorted_bwa/{sample}_sorted.bam'
-
 # use remote file instead of cnvkit.py access output which causes problems
 rule download_mappability:
     input:
@@ -53,10 +50,9 @@ rule cnvkit_access:
     params:
         extra = '',
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py access {input.ref} --exclude {input.sv_blacklist} -o {output} {params.extra} 2> {log}'
-        # 'cnvkit.py access {input} -o {output} {params.extra} 2> {log}'
 
 rule cnvkit_target:
     input:
@@ -70,15 +66,14 @@ rule cnvkit_target:
     params:
         extra = '--split',
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py target {input} -o {output} {params.extra} 2> {log}'
 
 rule cnvkit_antitarget:
     input:
         bed = config["panel_design"],
-        access = 'results/cnvkit/general/access.bed'
-        # access = config["mappability"],
+        access = mappability
     output:
         my_antitargets,
     benchmark:
@@ -88,15 +83,15 @@ rule cnvkit_antitarget:
     params:
         extra = '',
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py antitarget {input.bed} --access {input.access} -o {output} {params.extra} 2> {log}'
 
 rule cnvkit_autobin:
     input:
-        bams = expand(method_specific_bam, sample=samples.index), # maybe use only fraction of samples here?
+        bams = expand(BAMs_for_CNV_calling, sample=samples.index), # maybe use only fraction of samples here?
         targets = my_targets,
-        access = config["mappability"]["bed"],
+        access = mappability,
         antitarget = my_antitargets,
     output:
         target = autobin_targets,
@@ -112,14 +107,14 @@ rule cnvkit_autobin:
     log:
         "logs/cnvkit/general/autobin/log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py autobin {input.bams} --targets {input.targets} --access {input.access} --target-output-bed {output.target} --antitarget-output-bed {output.antitarget} --method {params.method} {params.extra} 2> {log}'
 
 
 rule cnvkit_coverage:
     input:
-        bam = method_specific_bam,
+        bam = BAMs_for_CNV_calling,
         targets = autobin_targets,
         antitargets = autobin_antitargets,
     output:
@@ -132,7 +127,7 @@ rule cnvkit_coverage:
     log:
         "logs/cnvkit/general/coverage/{sample}.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py coverage {input.bam} {input.targets} --processes {threads} -o {output.target_coverage} {params.extra} && '
         'cnvkit.py coverage {input.bam} {input.antitargets} --processes {threads} -o {output.antitarget_coverage} {params.extra} 2> {log}'
@@ -151,7 +146,7 @@ rule cnvkit_generic_ref:
     log:
         "logs/cnvkit/general/ref_generic/log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py reference -o {output.FlatReference_cnn} -f {input.fasta} -t {input.targets} -a {input.antitargets} {params.extra} {params.amplicon} 2> {log}'
 
@@ -169,7 +164,7 @@ rule cnvkit_fix:
     log:
         "logs/cnvkit/general/fix/{sample}.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py fix {input.target_coverage} {input.antitarget_coverage} {input.reference} -o {output} {params.extra} {params.amplicon} 2> {log}'
 
@@ -190,7 +185,7 @@ rule cnvkit_segment_cbs:
     log:
         "logs/cnvkit/cbs/segment/{sample}.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py segment {input.copy_ratios} --vcf {input.germline_vcf} -o {output} --processes {threads} {params.extra} 2> {log}'
 
@@ -209,7 +204,7 @@ rule cnvkit_scatter_cbs:
     log:
         "logs/cnvkit/cbs/scatter/{sample}.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py scatter {input.copy_ratio} --segment {input.segment} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
 
@@ -227,7 +222,7 @@ rule cnvkit_diagram_cbs:
     log:
         "logs/cnvkit/cbs/diagram/{sample}.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py diagram {input.copy_ratio} --segment {input.segment} -o {output} {params.extra} 2> {log}'
 
@@ -244,7 +239,7 @@ rule cnvkit_heatmap_cbs:
     log:
         "logs/cnvkit/cbs/heatmap.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py heatmap -o {output} {input.segments} &> {log}'
 
@@ -262,7 +257,7 @@ rule export_seg_cbs:
     log:
         "logs/cnvkit/cbs/export_seg/{sample}.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py export seg {input.cns} -o {output} {params.extra} 2> {log}'
 
@@ -281,7 +276,7 @@ rule cnvkit_call_cbs:
     log:
         "logs/cnvkit/cbs/call/{sample}.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     shell:
         'cnvkit.py call {input.cns} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
 
