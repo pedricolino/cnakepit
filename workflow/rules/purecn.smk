@@ -3,7 +3,7 @@ from random import randint
 # required for patched PSCBS segm. method
 rule install_lima1_PSCBS:
     output: "results/purecn/PSCBS_check"
-    conda: "../envs/primary_env.yaml"
+    conda: "../envs/cnv_calling.yaml"
     log: "logs/purecn/install_lima1_PSCBS.log"
     shell: "Rscript workflow/scripts/install_lima1_PSCBS.R && touch {output} 2> {log}"
 
@@ -25,7 +25,7 @@ rule purecn_cbs_Hclust:
         "logs/purecn/cbs_Hclust/{sample}.log",
     priority: -2 # run it last for specific testing purposes
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/cnv_calling.yaml"
     params:
         cnvkit_method="cbs",
         purecn_method="Hclust",
