@@ -1,5 +1,3 @@
-stem = str(Path("results") / "ref" / ref_file.stem)
-
 rule fastq_to_bam:
     input:
         mate1 = lambda wildcards: samples.at[wildcards.sample, 'fq1'],
@@ -7,7 +5,7 @@ rule fastq_to_bam:
     output:
         "results/umi_mapping/{sample}_1_fastqtobam.bam"
     conda:
-        "../envs/umi_mapping_env.yaml"
+        "../envs/umi_map.yaml"
     params:
         assay = "HS2-HRD"
     threads: 1
@@ -35,7 +33,7 @@ rule extract_umis_from_bam:
     params:
         readstruc = "3M2S75T"
     conda:
-        "../envs/umi_mapping_env.yaml"
+        "../envs/umi_map.yaml"
     threads: 1
     resources:
         mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
@@ -59,7 +57,7 @@ rule picard_samtofastq:
     output:
         "results/umi_mapping/{sample}_3_samtofastq.fastq"
     conda:
-        "../envs/umi_mapping_env.yaml"
+        "../envs/umi_map.yaml"
     threads: 1
     resources:
         mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
@@ -86,7 +84,7 @@ rule bwa_mem_samples_umi:
         runtime=24*60, # 24h
         slurm_partition='medium',
         cores=lambda wc, threads: threads
-    conda: "../envs/umi_mapping_env.yaml"
+    conda: "../envs/umi_map.yaml"
     shell: "bwa mem {params.extra} -t {threads} {params.stem} {input.reads} | samtools view -bS -@ {threads} > {output}"
 
 
@@ -98,7 +96,7 @@ rule picard_sortsam:
     resources:
         mem=lambda wildcards, attempt: '%dg' % (12 * attempt)
     conda:
-        "../envs/umi_mapping_env.yaml"
+        "../envs/umi_map.yaml"
     threads: 8
     resources:
         mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
@@ -128,7 +126,7 @@ rule MergeBamAlignment:
         runtime=lambda wildcards, attempt: 24*60 if attempt > 1 else 4*60, # 4h=short partition limit, or 24h
         cores=lambda wc, threads: threads
     conda:
-        "../envs/umi_mapping_env.yaml"
+        "../envs/umi_map.yaml"
     shell:
         "picard MergeBamAlignment "
             "-Xmx{resources.mem} "
@@ -157,7 +155,7 @@ rule UmiAwareMarkDuplicatesWithMateCigar:
         ngspipmetrics = "results/umi_mapping/{sample}.ngspipmetrics.txt",
         ngspipumimetrics = "results/umi_mapping/{sample}.ngspipumimetrics.txt"
     conda:
-        "../envs/umi_mapping_env.yaml"
+        "../envs/umi_map.yaml"
     threads: 1
     resources:
         mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
@@ -183,7 +181,7 @@ rule clipbam:
     output:
         "results/umi_mapping/{sample}_8_clipbam.bam"
     conda:
-        "../envs/umi_mapping_env.yaml"
+        "../envs/umi_map.yaml"
     threads: 1
     resources:
         mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
@@ -210,6 +208,6 @@ rule index_clip_bam:
     resources:
         cores=lambda wc, threads: threads
     conda:
-        "../envs/umi_mapping_env.yaml"
+        "../envs/umi_map.yaml"
     shell:
         "samtools index {input}"
