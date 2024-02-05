@@ -7,40 +7,40 @@
 #SBATCH --time=14-00:00:00
 #SBATCH --nodes=1
 #SBATCH --export=all # Keep current environment variables
-#SBATCH --mail-type=END,FAIL
-#SBATCH --mail-user=cedric.moris@bih-charite.de
 #SBATCH --output=logs/slurm_log/%x-%J.log
+##SBATCH --mail-type=END,FAIL
+##SBATCH --mail-user=your@email.address
 
 start_time=$(date +"%Y-%m-%d %H:%M:%S")
 echo "Starting CNAkepit pipeline at $start_time. Look out for snakes..."
+
+#--- Activate bash cmd printing, debug info ------------------------------------
+
+set -x
+>&2 hostname
 
 # Ensure logs folder exists -------------------------------------------------
 
 mkdir -p logs/slurm_log/snakejobs
 export SBATCH_DEFAULTS=" --job-name {rule}.{wildcards} --output=logs/slurm_log/snakejobs/%x-%j.log"
 
-# Enforce existence of TMPDIR -----------------------------------------------
+#--- Enforce existence of TMPDIR -----------------------------------------------
 
 export TMPDIR=${HOME}/scratch/tmp
 mkdir -p ${TMPDIR}
 
-# Activate bash cmd printing, debug info ------------------------------------
+#--- Activate conda environment ------------------------------------------------
 
-set -x
->&2 hostname
+## Possible but clutters log files & should test w/ snakemake -n first anyway
+# eval "$(conda shell.bash hook)"
+# conda activate snakemake-vanilla
 
-# Activate conda environment ------------------------------------------------
-
-# clutters log files and should test snakemake -n first anyway
-#eval "$(conda shell.bash hook)"
-#conda activate snakemake-vanilla
-
-# Workflow specific parameters ----------------------------------------------
+#--- Workflow specific parameters ----------------------------------------------
 
 # For Mutect2 multithreading, see https://www.biostars.org/p/9549710/#9550707
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
-# Kick off Snakemake --------------------------------------------------------
+#--- Kick off Snakemake --------------------------------------------------------
 
 snakemake \
     --use-conda \
@@ -48,13 +48,19 @@ snakemake \
     --retries 2 \
     --profile cubi-v1 \
     --rerun-incomplete \
+    --rerun-triggers mtime \
     --jobs=200 \
     --slurm \
+    --keep-going \
     --default-resources slurm_account=hpc-ag-cubi slurm_partition=short "runtime=240"
-#    --batch cnvkit_heatmap_hmm=1/6 # does not work well bc rule autobin requires all files/samples, quite early on in the pipeline
+
+#    --batch cnvkit_heatmap_hmm=1/6 # process only 1/6 of the samples at a time, up to the rule that requires all samples
+#   --rerun-triggers mtime # prevents rerunning of rules because of (minor) code changes
+#   --keep-going # continue running even if one or few samples continuously cause errors
+#   --jobs=200 # run up to 200 jobs at a time, does not limit number of cores used at a time
 
 
-# Finish up -----------------------------------------------------------------
+#--- Finish up -----------------------------------------------------------------
 
 set +x
 
