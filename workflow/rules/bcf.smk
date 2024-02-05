@@ -12,7 +12,7 @@ rule bcf_stats:
     params:
         ""
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/qc.yaml"
     wrapper:
         "v1.7.1/bio/bcftools/stats"
 
@@ -31,7 +31,7 @@ rule bcftools_call:
     log:
         "logs/bcftools_call/{sample}.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/qc.yaml"
     wrapper:
         "v1.7.1/bio/bcftools/call"
 
@@ -50,26 +50,10 @@ rule bcftools_mpileup:
     log:
         "logs/bcftools_mpileup/{sample}.log",
     conda:
-        "../envs/primary_env.yaml"
+        "../envs/qc.yaml"
     threads: 
         8
     shell:
         "bcftools mpileup {params.options} --threads {threads} -o {output.pileup} -f {input.ref} {input.alignments} 2> {log}"
     #wrapper:
         #"v1.7.1/bio/bcftools/mpileup"
-
-rule index:
-    input:
-        "results/bam_sorted_bwa/{sample}_sorted.bam"
-    output:
-        "results/bam_sorted_bwa/{sample}_sorted.bam.bai"
-    benchmark:
-        "benchmarks/samtools/index/{sample}.samtools.index.txt"
-    log:
-        "logs/samtools/index/{sample}.log"
-    threads:
-        4
-    conda:
-        "../envs/primary_env.yaml"
-    shell:
-        "samtools index {input} -@ {threads} 2> {log}"
