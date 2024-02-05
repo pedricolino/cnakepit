@@ -19,11 +19,6 @@ echo "Starting CNAkepit pipeline at $start_time. Look out for snakes..."
 set -x
 >&2 hostname
 
-# Ensure logs folder exists -------------------------------------------------
-
-mkdir -p logs/slurm_log/snakejobs
-export SBATCH_DEFAULTS=" --job-name {rule}.{wildcards} --output=logs/slurm_log/snakejobs/%x-%j.log"
-
 #--- Enforce existence of TMPDIR -----------------------------------------------
 
 export TMPDIR=${HOME}/scratch/tmp
