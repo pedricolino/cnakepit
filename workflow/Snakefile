@@ -3,15 +3,20 @@ from pathlib import Path
 import os
 from scripts.samples_auto import read_sample
 
+# load the configuration file
 configfile: "config/config.yaml"
 
-ref_file = Path(config["reference"]["fasta"])
-#ref_fil = Path(config["ref_fil"])
+# filter the reference genome?
+if config["filter_reference"]:
+  ref_file = Path(config["ref_fil"])
+else:
+  ref_file = Path(config["reference"]["fasta"])
+
+# load the panel design file
 bedpath = Path(config["panel_design"])
 bedname = os.path.splitext(os.path.basename(bedpath))[0]
 
-# Either tsv provided by user, or create new from data in data folder. Configure either in config.yaml.
-# Script works for a specific type of name formats.
+# load sample sheet from a TSV file or create new from samples in 'data' folder
 if config["data"]["sample_sheet_path"]:
   samples = pd.read_csv(config["data"]["sample_sheet_path"], index_col = "sample", sep = '\t')
 elif config["samples_in_directory"]:
@@ -19,51 +24,82 @@ elif config["samples_in_directory"]:
 else:
   print("no samples detected")
 
+# including UMIs?
+if config["contain_UMIs"]:
+  BAMs_no_PCR_flags = "results/umi_mapping/{sample}_8_clipbam.bam"
+else:
+  BAMs_no_PCR_flags = "results/mapped/{sample}.bam"
 
+# hybrid- or amplicon-capture?
+if config["amplicon"]:
+  BAMs_for_CNV_calling = BAMs_no_PCR_flags
+else:
+  BAMs_for_CNV_calling = "results/mapped_marked/{sample}.bam"
+
+# location for BAM indices
+BAM_index_for_CNV_calling = BAMs_for_CNV_calling + ".bai"
+
+# location for reference genome indices
+stem = str(Path("results") / "ref" / ref_file.stem)
+
+# compute or download mappability file?
+if config["compute_mappability"]:
+  mappability = config["mappability"]["bed"]
+else:
+  mappability = 'results/cnvkit/general/access.bed'
+
+# select results to be obtained in the end
 rule all:
   input:
-    # CNVkit CBS
-#    expand('results/cnvkit/cbs/{sample}_diagram.cnv.pdf', sample=samples.index),
-#    expand('results/cnvkit/cbs/{sample}_scatter.cnv.pdf', sample=samples.index),
-#    expand('results/cnvkit/cbs/{sample}.icns', sample=samples.index),
-#    'results/cnvkit/cbs/heatmap.cnv.pdf',
-    ## and PureCN PSCBS
-   expand("results/purecn/cbs_PSCBS/{sample}/{sample}.csv", sample=samples.index), # rds files more important but cause errors sometimes
-    ## and PureCN Hclust
+    # CNVkit's CBS
+   expand('results/cnvkit/cbs/{sample}_diagram.cnv.pdf', sample=samples.index),
+   expand('results/cnvkit/cbs/{sample}_scatter.cnv.pdf', sample=samples.index),
+   expand('results/cnvkit/cbs/{sample}.icns', sample=samples.index),
+   'results/cnvkit/cbs/heatmap.cnv.pdf',
+    ## w/ PureCN's PSCBS
+   expand("results/purecn/cbs_PSCBS/{sample}/{sample}.csv", sample=samples.index),
+    ## w/ PureCN's Hclust
     expand("results/purecn/cbs_Hclust/{sample}/{sample}.csv", sample=samples.index),
-    # CNVkit HMM
-    # expand('results/cnvkit/hmm/{sample}_diagram.cnv.pdf', sample=samples.index),
-    # expand('results/cnvkit/hmm/{sample}_scatter.cnv.pdf', sample=samples.index),
-    # expand('results/cnvkit/hmm/{sample}.icns', sample=samples.index),
-    # 'results/cnvkit/hmm/heatmap.cnv.pdf',
-    ## and PureCN PSCBS
+
+    # CNVkit's HMM
+    expand('results/cnvkit/hmm/{sample}_diagram.cnv.pdf', sample=samples.index),
+    expand('results/cnvkit/hmm/{sample}_scatter.cnv.pdf', sample=samples.index),
+    expand('results/cnvkit/hmm/{sample}.icns', sample=samples.index),
+    'results/cnvkit/hmm/heatmap.cnv.pdf',
+    ## w/ PureCN's PSCBS
     expand("results/purecn/hmm_PSCBS/{sample}/{sample}.csv", sample=samples.index),
-    ## and PureCN Hclust
-    expand("results/purecn/hmm_Hclust/{sample}/{sample}.csv", sample=samples.index)
+    ## w/ PureCN's Hclust
+    expand("results/purecn/hmm_Hclust/{sample}/{sample}.csv", sample=samples.index),
     
+
+    # Quality control (QC) reports. Recommended for few samples only.
+
     # if the following lines are commented, then they must be at the end to avoid syntax error
     # for QC analysis only
-    #"results/qc/multiqc_report_fastqc.html", # qc report for reads, untrimmed and trimmed
-        
-    # for QC analysis up until mapping and mapping QC with qualimap:
-    #"results/qc_map_bwa/multiqc_report.html", # causes errors, thus do this later
+    # "results/qc/multiqc_report_fastqc.html", # qc report for reads, untrimmed and trimmed
+    #"results/qc_map_bwa/multiqc_report.html", # mapping QC with qualimap:
 
-    #"results/.check_end"
+    # save the used configuration file
+    "results/config_used.yaml",
 
+
+include: "rules/trimming_fastqc.smk"
 include: "rules/map_bwa.smk"
-include: "rules/qc_fastq.smk"
-include: "rules/qc_map.smk"
+include: "rules/umi_mapping.smk"
 include: "rules/mutect2.smk"
-include: "rules/stats.smk"
 include: "rules/cnvkit.smk"
 include: "rules/purecn.smk"
+
+# include: "rules/qc_map.smk"
+# include: "rules/stats.smk"
 #include: "rules/map_bowtie2.smk"
 #include: "rules/bcf.smk"
+#include: "rules/stats.smk"
 
 rule save_config:
   input: 
-    "../config/config.yaml"
+    "config/config.yaml"
   output:
-    "../results/config_used.yaml"
+    "results/config_used.yaml"
   shell:
     "cp {input} {output}"
