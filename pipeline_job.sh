@@ -49,7 +49,8 @@ snakemake \
     --profile cubi-v1 \
     --rerun-incomplete \
     --rerun-triggers mtime \
-    --jobs=200 \
+    --jobs 200 \
+    --cores 2000 \
     --slurm \
     --keep-going \
     --default-resources slurm_account=hpc-ag-cubi slurm_partition=short "runtime=240"
@@ -58,6 +59,7 @@ snakemake \
 #   --rerun-triggers mtime # prevents rerunning of rules because of (minor) code changes
 #   --keep-going # continue running even if one or few samples continuously cause errors
 #   --jobs=200 # run up to 200 jobs at a time, does not limit number of cores used at a time
+#   --cores=2000 # limit the number of cores used at a time to 2000, the limit for the 'short' partition on the cluster. Experimental.
 
 
 #--- Finish up -----------------------------------------------------------------
