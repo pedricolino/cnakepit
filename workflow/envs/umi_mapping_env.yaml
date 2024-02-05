@@ -1,0 +1,12 @@
+name: umi_mapping_env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bwa=0.7.17
+  - picard=2.23.1
+  - fgbio=1.3.0
+  - samtools=1.10
+  - htslib=1.10.2
+  
