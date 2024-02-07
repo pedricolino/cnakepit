@@ -12,7 +12,7 @@
 amplicon: false
 
 # Do the samples require specific preprocessing for unique molecular identifiers (UMIs)? (Specifically for HRD dataset)
-contain_UMIs: true
+contain_UMIs: false
 
 # Experimental filtering of reference genome
 filter_reference: false
@@ -35,6 +35,12 @@ data:
   samples_in_directory: false # boolean, are samples or their symlinks in resource/data?
   # if previous is false, give path to sample sheet
   sample_sheet_path: "resources/data/sample_sheet.tsv" # tab-separated columns: sample|fq1|fq2
+
+# first run with generic reference or second run with chosen samples as panel of normals (PON) for CNVkit?
+pon:
+  second_run_with_pon: true # set to true when this is the second run with a PON
+  reference_sample_names: "resources/data/lowploidy_samples.tsv" # list of sample names chosen for PON creation, leave it empty if previous is false
+  directory_suffix: "lowploidy" # if testing multiple PON versions, describe the current one here
 
 # chromosome column must be like "chr1", not "1"
 # MH panel design
