@@ -182,6 +182,8 @@ rule cnvkit_segment_cbs:
     params:
         extra = '-m cbs --drop-low-coverage --smooth-cbs'
     threads: 8
+    resources:
+        mem=lambda wildcards, attempt: '%dG' % (4 * attempt),
     log:
         "logs/cnvkit/cbs/segment/{sample}.log",
     conda:
@@ -235,7 +237,8 @@ rule cnvkit_heatmap_cbs:
     benchmark:
         'benchmarks/cnvkit/cbs/heatmap.txt'
     resources:
-        mem=lambda wildcards, attempt: '%dG' % (16 * attempt)
+        mem=lambda wildcards, attempt: '%dG' % (32 * attempt),
+        slurm_partition = 'medium'
     log:
         "logs/cnvkit/cbs/heatmap.log",
     conda:
