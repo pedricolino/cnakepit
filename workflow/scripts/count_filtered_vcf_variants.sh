@@ -1,6 +1,6 @@
 #!/bin/bash
 
-output_file="results/mutect2/vcf_filtered_variants_counts.tsv"
+output_file="results/stats/mutect2_vcf_filtered_variants_counts.tsv"
 
 # Create the TSV file and add the header
 echo -e "SampleName\tTotalVariants\tPassedVariants" > "$output_file"

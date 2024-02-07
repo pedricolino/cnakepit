@@ -4,7 +4,7 @@
 dir="results/mutect2/filtered"
 
 # Specify the output file
-output_file="results/mutect2/snv_counts.tsv"
+output_file="results/stats/mutect2_snv_counts.tsv"
 
 echo -e "sample\tref\talt\tcount" > "$output_file"
 

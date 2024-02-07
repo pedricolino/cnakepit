@@ -2,7 +2,7 @@ import os
 import pandas as pd
 
 benchmark_dir = 'benchmarks'
-target_file = benchmark_dir+'/all_benchmarks.tsv'
+target_file = 'results/stats/all_benchmarks.tsv'
 
 # Remove the target file if it exists
 if os.path.exists(target_file):

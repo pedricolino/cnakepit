@@ -38,7 +38,8 @@ df$gene <- rownames(df)
 df <- df[, c("gene", colnames(df)[-ncol(df)])]
 
 # write the data frame to a file
-output <- paste(folder_path, "/gene_coverages_all_samples.tsv", sep = "")
+out_folder <- "results/stats"
+output <- paste(out_folder, "/gene_coverages_all_samples.tsv", sep = "")
 write.table(df, file = output, sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
 
 print(paste("Mean coverages written to", output))
