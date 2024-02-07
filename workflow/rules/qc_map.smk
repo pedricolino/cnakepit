@@ -8,12 +8,13 @@ rule qualimap_bwa:
         "results/qc/qualimap/qualimap_bwa/{sample}/qualimapReport.html"
     benchmark:
         "benchmarks/qualimap_bwa/{sample}.txt"
-    threads: 16
+    threads: 4
     priority: -2 # error-prone rule, run it last
     resources:
-        mem=lambda wildcards, attempt: '%dG' % (32 * attempt),
-        runtime=5*24*60, # 24h seems to be not enough for many samples
-        slurm_partition='medium'
+        mem=lambda wildcards, attempt: '%dG' % (12 * attempt),
+        slurm_partition = lambda wildcards, attempt: 'medium' if attempt > 1 else 'short',
+        runtime=lambda wildcards, attempt: 24*60 if attempt > 1 else 4*60,
+        cores=lambda wc, threads: threads
     log:
         "logs/qualimap_bwa/{sample}.log"
     params:
@@ -32,7 +33,7 @@ rule multiqc_map_bwa:
         "benchmarks/multiqc_map_bwa.txt"
     priority: -2 # error-prone rule, run it last
     resources:
-        mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
+        mem=lambda wildcards, attempt: '%dG' % (32 * attempt),
         runtime=24*60, # 24h
         slurm_partition='medium'
     log:
