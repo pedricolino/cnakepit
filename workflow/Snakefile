@@ -2,104 +2,118 @@ import pandas as pd
 from pathlib import Path
 import os
 from scripts.samples_auto import read_sample
+from datetime import datetime
+
+# datetime object containing current date and time, used for naming config file
+now = datetime.now()
+saved_config = 'results/config_used/config_'#+now.strftime("%y-%m-%d_%H-%M-%S")+'.yaml'
 
 # load the configuration file
-configfile: "config/config.yaml"
+configfile: 'config/config.yaml'
 
 # filter the reference genome?
-if config["filter_reference"]:
-  ref_file = Path(config["ref_fil"])
+if config['filter_reference']:
+  ref_file = Path(config['ref_fil'])
 else:
-  ref_file = Path(config["reference"]["fasta"])
+  ref_file = Path(config['reference']['fasta'])
 
 # load the panel design file
-bedpath = Path(config["panel_design"])
+bedpath = Path(config['panel_design'])
 bedname = os.path.splitext(os.path.basename(bedpath))[0]
 
 # load sample sheet from a TSV file or create new from samples in 'data' folder
-if config["data"]["sample_sheet_path"]:
-  samples = pd.read_csv(config["data"]["sample_sheet_path"], index_col = "sample", sep = '\t')
-elif config["samples_in_directory"]:
-  samples = read_sample(config["data"]["samples_in_directory"])
+if config['data']['sample_sheet_path']:
+  samples = pd.read_csv(config['data']['sample_sheet_path'], index_col = 'sample', sep = '\t')
+elif config['samples_in_directory']:
+  samples = read_sample(config['data']['samples_in_directory'])
 else:
-  print("no samples detected")
+  print('no samples detected')
+wc = samples.index # store samples in wildcard
+
 
 # including UMIs?
-if config["contain_UMIs"]:
-  BAMs_no_PCR_flags = "results/umi_mapping/{sample}_8_clipbam.bam"
+if config['contain_UMIs']:
+  BAMs_no_PCR_flags = 'results/umi_mapping/{sample}_8_clipbam.bam'
 else:
-  BAMs_no_PCR_flags = "results/mapped/{sample}.bam"
+  BAMs_no_PCR_flags = 'results/mapped/{sample}.bam'
 
 # hybrid- or amplicon-capture?
-if config["amplicon"]:
+if config['amplicon']:
   BAMs_for_CNV_calling = BAMs_no_PCR_flags
 else:
-  BAMs_for_CNV_calling = "results/mapped_marked/{sample}.bam"
+  BAMs_for_CNV_calling = 'results/mapped_marked/{sample}.bam'
 
 # location for BAM indices
-BAM_index_for_CNV_calling = BAMs_for_CNV_calling + ".bai"
+BAM_index_for_CNV_calling = BAMs_for_CNV_calling + '.bai'
 
 # location for reference genome indices
-stem = str(Path("results") / "ref" / ref_file.stem)
+stem = str(Path('results') / 'ref' / ref_file.stem)
 
 # compute or download mappability file?
-if config["compute_mappability"]:
-  mappability = config["mappability"]["bed"]
+if config['compute_mappability']:
+  mappability = config['mappability']['bed']
 else:
   mappability = 'results/cnvkit/general/access.bed'
+
+# first run with generic reference or second run with PON for CNVkit?
+if config['pon']['second_run_with_pon']:
+  suffix = '_'+config['pon']['directory_suffix']+'_pon' # add results to new folders with suffix
+  include: 'rules/round_2_cnv_calling.smk' # include rules specifically for second round
+
+else:
+  suffix=''
+  include: 'rules/trimming_fastqc.smk'
+  include: 'rules/map_bwa.smk'
+  include: 'rules/umi_mapping.smk'
+  include: 'rules/mutect2.smk'
+  include: 'rules/cnvkit.smk'
+  include: 'rules/purecn.smk'
+  # include: 'rules/qc_map.smk'
+  # include: 'rules/stats.smk'
+  # include: 'rules/map_bowtie2.smk'
+  # include: 'rules/bcf.smk'
+  # include: 'rules/stats.smk'
+
 
 # select results to be obtained in the end
 rule all:
   input:
     # CNVkit's CBS
-   expand('results/cnvkit/cbs/{sample}_diagram.cnv.pdf', sample=samples.index),
-   expand('results/cnvkit/cbs/{sample}_scatter.cnv.pdf', sample=samples.index),
-   expand('results/cnvkit/cbs/{sample}.icns', sample=samples.index),
-   'results/cnvkit/cbs/heatmap.cnv.pdf',
+    expand('results/cnvkit'+suffix+'/cbs/{sample}_diagram.cnv.pdf', sample=wc),
+    expand('results/cnvkit'+suffix+'/cbs/{sample}_scatter.cnv.pdf', sample=wc),
+    #  expand('results/cnvkit/cbs/{sample}.icns', sample=wc),
+    #  'results/cnvkit/cbs/heatmap.cnv.pdf',
     ## w/ PureCN's PSCBS
-   expand("results/purecn/cbs_PSCBS/{sample}/{sample}.csv", sample=samples.index),
+    expand('results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv', sample=wc),
     ## w/ PureCN's Hclust
-    expand("results/purecn/cbs_Hclust/{sample}/{sample}.csv", sample=samples.index),
+    expand('results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv', sample=wc),
 
     # CNVkit's HMM
-    expand('results/cnvkit/hmm/{sample}_diagram.cnv.pdf', sample=samples.index),
-    expand('results/cnvkit/hmm/{sample}_scatter.cnv.pdf', sample=samples.index),
-    expand('results/cnvkit/hmm/{sample}.icns', sample=samples.index),
-    'results/cnvkit/hmm/heatmap.cnv.pdf',
+    expand('results/cnvkit'+suffix+'/hmm/{sample}_diagram.cnv.pdf', sample=wc),
+    expand('results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.pdf', sample=wc),
+    # expand('results/cnvkit/hmm/{sample}.icns', sample=wc),
+    # 'results/cnvkit/hmm/heatmap.cnv.pdf',
     ## w/ PureCN's PSCBS
-    expand("results/purecn/hmm_PSCBS/{sample}/{sample}.csv", sample=samples.index),
+    expand('results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv', sample=wc),
     ## w/ PureCN's Hclust
-    expand("results/purecn/hmm_Hclust/{sample}/{sample}.csv", sample=samples.index),
+    expand('results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv', sample=wc),
     
 
     # Quality control (QC) reports. Recommended for few samples only.
 
     # if the following lines are commented, then they must be at the end to avoid syntax error
     # for QC analysis only
-    # "results/qc/multiqc_report_fastqc.html", # qc report for reads, untrimmed and trimmed
-    #"results/qc_map_bwa/multiqc_report.html", # mapping QC with qualimap:
+    # 'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed
+    #'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap:
 
     # save the used configuration file
-    "results/config_used.yaml",
+    saved_config,
 
-
-include: "rules/trimming_fastqc.smk"
-include: "rules/map_bwa.smk"
-include: "rules/umi_mapping.smk"
-include: "rules/mutect2.smk"
-include: "rules/cnvkit.smk"
-include: "rules/purecn.smk"
-
-# include: "rules/qc_map.smk"
-# include: "rules/stats.smk"
-#include: "rules/map_bowtie2.smk"
-#include: "rules/bcf.smk"
-#include: "rules/stats.smk"
 
 rule save_config:
   input: 
-    "config/config.yaml"
+    'config/config.yaml'
   output:
-    "results/config_used.yaml"
+    yaml = saved_config
   shell:
-    "cp {input} {output}"
+    'cp {input} {output.yaml}'
