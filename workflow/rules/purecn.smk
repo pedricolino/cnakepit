@@ -30,7 +30,7 @@ rule purecn_cbs_Hclust:
         suffix=suffix,
         sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex'] 
     shell:
-        '''PURECN=$(Rscript -e 'cat(system.file('extdata', package = 'PureCN'))')
+        '''PURECN=$(Rscript -e 'cat(system.file("extdata", package = "PureCN"))')
         Rscript $PURECN/PureCN.R \
             --vcf {input.vcf_filt} \
             --sampleid {params.sampleid} \
