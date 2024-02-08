@@ -20,6 +20,11 @@ filter_reference: false
 # compute mappability for the reference genome or download the premade one from CNVkit?
 compute_mappability: true
 
+# hard code sex? Useful for ovarian cancer, for example.
+sex:
+  hard_code: True # set to true if you want to hard code
+  sex:  'F' # female or male?
+
 # Path to reference genome and its index file. Will be downloaded if absent. Current pipeline settings are for hg38.
 reference:
   fasta: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa"
@@ -39,8 +44,8 @@ data:
 # first run with generic reference or second run with chosen samples as panel of normals (PON) for CNVkit?
 pon:
   second_run_with_pon: true # set to true when this is the second run with a PON
-  reference_sample_names: "resources/data/lowploidy_samples.tsv" # list of sample names chosen for PON creation, leave it empty if previous is false
-  directory_suffix: "lowploidy" # if testing multiple PON versions, describe the current one here
+  reference_sample_names: "resources/data/highpurity_samples.tsv" # list of sample names chosen for PON creation, leave it empty if previous is false
+  directory_suffix: "highpurity" # if testing multiple PON versions, describe the current one here
 
 # chromosome column must be like "chr1", not "1"
 # MH panel design
