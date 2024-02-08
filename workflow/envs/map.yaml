@@ -1,9 +1,0 @@
-name: map
-channels:
-  - bioconda
-  - conda-forge
-  - defaults
-dependencies:
-  - bwa==0.7.17
-  - samtools
-  - picard-slim=2.27
