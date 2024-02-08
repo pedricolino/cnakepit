@@ -48,17 +48,24 @@ The pipeline can be run either by submitting the job script with ``sbatch pipeli
 
 ```mermaid
 flowchart TD
+    subgraph Main part
     A[raw reads] -->|QC & trimming| B[trimmed reads];
     B -->|QC & mapping| C[mapped reads];
     C -->|variant calling| D[variants];
-    D -->|variant filtering| E[filtered variants];
-    C & E -->|CNV calling by CNVkit| F[provisional CNVs];
-    F & E -->|Tumor structure inference and CNV calling by PureCN| G[final CNVs];
+    D -->|filtering| E[germline variants];
+    D -->|filtering| X[somatic variants];
+    C -->|compute positional read depth| I[coverage data];
+    I -->|CNV calling by CNVkit| F[provisional CNVs];
+    E -->|B-allele analysis by CNVkit| F[provisional CNVs];
+    F -->|CNV calls correction by PureCN| G[final CNVs];
+    X -->|Tumor structure inference by PureCN| G[final CNVs];
+    end
+    subgraph Optional 2nd round of CNV calling w/ panel of normals
+    H -->|bias correction by CNVkit| J[provisional CNVs];
+    I -->|CNV calling by CNVkit| J[provisional CNVs];
+    E -->|B-allele analysis by CNVkit| J[provisional CNVs];
+    G -->|choose appropriate samples among cohort| H[panel of normals];
+    J -->|CNV calls correction by PureCN by PureCN| K[final CNVs];
+    X -->|Tumor structure inference by PureCN| K[final CNVs];
+    end
 ```
-
-## Full SnakeMake DAG of pipeline
-
-...in its current configuration (for amplicon seq. data)
-
-![workflow/DAG/DAG.png](https://github.com/pedricolino/map-and-CNV-calling-benchmark/blob/main/workflow/DAG/DAG.png?raw=true)
-
