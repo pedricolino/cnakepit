@@ -10,8 +10,6 @@ my_antitargets = 'results/cnvkit/general/my_antitargets.bed'
 autobin_targets = 'results/cnvkit/general/'+bedname+'_target.bed'
 autobin_antitargets = 'results/cnvkit/general/'+bedname+'_antitarget.bed'
 
-bedname=bedname
-
 
 # if second round, create 2 long strings with all PON (anti-/)target coverage files
 if config['pon']['second_run_with_pon'] == True:
