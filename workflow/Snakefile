@@ -6,7 +6,7 @@ from datetime import datetime
 
 # datetime object containing current date and time, used for naming config file
 now = datetime.now()
-saved_config = 'results/config_used/config_'#+now.strftime("%y-%m-%d_%H-%M-%S")+'.yaml'
+saved_config = 'results/config_used/config_'+now.strftime("%y-%m-%d_%H")+'.yaml'
 
 # load the configuration file
 configfile: 'config/config.yaml'
@@ -58,8 +58,6 @@ else:
 # first run with generic reference or second run with PON for CNVkit?
 if config['pon']['second_run_with_pon']:
   suffix = '_'+config['pon']['directory_suffix']+'_pon' # add results to new folders with suffix
-  include: 'rules/round_2_cnv_calling.smk' # include rules specifically for second round
-
 else:
   suffix=''
   include: 'rules/trimming_fastqc.smk'
@@ -74,6 +72,9 @@ else:
   # include: 'rules/bcf.smk'
   # include: 'rules/stats.smk'
 
+# include in any case
+include: 'rules/cnvkit.smk'
+include: 'rules/purecn.smk'
 
 # select results to be obtained in the end
 rule all:
@@ -115,5 +116,6 @@ rule save_config:
     'config/config.yaml'
   output:
     yaml = saved_config
+  priority: 100 # perform rule first
   shell:
     'cp {input} {output.yaml}'

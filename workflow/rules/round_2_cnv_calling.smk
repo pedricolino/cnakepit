@@ -141,7 +141,7 @@ use rule cnvkit_call_cbs_w_pon as cnvkit_call_hmm_w_pon with:
 
 #--- PureCN rules ------------------------------------------------------------
 
-use rule purecn_cbs_Hclust as purecn_cbs_Hclust_w_pon with:
+rule purecn_cbs_Hclust_w_pon:
     input:
         vcf_filt='results/mutect2/filtered/{sample}_filtered.vcf.gz',
         copy_ratios='results/cnvkit'+suffix+'/general/{sample}.cnr',
@@ -154,6 +154,29 @@ use rule purecn_cbs_Hclust as purecn_cbs_Hclust_w_pon with:
         purecn_method='Hclust',
         sampleid='{sample}',
         random_nb=randint(1,1000),
+        suffix=suffix,
+    resources:
+        mem=lambda wildcards, attempt: '%dG' % (4 * 8 * attempt), # 4 GB per thread, 8 threads
+    threads: 8
+    conda: "../envs/cnv_calling.yaml"
+    shell:
+        """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
+        Rscript $PURECN/PureCN.R \
+            --vcf {input.vcf_filt} \
+            --sampleid {params.sampleid} \
+            --tumor {input.copy_ratios} \
+            --seg-file {input.seg} \
+            --out results/purecn{params.suffix}/{params.cnvkit_method}_{params.purecn_method}/{params.sampleid}/{params.sampleid} \
+            --genome hg38 \
+            --sex F \
+            --fun-segmentation {params.purecn_method} \
+            --min-base-quality 20 \
+            --seed {params.random_nb} \
+            --force \
+            --post-optimize \
+            --cores {threads} \
+            &> {log}
+        """
 
 use rule purecn_hmm_Hclust as purecn_hmm_Hclust_w_pon with:
     input:
