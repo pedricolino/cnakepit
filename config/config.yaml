@@ -18,23 +18,36 @@ contain_UMIs: false
 filter_reference: false
 
 # compute mappability for the reference genome or download the premade one from CNVkit?
-compute_mappability: true
+compute_mappability: false
 
 # hard code sex? Useful for ovarian cancer, for example.
 sex:
-  hard_code: True # set to true if you want to hard code
+  hard_code: false # set to true if you want to hard code
   sex:  'F' # female or male?
 
+# genome version
+genome_version: "hg19" # valid options: "hg38", "hg19"
+
 # Path to reference genome and its index file. Will be downloaded if absent. Current pipeline settings are for hg38.
-reference:
-  fasta: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa"
-  index: "/fast/work/projects/cubit/18.12/static_data/reference/hg38/ucsc/hg38.fa.fai"
+reference_hg38:
+  fasta: "/data/cephfs-1/work/projects/cubit/20.05/static_data/reference/hg38/ucsc/hg38.fa"
+  index: "/data/cephfs-1/work/projects/cubit/20.05/static_data/reference/hg38/ucsc/hg38.fa.fai"
 # fasta: "resources/reference/hg38.fa" # use this if you wish to download the reference file
 # ref_index: "resources/reference/hg38.fa.fai"
   dict: "resources/reference/hg38.dict"
   fasta_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta"
   index_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
   dict_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dict"
+
+reference_hg19:
+  # fasta: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.fasta"
+  fasta: "resources/reference/human_g1k_v37.fasta"
+  # index: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.fasta.fai"
+  index: "resources/reference/human_g1k_v37.fasta.fai"
+  dict: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.dict"
+  fasta_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta"
+  index_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta.fai"
+  dict_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.dict"
 
 data:
   samples_in_directory: false # boolean, are samples or their symlinks in resource/data?
@@ -43,15 +56,15 @@ data:
 
 # first run with generic reference or second run with chosen samples as panel of normals (PON) for CNVkit?
 pon:
-  second_run_with_pon: true # set to true when this is the second run with a PON
-  reference_sample_names: "resources/data/highpurity_samples.tsv" # list of sample names chosen for PON creation, leave it empty if previous is false
-  directory_suffix: "highpurity" # if testing multiple PON versions, describe the current one here
+  second_run_with_pon: false # set to true when this is the second run with a PON
+  reference_sample_names: "resources/data/lowpurity_samples.tsv" # list of sample names chosen for PON creation, leave it empty if previous is false
+  directory_suffix: "lowpurity" # if testing multiple PON versions, describe the current one here
 
 # chromosome column must be like "chr1", not "1"
-# MH panel design
-panel_design: "resources/paneldesign/MH_Covered_liftover_hg38.bed"
-# SIGN-OC panel design
-# panel_design: "resources/paneldesign/S3287512_Covered.bed"
+
+# panel_design: "resources/paneldesign/MH_Covered_liftover_hg38.bed" # MH panel design
+panel_design: "resources/paneldesign/all_covered_no_chr.bed" # HRD panel design
+# panel_design: "resources/paneldesign/S3287512_Covered.bed" # SIGN-OC panel design
 
 adapter_sequences: "resources/adapter/panel-adapter.fa" # for trimming
 
@@ -59,25 +72,45 @@ adapter_sequences: "resources/adapter/panel-adapter.fa" # for trimming
 #--- Does usually not require changes ---------------------------------------------
 # The paths to reference files which will be downloaded if absent
 
-gnomad_af_only:
+gnomad_af_only_hg38:
   vcf: "resources/germline-resource/af-only-gnomad.hg38.vcf.gz"
   index: "resources/germline-resource/af-only-gnomad.hg38.vcf.gz.tbi"
   vcf_link: "www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.hg38.vcf.gz"
   index_link: "www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.hg38.vcf.gz.tbi"
 
-common_germline_variants:
+gnomad_af_only_hg19:
+  vcf: "/fast/work/groups/cubi/projects/biotools/static_data/app_support/GATK/b37/af-only-gnomad.raw.sites.vcf.gz"
+  index: "/fast/work/groups/cubi/projects/biotools/static_data/app_support/GATK/b37/af-only-gnomad.raw.sites.vcf.gz.tbi"
+  vcf_link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml"
+  index_link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml"
+
+common_germline_variants_hg38:
   vcf: "resources/common-biallelic/small_exac_common_3.hg38.vcf.gz"
   index: "resources/common-biallelic/small_exac_common_3.hg38.vcf.gz.tbi"
   vcf_link: "http://storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz"
   index_link: "http://storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz.tbi"
 
-mappability:
+common_germline_variants_hg19:
+  vcf: "/fast/work/groups/cubi/projects/biotools/static_data/app_support/GATK/b37/small_exac_common_3.vcf.gz"
+  index: "/fast/work/groups/cubi/projects/biotools/static_data/app_support/GATK/b37/small_exac_common_3.vcf.gz.tbi"
+  vcf_link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml"
+  index_link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml"
+
+mappability_hg38:
+  bed: "resources/mappability/access.bed"
+  link: "github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed"
+
+mappability_hg19:
   bed: "resources/mappability/access-5k-mappable.hg19.bed"
   link: "github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed"
 
-sv_blacklist:
+sv_blacklist_hg38:
   bed: "resources/mappability/sv_blacklist.bed"
   link: "http://cf.10xgenomics.com/supp/genome/GRCh38/sv_blacklist.bed"
+
+sv_blacklist_hg19:
+  bed: "/fast/work/groups/cubi/projects/biotools/xTea/rep_lib_annotation/blacklist/hg19/sv_blacklist.bed"
+  link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml"
 
 
 
