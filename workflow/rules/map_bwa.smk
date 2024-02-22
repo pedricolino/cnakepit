@@ -5,17 +5,17 @@ HTTP = HTTPRemoteProvider()
 
 rule get_ref:
     input:
-        HTTP.remote(config["reference"] ["fasta_link"], keep_local=True)
+        HTTP.remote(config['reference'+'_'+config['genome_version']] ["fasta_link"], keep_local=True)
     output:
-        config["reference"]["fasta"]
+        config['reference'+'_'+config['genome_version']]["fasta"]
     shell:
         "mv {input} {output}"
 
 rule get_ref_index:
     input:
-        HTTP.remote(config["reference"] ["index_link"], keep_local=True)
+        HTTP.remote(config['reference'+'_'+config['genome_version']] ["index_link"], keep_local=True)
     output:
-        config["reference"]["index"]
+        config['reference'+'_'+config['genome_version']]["index"]
     shell:
         "mv {input} {output}"
 
@@ -36,7 +36,7 @@ rule bwa_index_reference:
 
 rule bwa_mem_samples:
     input:
-        ref_index=config["reference"]["index"],
+        ref_index=config['reference'+'_'+config['genome_version']]["index"],
         reads=["results/trimmed/{sample}_1P.fq.gz", "results/trimmed/{sample}_2P.fq.gz"],
         idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
     output:

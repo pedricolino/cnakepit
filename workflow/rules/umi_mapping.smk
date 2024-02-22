@@ -68,7 +68,7 @@ rule picard_samtofastq:
 
 rule bwa_mem_samples_umi:
     input:
-        ref_index=config["reference"]["index"],
+        ref_index=config['reference'+'_'+config['genome_version']]["index"],
         reads="results/umi_mapping/{sample}_3_samtofastq.fastq",
         idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
     # output: "results/umi_mapping/{sample}_4_bwamem.bam"
@@ -116,7 +116,7 @@ rule MergeBamAlignment:
     input:
         unmapped = "results/umi_mapping/{sample}_2_extract_umis.bam",
         mapped = "results/umi_mapping/{sample}_5_sortsam.bam",
-        genome=config["reference"]["fasta"]
+        genome=config['reference'+'_'+config['genome_version']]["fasta"]
     output:
         "results/umi_mapping/{sample}_6_mergebamalignment.bam"
     threads: 1
@@ -177,7 +177,7 @@ rule UmiAwareMarkDuplicatesWithMateCigar:
 rule clipbam:
     input:
         rmpcrduplex = "results/umi_mapping/{sample}_7_UmiAwareMarkDuplicatesWithMateCigar.bam",
-        genome=config["reference"]["fasta"]
+        genome=config['reference'+'_'+config['genome_version']]["fasta"]
     output:
         "results/umi_mapping/{sample}_8_clipbam.bam"
     conda:

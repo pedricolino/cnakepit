@@ -37,8 +37,8 @@ rule bcftools_call:
 
 rule bcftools_mpileup:
     input:
-        index=config["reference"]["index"],
-        ref=config["reference"]["fasta"], # this can be left out if --no-reference is in options
+        index=config['reference'+'_'+config['genome_version']]["index"],
+        ref=config['reference'+'_'+config['genome_version']]["fasta"], # this can be left out if --no-reference is in options
         alignments="results/mapped/{sample}.bam",
     output:
         pileup="results/bcf/pileup/{sample}.pileup.bcf",

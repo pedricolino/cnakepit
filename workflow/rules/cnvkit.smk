@@ -33,7 +33,7 @@ if config['pon']['second_run_with_pon'] == True:
     #   create reference track from the PON
     rule cnvkit_create_panel_of_normals:
         input:
-            fasta=config['reference']['fasta'],
+            fasta=config['reference'+'_'+config['genome_version']]['fasta'],
             all_target_cnns = expand('results/cnvkit/general/{sample}.targetcoverage.cnn', sample=samples.index),
             all_antitarget_cnns = expand('results/cnvkit/general/{sample}.antitargetcoverage.cnn', sample=samples.index)
         output:
@@ -59,9 +59,9 @@ if config['pon']['second_run_with_pon'] == True:
 # use remote file instead of cnvkit.py access output which causes problems
 rule download_mappability:
     input:
-        HTTP.remote(config['mappability']['link'], keep_local=True)
+        HTTP.remote(config['mappability'+'_'+config['genome_version']]['link'], keep_local=True)
     output:
-        config['mappability']['bed']
+        config['mappability'+'_'+config['genome_version']]['bed']
     benchmark:
         'benchmarks/cnvkit/general/download_mappability.txt'
     log:
@@ -71,9 +71,9 @@ rule download_mappability:
 
 rule download_sv_blacklist:
     input:
-        HTTP.remote(config['sv_blacklist']['link'], keep_local=True)
+        HTTP.remote(config['sv_blacklist'+'_'+config['genome_version']]['link'], keep_local=True)
     output:
-        config['sv_blacklist']['bed']
+        config['sv_blacklist'+'_'+config['genome_version']]['bed']
     benchmark:
         'benchmarks/cnvkit/general/download_sv_blacklist.txt'
     log:
@@ -83,8 +83,8 @@ rule download_sv_blacklist:
 
 rule cnvkit_access:
     input:
-        ref = config['reference']['fasta'],
-        sv_blacklist = config['sv_blacklist']['bed'],
+        ref = config['reference'+'_'+config['genome_version']]['fasta'],
+        sv_blacklist = config['sv_blacklist'+'_'+config['genome_version']]['bed'],
     output:
         'results/cnvkit/general/access.bed'
     benchmark:
@@ -178,7 +178,7 @@ rule cnvkit_coverage:
 
 rule cnvkit_generic_ref:
     input:
-        fasta=config['reference']['fasta'],
+        fasta=config['reference'+'_'+config['genome_version']]['fasta'],
         targets = autobin_targets,
         antitargets = autobin_antitargets,
     output:
@@ -221,7 +221,8 @@ rule cnvkit_segment_cbs:
     output: 'results/cnvkit'+suffix+'/cbs/{sample}.cns',
     benchmark: 'benchmarks/cnvkit'+suffix+'/cbs_segment/{sample}.txt'
     log: 'logs/cnvkit'+suffix+'/cbs/segment/{sample}.log',
-    params: extra = '-m cbs --drop-low-coverage --smooth-cbs'
+    params: extra = '-m cbs --drop-low-coverage'
+    # no --smooth-cbs bc of this error: https://github.com/etal/cnvkit/issues/594. Happens with HRD panel + b37 reference, may be due to lone bins in the "unlocalized" sequences in the reference
     threads: 8
     resources: mem=lambda wildcards, attempt: '%dG' % (4 * attempt),
     conda: '../envs/cnv_calling.yaml'

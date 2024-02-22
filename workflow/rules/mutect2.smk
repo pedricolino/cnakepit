@@ -6,45 +6,45 @@ HTTP = HTTPRemoteProvider()
 
 rule download_gnomad:
     input:
-        HTTP.remote(config["gnomad_af_only"]["vcf_link"], keep_local=True)
+        HTTP.remote(config['gnomad_af_only'+'_'+config['genome_version']]["vcf_link"], keep_local=True)
     output:
-        config["gnomad_af_only"]["vcf"]
+        config['gnomad_af_only'+'_'+config['genome_version']]["vcf"]
     shell:
         "mv {input} {output}"
 
 rule download_gnomad_index:
     input:
-        HTTP.remote(config["gnomad_af_only"]["index_link"], keep_local=True)
+        HTTP.remote(config['gnomad_af_only'+'_'+config['genome_version']]["index_link"], keep_local=True)
     output:
-        config["gnomad_af_only"]["index"]
+        config['gnomad_af_only'+'_'+config['genome_version']]["index"]
     shell:
         "mv {input} {output}"
 
 rule download_common_biallelic:
     input:
-        HTTP.remote(config["common_germline_variants"]["vcf_link"], keep_local=True)
+        HTTP.remote(config['common_germline_variants'+'_'+config['genome_version']]["vcf_link"], keep_local=True)
     output:
-        config["common_germline_variants"]["vcf"]
+        config['common_germline_variants'+'_'+config['genome_version']]["vcf"]
     shell:
         "mv {input} {output}"
 
 rule download_common_biallelic_index:
     input:
-        HTTP.remote(config["common_germline_variants"]["index_link"], keep_local=True)
+        HTTP.remote(config['common_germline_variants'+'_'+config['genome_version']]["index_link"], keep_local=True)
     output:
-        config["common_germline_variants"]["index"]
+        config['common_germline_variants'+'_'+config['genome_version']]["index"]
     shell:
         "mv {input} {output}"
 
 rule mutect2_bam:
     input:
-        fasta=config["reference"]["fasta"],
+        fasta=config['reference'+'_'+config['genome_version']]["fasta"],
         map=BAMs_for_CNV_calling,
         idx=BAM_index_for_CNV_calling,
-        dict="resources/reference/hg38.dict",
+        dict=config['reference'+'_'+config['genome_version']]["dict"],
         targets=config["panel_design"],
-        gnomad=config["gnomad_af_only"]["vcf"],
-        gnomad_index=config["gnomad_af_only"]["index"]
+        gnomad=config['gnomad_af_only'+'_'+config['genome_version']]["vcf"],
+        gnomad_index=config['gnomad_af_only'+'_'+config['genome_version']]["index"]
     output:
         vcf="results/mutect2/unfiltered/{sample}.vcf.gz",
         f1r2="results/mutect2/f1r2/{sample}.tar.gz"
@@ -85,8 +85,8 @@ rule get_pile_up_summaries:
     input:
         bam=BAMs_for_CNV_calling,
         bam_idx=BAM_index_for_CNV_calling,
-        common=config["common_germline_variants"]["vcf"],
-        common_index=config["common_germline_variants"]["index"],
+        common=config['common_germline_variants'+'_'+config['genome_version']]["vcf"],
+        common_index=config['common_germline_variants'+'_'+config['genome_version']]["index"],
     output:
         "results/mutect2/pile_up_summaries/{sample}.table"
     benchmark: "benchmarks/pile_up_summaries/{sample}.txt"
@@ -100,8 +100,8 @@ rule get_pile_up_summaries:
 rule calculate_contamination:
     input:
         pileup="results/mutect2/pile_up_summaries/{sample}.table",
-        reference=config["reference"]["fasta"],
-        dict="resources/reference/hg38.dict"
+        reference=config['reference'+'_'+config['genome_version']]["fasta"],
+        dict=config['reference'+'_'+config['genome_version']]["dict"],
     output:
         "results/mutect2/contamination/{sample}.txt"
     benchmark: "benchmarks/calculate_contamination/{sample}.txt"
@@ -114,7 +114,7 @@ rule calculate_contamination:
 
 # rule mutect2_ref_dict:
 #     input:
-#         config["reference"]["fasta"]
+#         config['reference'+'_'+config['genome_version']]["fasta"]
 #     output:
 #         "resources/reference/hg38.dict"
 #     conda:
@@ -127,9 +127,9 @@ rule calculate_contamination:
 # instead, get the dict from the web
 rule download_ref_dict:
     input:
-        HTTP.remote(config["reference"]["dict_link"], keep_local=True)
+        HTTP.remote(config['reference'+'_'+config['genome_version']]["dict_link"], keep_local=True)
     output:
-        config["reference"]["dict"]
+        config['reference'+'_'+config['genome_version']]["dict"]
     benchmark: "benchmarks/download_ref_dict.log"
     shell:
         "mv {input} {output}"
@@ -137,7 +137,7 @@ rule download_ref_dict:
 rule filter_mutect_calls:
     input:
         vcf="results/mutect2/unfiltered/{sample}.vcf.gz",
-        reference=config["reference"]["fasta"],
+        reference=config['reference'+'_'+config['genome_version']]["fasta"],
         rom="results/mutect2/read_orientation_model/{sample}.tar.gz",
         contamination_table="results/mutect2/contamination/{sample}.txt"
     log:

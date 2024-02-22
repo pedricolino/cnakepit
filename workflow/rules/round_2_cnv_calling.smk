@@ -23,7 +23,7 @@ long_str_antitarget = ' '.join(antitargets_str)
 
 rule cnvkit_create_panel_of_normals:
     input:
-        fasta=config['reference']['fasta'],
+        fasta=config['reference'+'_'+config['genome_version']]['fasta'],
         all_target_cnns = expand('results/cnvkit/general/{sample}.targetcoverage.cnn', sample=samples.index),
         all_antitarget_cnns = expand('results/cnvkit/general/{sample}.antitargetcoverage.cnn', sample=samples.index)
     output:
