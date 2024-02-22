@@ -30,7 +30,7 @@ for (dir in args) {
         table_filtered <- table[which(!grepl("Antitarget.*", table$gene.symbol)), ]
 
         # discard rows without gene names
-        table_filtered <- table_filtered[which(!grepl("chr[0-9]*:.*", table_filtered$gene.symbol)), ]
+        table_filtered <- table_filtered[which(!grepl("chr.*:.*", table_filtered$gene.symbol)), ]
 
         # save the required columns
         absolute_copy_numbers <- table_filtered[, c("gene.symbol", "C")]
@@ -60,6 +60,7 @@ for (dir in args) {
     file_l2r <- paste("results/stats/", gsub(".*/", "", gsub("/$", "", dir)), "_log2_ratios_all_samples.tsv", sep = "")
 
     # save tables in files
+    dir.create(file.path("results/stats/"), showWarnings = FALSE)
     cat("\nWriting tables as TSV files.")
     write.table(cns, file_acn, sep = "\t", row.names = FALSE, quote = FALSE, col.names = TRUE)
     write.table(l2r, file_l2r, sep = "\t", row.names = FALSE, quote = FALSE, col.names = TRUE)
