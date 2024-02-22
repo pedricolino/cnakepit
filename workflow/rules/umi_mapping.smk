@@ -121,7 +121,7 @@ rule MergeBamAlignment:
         "results/umi_mapping/{sample}_6_mergebamalignment.bam"
     threads: 1
     resources:
-        mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
+        mem=lambda wildcards, attempt: '%dg' % (32 * attempt^2),
         slurm_partition = lambda wildcards, attempt: 'medium' if attempt > 1 else 'short',
         runtime=lambda wildcards, attempt: 24*60 if attempt > 1 else 4*60, # 4h=short partition limit, or 24h
         cores=lambda wc, threads: threads
@@ -184,7 +184,7 @@ rule clipbam:
         "../envs/umi_map.yaml"
     threads: 1
     resources:
-        mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
+        mem=lambda wildcards, attempt: '%dg' % (16 * attempt^2),
         cores=lambda wc, threads: threads
     shell:
         """
