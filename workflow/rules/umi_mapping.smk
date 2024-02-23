@@ -12,6 +12,7 @@ rule fastq_to_bam:
     resources:
         mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
         cores=lambda wc, threads: threads
+    log: "logs/fastq_to_bam/{sample}.log",
     shell:
         """
         fgbio --tmp-dir=$TMPDIR \
@@ -21,7 +22,7 @@ rule fastq_to_bam:
             --sample={wildcards.sample} \
             --library={params.assay} \
             --sort=true \
-            -Xmx{resources.mem}
+            -Xmx{resources.mem} &> {log}
         """
 
 
@@ -38,6 +39,7 @@ rule extract_umis_from_bam:
     resources:
         mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
         cores=lambda wc, threads: threads
+    log: "logs/extract_umis/{sample}.log",
     shell:
         """
         fgbio --tmp-dir=$TMPDIR \
@@ -47,7 +49,7 @@ rule extract_umis_from_bam:
             -r {params.readstruc} {params.readstruc} \
             -t ZA ZB \
             -s RX \
-            -Xmx{resources.mem}
+            -Xmx{resources.mem} &> {log}
         """
 
 
@@ -62,8 +64,9 @@ rule picard_samtofastq:
     resources:
         mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
         cores=lambda wc, threads: threads
+    log: "logs/samtofastq/{sample}.log",
     shell:
-        "picard SamToFastq I={input} F={output} INTERLEAVE=TRUE -Xmx{resources.mem}"
+        "picard SamToFastq I={input} F={output} INTERLEAVE=TRUE -Xmx{resources.mem} &> {log}"
 
 
 rule bwa_mem_samples_umi:
@@ -85,7 +88,8 @@ rule bwa_mem_samples_umi:
         slurm_partition='medium',
         cores=lambda wc, threads: threads
     conda: "../envs/umi_map.yaml"
-    shell: "bwa mem {params.extra} -t {threads} {params.stem} {input.reads} | samtools view -bS -@ {threads} > {output}"
+    log: "logs/bwa_mem/{sample}.log"
+    shell: "bwa mem {params.extra} -t {threads} {params.stem} {input.reads} | samtools view -bS -@ {threads} &> {log} > {output}"
 
 
 rule picard_sortsam:
@@ -101,6 +105,7 @@ rule picard_sortsam:
     resources:
         mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
         cores=lambda wc, threads: threads
+    log: "logs/sortsam/{sample}.log"
     shell:
         """picard SortSam \
             -XX:ParallelGCThreads={threads} \
@@ -108,7 +113,7 @@ rule picard_sortsam:
             O={output} \
             SO=coordinate \
             TMP_DIR=$TMPDIR \
-            -Xmx{resources.mem}
+            -Xmx{resources.mem} &> {log}
         """
 
 
@@ -127,6 +132,7 @@ rule MergeBamAlignment:
         cores=lambda wc, threads: threads
     conda:
         "../envs/umi_map.yaml"
+    log: "logs/MergeBamAlignment/{sample}.log"
     shell:
         "picard MergeBamAlignment "
             "-Xmx{resources.mem} "
@@ -141,7 +147,7 @@ rule MergeBamAlignment:
             "VALIDATION_STRINGENCY=SILENT "
             "CREATE_INDEX=true "
             "TMP_DIR=$TMPDIR "
-            "MAX_RECORDS_IN_RAM=2000000 "
+            "MAX_RECORDS_IN_RAM=2000000  &> {log}"
 
 
 rule UmiAwareMarkDuplicatesWithMateCigar:
@@ -160,6 +166,7 @@ rule UmiAwareMarkDuplicatesWithMateCigar:
     resources:
         mem=lambda wildcards, attempt: '%dg' % (16 * attempt),
         cores=lambda wc, threads: threads
+    log: "logs/UmiAwareMarkDuplicatesWithMateCigar/{sample}.log"
     shell:
         """
         picard UmiAwareMarkDuplicatesWithMateCigar \
@@ -170,7 +177,7 @@ rule UmiAwareMarkDuplicatesWithMateCigar:
             DUPLEX_UMI=true \
             MAX_RECORDS_IN_RAM=2000000 \
             TMP_DIR=$TMPDIR \
-            -Xmx{resources.mem}
+            -Xmx{resources.mem} &> {log}
         """
 
 
@@ -186,6 +193,7 @@ rule clipbam:
     resources:
         mem=lambda wildcards, attempt: '%dg' % (16 * attempt^2),
         cores=lambda wc, threads: threads
+    log: "logs/clipbam/{sample}.log"
     shell:
         """
         fgbio --tmp-dir=$TMPDIR \
@@ -195,7 +203,7 @@ rule clipbam:
             --ref={input.genome} \
             --clipping-mode=Hard \
             --clip-overlapping-reads=true \
-            -Xmx{resources.mem}
+            -Xmx{resources.mem} &> {log}
         """
 
 
@@ -209,5 +217,6 @@ rule index_clip_bam:
         cores=lambda wc, threads: threads
     conda:
         "../envs/umi_map.yaml"
+    log: "logs/index_clip_bam/{sample}.log"
     shell:
-        "samtools index {input}"
+        "samtools index {input} &> {log}"
