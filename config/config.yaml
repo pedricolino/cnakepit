@@ -12,7 +12,7 @@
 amplicon: false
 
 # Do the samples require specific preprocessing for unique molecular identifiers (UMIs)? (Specifically for HRD dataset)
-contain_UMIs: false
+contain_UMIs: true
 
 # Experimental filtering of reference genome
 filter_reference: false
