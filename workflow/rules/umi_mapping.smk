@@ -22,7 +22,7 @@ rule fastq_to_bam:
             --sample={wildcards.sample} \
             --library={params.assay} \
             --sort=true \
-            -Xmx{resources.mem} &> {log}
+            -Xmx{resources.mem} 2> {log}
         """
 
 
@@ -49,7 +49,7 @@ rule extract_umis_from_bam:
             -r {params.readstruc} {params.readstruc} \
             -t ZA ZB \
             -s RX \
-            -Xmx{resources.mem} &> {log}
+            -Xmx{resources.mem} 2> {log}
         """
 
 
@@ -66,7 +66,7 @@ rule picard_samtofastq:
         cores=lambda wc, threads: threads
     log: "logs/samtofastq/{sample}.log",
     shell:
-        "picard SamToFastq I={input} F={output} INTERLEAVE=TRUE -Xmx{resources.mem} &> {log}"
+        "picard SamToFastq I={input} F={output} INTERLEAVE=TRUE -Xmx{resources.mem} 2> {log}"
 
 
 rule bwa_mem_samples_umi:
@@ -74,7 +74,6 @@ rule bwa_mem_samples_umi:
         ref_index=config['reference'+'_'+config['genome_version']]["index"],
         reads="results/umi_mapping/{sample}_3_samtofastq.fastq",
         idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
-    # output: "results/umi_mapping/{sample}_4_bwamem.bam"
     output: "results/umi_mapping/{sample}_4_bwamem.bam"
     benchmark: 'benchmarks/bwa_mem_umi_mapping/{sample}.txt'
     log: "logs/bwa_mem/{sample}.log",
@@ -89,7 +88,7 @@ rule bwa_mem_samples_umi:
         cores=lambda wc, threads: threads
     conda: "../envs/umi_map.yaml"
     log: "logs/bwa_mem/{sample}.log"
-    shell: "bwa mem {params.extra} -t {threads} {params.stem} {input.reads} | samtools view -bS -@ {threads} &> {log} > {output}"
+    shell: "bwa mem {params.extra} -t {threads} {params.stem} {input.reads} | samtools view -bS -@ {threads} 2> {log} > {output}"
 
 
 rule picard_sortsam:
@@ -113,7 +112,7 @@ rule picard_sortsam:
             O={output} \
             SO=coordinate \
             TMP_DIR=$TMPDIR \
-            -Xmx{resources.mem} &> {log}
+            -Xmx{resources.mem} 2> {log}
         """
 
 
@@ -147,7 +146,7 @@ rule MergeBamAlignment:
             "VALIDATION_STRINGENCY=SILENT "
             "CREATE_INDEX=true "
             "TMP_DIR=$TMPDIR "
-            "MAX_RECORDS_IN_RAM=2000000  &> {log}"
+            "MAX_RECORDS_IN_RAM=2000000  2> {log}"
 
 
 rule UmiAwareMarkDuplicatesWithMateCigar:
@@ -177,7 +176,7 @@ rule UmiAwareMarkDuplicatesWithMateCigar:
             DUPLEX_UMI=true \
             MAX_RECORDS_IN_RAM=2000000 \
             TMP_DIR=$TMPDIR \
-            -Xmx{resources.mem} &> {log}
+            -Xmx{resources.mem} 2> {log}
         """
 
 
@@ -203,7 +202,7 @@ rule clipbam:
             --ref={input.genome} \
             --clipping-mode=Hard \
             --clip-overlapping-reads=true \
-            -Xmx{resources.mem} &> {log}
+            -Xmx{resources.mem} 2> {log}
         """
 
 
@@ -219,4 +218,4 @@ rule index_clip_bam:
         "../envs/umi_map.yaml"
     log: "logs/index_clip_bam/{sample}.log"
     shell:
-        "samtools index {input} &> {log}"
+        "samtools index {input} 2> {log}"
