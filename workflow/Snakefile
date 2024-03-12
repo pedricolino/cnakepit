@@ -14,8 +14,10 @@ configfile: 'config/config.yaml'
 # filter the reference genome?
 if config['filter_reference']:
   ref_file = Path(config['ref_fil'])
+  ref_file_idx = ref_file + ".fai"
 else:
   ref_file = Path(config['reference'+'_'+config['genome_version']]['fasta'])
+  ref_file_idx = Path(config['reference'+'_'+config['genome_version']]['index'])
 
 # load the panel design file
 bedpath = Path(config['panel_design'])
