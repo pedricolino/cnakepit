@@ -88,6 +88,8 @@ rule all:
     expand('results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv', sample=wc),
     ## w/ PureCN's Hclust
     expand('results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv', sample=wc),
+    ## w/ PureCN's none
+    expand('results/purecn'+suffix+'/cbs_none/{sample}/{sample}.csv', sample=wc),
 
     # CNVkit's HMM
     expand('results/cnvkit'+suffix+'/hmm/{sample}_diagram.cnv.pdf', sample=wc),
@@ -98,6 +100,8 @@ rule all:
     expand('results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv', sample=wc),
     ## w/ PureCN's Hclust
     expand('results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv', sample=wc),
+    ## w/ PureCN's none
+    expand('results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv', sample=wc),
     
     # for QC analysis only
     # 'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed

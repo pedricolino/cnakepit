@@ -105,3 +105,37 @@ use rule purecn_cbs_Hclust as purecn_hmm_PSCBS with:
         random_nb=randint(1,1000),
         suffix=suffix,
         sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex']
+
+
+use rule purecn_cbs_Hclust as purecn_cbs_none with:
+    input:
+        vcf_filt='results/mutect2/filtered/{sample}_filtered.vcf.gz',
+        copy_ratios='results/cnvkit'+suffix+'/general/{sample}.cnr',
+        seg='results/cnvkit'+suffix+'/cbs/{sample}.seg',
+    output: 'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.csv'
+    benchmark: 'benchmarks/purecn'+suffix+'/cbs_none/{sample}.txt'
+    log: 'logs/purecn'+suffix+'/cbs_none/{sample}.log',
+    params:
+        cnvkit_method='cbs',
+        purecn_method='none',
+        sampleid='{sample}',
+        random_nb=randint(1,1000),
+        suffix=suffix,
+        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex']
+
+
+use rule purecn_cbs_Hclust as purecn_hmm_none with:
+    input:
+        vcf_filt='results/mutect2/filtered/{sample}_filtered.vcf.gz',
+        copy_ratios='results/cnvkit'+suffix+'/general/{sample}.cnr',
+        seg='results/cnvkit'+suffix+'/hmm/{sample}.seg',
+    output: 'results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv'
+    benchmark: 'benchmarks/purecn'+suffix+'/hmm_none/{sample}.txt'
+    log: 'logs/purecn'+suffix+'/hmm_none/{sample}.log',
+    params:
+        cnvkit_method='hmm',
+        purecn_method='none',
+        sampleid='{sample}',
+        random_nb=randint(1,1000),
+        suffix=suffix,
+        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex']
