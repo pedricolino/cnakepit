@@ -1,40 +1,46 @@
-#ref_ref = str(Path("results") / "reference" / ref_file.stem) 
+#--- Downloads start ---#
+
 import os
 from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 
 HTTP = HTTPRemoteProvider()
 
 rule download_gnomad:
-    input:
-        HTTP.remote(config['gnomad_af_only'+'_'+config['genome_version']]["vcf_link"], keep_local=True)
-    output:
-        config['gnomad_af_only'+'_'+config['genome_version']]["vcf"]
-    shell:
-        "mv {input} {output}"
+    input: HTTP.remote(config['gnomad_af_only'+'_'+config['genome_version']]["vcf_link"], keep_local=True)
+    output: config['gnomad_af_only'+'_'+config['genome_version']]["vcf"]
+    shell: "mv {input} {output}"
 
 rule download_gnomad_index:
-    input:
-        HTTP.remote(config['gnomad_af_only'+'_'+config['genome_version']]["index_link"], keep_local=True)
-    output:
-        config['gnomad_af_only'+'_'+config['genome_version']]["index"]
-    shell:
-        "mv {input} {output}"
+    input: HTTP.remote(config['gnomad_af_only'+'_'+config['genome_version']]["index_link"], keep_local=True)
+    output: config['gnomad_af_only'+'_'+config['genome_version']]["index"]
+    shell: "mv {input} {output}"
 
 rule download_common_biallelic:
-    input:
-        HTTP.remote(config['common_germline_variants'+'_'+config['genome_version']]["vcf_link"], keep_local=True)
-    output:
-        config['common_germline_variants'+'_'+config['genome_version']]["vcf"]
-    shell:
-        "mv {input} {output}"
+    input: HTTP.remote(config['common_germline_variants'+'_'+config['genome_version']]["vcf_link"], keep_local=True)
+    output: config['common_germline_variants'+'_'+config['genome_version']]["vcf"]
+    shell: "mv {input} {output}"
 
 rule download_common_biallelic_index:
-    input:
-        HTTP.remote(config['common_germline_variants'+'_'+config['genome_version']]["index_link"], keep_local=True)
-    output:
-        config['common_germline_variants'+'_'+config['genome_version']]["index"]
-    shell:
-        "mv {input} {output}"
+    input: HTTP.remote(config['common_germline_variants'+'_'+config['genome_version']]["index_link"], keep_local=True)
+    output: config['common_germline_variants'+'_'+config['genome_version']]["index"]
+    shell: "mv {input} {output}"
+
+if config['compute_dict']:
+    rule mutect2_ref_dict:
+        input: config['reference'+'_'+config['genome_version']]["fasta"]
+        output: config['reference'+'_'+config['genome_version']]["dict"]
+        conda: "../envs/cnv_calling.yaml"
+        log: "logs/mutect2_dict/mutect2_dict.log"
+        shell: "gatk CreateSequenceDictionary -R {input} 2> {log}"
+else:
+    # Get the dict from the web. If ref. is masked, the .dict changes but it is not used anymore after mapping.
+    rule download_ref_dict:
+        input: HTTP.remote(config['reference'+'_'+config['genome_version']]["dict_link"], keep_local=True)
+        output: config['reference'+'_'+config['genome_version']]["dict"]
+        benchmark: "benchmarks/download_ref_dict.log"
+        shell: "mv {input} {output}"
+
+#--- Downloads end ---#
 
 rule mutect2_bam:
     input:
@@ -49,7 +55,7 @@ rule mutect2_bam:
         vcf="results/mutect2/unfiltered/{sample}.vcf.gz",
         f1r2="results/mutect2/f1r2/{sample}.tar.gz"
     benchmark: "benchmarks/mutect2_bam/{sample}.txt"
-    #priority: -1 # Mutect2 is very slow, so we want to run downstream rules of already Mutect2-processed samples first
+    priority: -1 # Mutect2 is very slow, so we want to run downstream rules of already Mutect2-processed samples first
     params:
         extra="--genotype-germline-sites true --genotype-pon-sites true --interval-padding 75"
     threads: 16 # Confirmed in log files that it works, see https://www.biostars.org/p/9549710/#9550707
@@ -111,28 +117,6 @@ rule calculate_contamination:
         "../envs/cnv_calling.yaml"
     shell:
         "gatk CalculateContamination -I {input.pileup} -O {output} --tmp-dir ${{TMPDIR}} &> {log}"
-
-# rule mutect2_ref_dict:
-#     input:
-#         config['reference'+'_'+config['genome_version']]["fasta"]
-#     output:
-#         "resources/reference/hg38.dict"
-#     conda:
-#         "../envs/stats.yaml"
-#     log:
-#         "logs/mutect2_dict/mutect2_dict.log"
-#     shell:
-#         "samtools dict {input} > {output} 2> {log}"
-
-# instead, get the dict from the web
-rule download_ref_dict:
-    input:
-        HTTP.remote(config['reference'+'_'+config['genome_version']]["dict_link"], keep_local=True)
-    output:
-        config['reference'+'_'+config['genome_version']]["dict"]
-    benchmark: "benchmarks/download_ref_dict.log"
-    shell:
-        "mv {input} {output}"
 
 rule filter_mutect_calls:
     input:
