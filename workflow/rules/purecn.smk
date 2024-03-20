@@ -20,7 +20,7 @@ rule purecn_cbs_Hclust:
     threads: 8
     benchmark: 'benchmarks/purecn'+suffix+'/cbs_Hclust/{sample}.txt'
     log: 'logs/purecn'+suffix+'/cbs_Hclust/{sample}.log',
-    priority: -2 # run it last for specific testing purposes
+    priority: 10 # run as early as possible to check results of first few samples
     conda: '../envs/cnv_calling.yaml'
     params:
         cnvkit_method='cbs',
