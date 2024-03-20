@@ -40,7 +40,7 @@ rule bwa_mem_samples:
         reads=["results/trimmed/{sample}_1P.fq.gz", "results/trimmed/{sample}_2P.fq.gz"],
         idx=multiext(stem, ".amb", ".ann", ".bwt", ".pac", ".sa"),
     output:
-        "results/mapped/{sample}.bam",
+        temp("results/mapped/{sample}.bam") if not config["amplicon"] else "results/mapped/{sample}.bam"
     benchmark: 'benchmarks/bwa_mem/{sample}.txt'
     log:
         "logs/bwa_mem/{sample}.log",
