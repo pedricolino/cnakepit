@@ -42,7 +42,7 @@ if config['pon']['second_run_with_pon'] == True:
         params:
             extra = '-c',
             sex= "" if not config['sex']['hard_code'] else '--sample-sex '+config['sex']['sex'].lower(),
-            amplicon = '--no-edge' if config['amplicon'] else '',
+            amplicon = '--no-edge' if config['amplicon'] else '', # Skip edge-effect correction.
             target_cnn = long_str_target,
             antitarget_cnn = long_str_antitarget,
         resources:
@@ -131,9 +131,15 @@ rule cnvkit_antitarget:
     shell:
         'cnvkit.py antitarget {input.bed} --access {input.access} -o {output} {params.extra} 2> {log}'
 
+# Autobin uses the BAM with median file size, so it's not necessary to use all samples and we can subsample.
+if len(samples) > 50:
+    subset = samples.sample(n=50)
+else:
+    subset = samples
+
 rule cnvkit_autobin:
     input:
-        bams = expand(BAMs_for_CNV_calling, sample=samples.index), # maybe use only fraction of samples here?
+        bams = expand(BAMs_for_CNV_calling, sample=subset.index),
         targets = my_targets,
         access = mappability,
         antitarget = my_antitargets,
@@ -141,12 +147,12 @@ rule cnvkit_autobin:
         target = autobin_targets,
         antitarget = autobin_antitargets,
     resources:
-        mem_mb=8000 # otherwise 4TB for 600 samples with default Snakemake...
+        mem_mb=8000 # otherwise 4TB requested for 600 samples with default Snakemake...
     benchmark:
         'benchmarks/cnvkit/general/autobin.txt'
     params:
         extra = '',
-        method = 'amplicon' if config['amplicon'] else 'hybrid',
+        method = 'hybrid' if config['consider_off_targets'] else 'amplicon', # Determines whether to use antitarget bins (-> off-target reads).
         samplenames = samples.index
     log:
         'logs/cnvkit/general/autobin/log',
@@ -187,7 +193,7 @@ rule cnvkit_generic_ref:
     params:
         extra = '',
         sex= "" if not config['sex']['hard_code'] else '--sample-sex '+config['sex']['sex'].lower(),
-        amplicon = '--no-edge' if config['amplicon'] else '',
+        amplicon = '--no-edge' if config['amplicon'] else '', # Skip edge-effect correction.
     log:
         'logs/cnvkit/general/ref_generic/log',
     conda:
@@ -202,7 +208,7 @@ rule cnvkit_fix:
         reference = 'results/cnvkit/general/FlatReference.cnn' if not config['pon']['second_run_with_pon'] else 'results/cnvkit'+suffix+'/general/pon.cnn',
     params:
         extra = '',
-        amplicon = '--no-edge' if config['amplicon'] else '',
+        amplicon = '--no-edge' if config['amplicon'] else '', # Skip edge-effect correction.
     output: 'results/cnvkit'+suffix+'/general/{sample}.cnr'
     benchmark: 'benchmarks/cnvkit'+suffix+'/general/fix/{sample}.txt'
     log: 'logs/cnvkit'+suffix+'/general/fix/{sample}.log',
