@@ -11,10 +11,10 @@ saved_config = 'results/config_used/config_'+now.strftime("%y-%m-%d_%H")+'.yaml'
 # load the configuration file
 configfile: 'config/config.yaml'
 
-# filter the reference genome?
-if config['filter_reference']:
-  ref_file = Path(config['ref_fil'])
-  ref_file_idx = ref_file + ".fai"
+# mask the reference genome? Reference variables used for mapping.
+if config['mask_reference']:
+  ref_file = Path(config['masked_ref'])
+  ref_file_idx = Path(ref_file).with_suffix('.fa.fai')
 else:
   ref_file = Path(config['reference'+'_'+config['genome_version']]['fasta'])
   ref_file_idx = Path(config['reference'+'_'+config['genome_version']]['index'])
@@ -49,7 +49,7 @@ else:
 BAM_index_for_CNV_calling = BAMs_for_CNV_calling + '.bai'
 
 # location for reference genome indices
-stem = str(Path('results') / 'ref' / ref_file.stem)
+stem = str(Path('resources') / 'reference' / ref_file.stem)
 
 # compute or download mappability file?
 if config['compute_mappability']:
@@ -66,11 +66,11 @@ else:
   include: 'rules/map_bwa.smk'
   include: 'rules/umi_mapping.smk'
   include: 'rules/mutect2.smk'
-  # include: 'rules/qc_map.smk'
-  # include: 'rules/stats.smk'
-  # include: 'rules/map_bowtie2.smk'
-  # include: 'rules/bcf.smk'
-  # include: 'rules/stats.smk'
+  include: 'rules/qc_map.smk'
+  include: 'rules/stats.smk'
+  include: 'rules/map_bowtie2.smk'
+  include: 'rules/bcf.smk'
+  include: 'rules/mask_ref.smk'
 
 # include in any case
 include: 'rules/cnvkit.smk'
@@ -99,14 +99,10 @@ rule all:
     ## w/ PureCN's Hclust
     expand('results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv', sample=wc),
     
-
-    # Quality control (QC) reports. Recommended for few samples only.
-
-    # if the following lines are commented, then they must be at the end to avoid syntax error
     # for QC analysis only
     # 'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed
-    #'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap:
-
+    'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap:
+    
     # save the used configuration file
     saved_config,
 
