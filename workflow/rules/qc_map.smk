@@ -1,9 +1,18 @@
 ################ BWA ######################
 
+rule bed_for_qualimap:
+    input: config["panel_design"]
+    output: config["qualimap_bed"]
+    shell:
+        """
+        cat {input} | grep '^chr' | awk 'BEGIN{{OFS="\\t"}}{{print $1,$2,$3,$4,0,"."}}' > {output}
+        """ # https://stackoverflow.com/questions/50965417/awk-command-fails-in-snakemake-use-singularity
+
 # qualimap needs sorted bam files as input
 rule qualimap_bwa:
     input:
-       "results/bam_sorted_bwa/{sample}_sorted.bam"
+       map=BAMs_for_CNV_calling,
+        targets=config["qualimap_bed"]
     output:
         "results/qc/qualimap/qualimap_bwa/{sample}/qualimapReport.html"
     benchmark:
@@ -22,7 +31,7 @@ rule qualimap_bwa:
     conda:
         "../envs/qc.yaml"
     shell:
-        "qualimap bamqc -bam {input} -nt {threads} --java-mem-size={resources.mem} -outdir {params.outdir} 2> {log}"
+        "qualimap bamqc -bam {input.map} --feature-file {input.targets} -nt {threads} --java-mem-size={resources.mem} -outdir {params.outdir} 2> {log}"
 
 rule multiqc_map_bwa:
     input:
