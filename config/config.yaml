@@ -6,27 +6,34 @@
 
 #--- Requires individual changes --------------------------------------------------
 
-# This pipeline is mainly built for hybridization-capture based NGS data, but is also implements changes required for amplicon sequencing data. Those changes include:
-#     - ignoring of off-target reads (theoretically, no off-target reads are sequenced.
-#     - no flagging of PCR duplicates (all of the amplified reads are in fact PCR duplicates by design) 
+# This pipeline is mainly built for hybridization-capture based NGS data, but is also implements changes required for amplicon sequencing data.
+# Amplicon seg. data? Consequence: no flagging of PCR duplicates (all of the amplified reads are in fact PCR duplicates by design) 
 amplicon: false
 
-# Do the samples require specific preprocessing for unique molecular identifiers (UMIs)? (Specifically for HRD dataset)
-contain_UMIs: true
+# If amplicon, set this to false to ignore off-target reads (theoretically, no off-target reads are sequenced with amplicon-based capture).
+# If the reference is filtered or masked, probably best to not consider off-targets reads.
+consider_off_targets: false
 
-# Experimental filtering of reference genome
-filter_reference: false
+# Do the samples require specific preprocessing for unique molecular identifiers (UMIs)? (Specifically for HRD dataset)
+contain_UMIs: false
+
+# Mask regions of interest in the reference genome? If yes, specify the amount of bp padding around the regions of interest.
+mask_reference: true
+padding: 500 # 500 is appr. NGS fragment size
 
 # compute mappability for the reference genome or download the premade one from CNVkit?
 compute_mappability: false
 
+# compute or download reference dictionary?
+compute_dict: false
+
 # hard code sex? Useful for ovarian cancer, for example.
 sex:
-  hard_code: false # set to true if you want to hard code
+  hard_code: true # set to true if you want to hard code
   sex:  'F' # female or male?
 
 # genome version
-genome_version: "hg19" # valid options: "hg38", "hg19"
+genome_version: "hg38" # valid options: "hg38", "hg19"
 
 # Path to reference genome and its index file. Will be downloaded if absent. Current pipeline settings are for hg38.
 reference_hg38:
@@ -35,6 +42,7 @@ reference_hg38:
 # fasta: "resources/reference/hg38.fa" # use this if you wish to download the reference file
 # ref_index: "resources/reference/hg38.fa.fai"
   dict: "resources/reference/hg38.dict"
+  fa_genome: "/data/cephfs-1/work/projects/cubit/20.05/static_data/reference/hg38/ucsc/hg38.fa.genome"
   fasta_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta"
   index_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
   dict_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dict"
@@ -45,6 +53,7 @@ reference_hg19:
   # index: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.fasta.fai"
   index: "resources/reference/human_g1k_v37.fasta.fai"
   dict: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.dict"
+  fa_genome: "TBD"
   fasta_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta"
   index_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta.fai"
   dict_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.dict"
@@ -62,14 +71,18 @@ pon:
 
 # chromosome column must be like "chr1", not "1"
 
+panel_design: "resources/paneldesign/3337191_Covered.bed"
+#panel_design: "/data/gpfs-1/users/cemo10_c/work/sign-oc/bed-files/3337191_Covered.bed" # SIGN-OC panel design
+# panel_design: "resources/paneldesign/all_covered_no_chr.bed" # HRD panel design
 # panel_design: "resources/paneldesign/MH_Covered_liftover_hg38.bed" # MH panel design
-panel_design: "resources/paneldesign/all_covered_no_chr.bed" # HRD panel design
-# panel_design: "resources/paneldesign/S3287512_Covered.bed" # SIGN-OC panel design
-
-adapter_sequences: "resources/adapter/panel-adapter.fa" # for trimming
 
 
 #--- Does usually not require changes ---------------------------------------------
+
+adapter_sequences: "resources/adapter/panel-adapter.fa" # for trimming
+
+qualimap_bed: "resources/paneldesign/paneldesign_forQualimap.bed"
+
 # The paths to reference files which will be downloaded if absent
 
 gnomad_af_only_hg38:
@@ -112,7 +125,7 @@ sv_blacklist_hg19:
   bed: "/fast/work/groups/cubi/projects/biotools/xTea/rep_lib_annotation/blacklist/hg19/sv_blacklist.bed"
   link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml"
 
-
+masked_ref: "resources/reference/masked.fa"
 
 #--- variance calling parameters: bcf tools --------------------------------------
 
@@ -129,4 +142,4 @@ mpileup_options: "--max-depth 100 --min-BQ 15"
 
 
 #TESTING PURPOSES:
-ref_fil: "results/filter_ref/hg38_filtered.fa"
+ref_fil: "resources/filter_ref/hg38_filtered.fa"
