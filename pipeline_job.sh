@@ -2,8 +2,8 @@
 #
 #SBATCH --job-name=cnakepit
 #SBATCH --partition long
-#SBATCH --mem=16G
-#SBATCH --ntasks=2
+#SBATCH --mem=32G
+#SBATCH --ntasks=8
 #SBATCH --time=14-00:00:00
 #SBATCH --nodes=1
 #SBATCH --export=all # Keep current environment variables
