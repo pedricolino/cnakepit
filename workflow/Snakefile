@@ -83,7 +83,7 @@ rule all:
     expand('results/cnvkit'+suffix+'/cbs/{sample}_diagram.cnv.pdf', sample=wc),
     expand('results/cnvkit'+suffix+'/cbs/{sample}_scatter.cnv.pdf', sample=wc),
     #  expand('results/cnvkit/cbs/{sample}.icns', sample=wc),
-    #  'results/cnvkit/cbs/heatmap.cnv.pdf',
+    'results/cnvkit'+suffix+'/cbs/heatmap.cnv.pdf',
     ## w/ PureCN's PSCBS
     expand('results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv', sample=wc),
     ## w/ PureCN's Hclust
@@ -95,7 +95,7 @@ rule all:
     expand('results/cnvkit'+suffix+'/hmm/{sample}_diagram.cnv.pdf', sample=wc),
     expand('results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.pdf', sample=wc),
     # expand('results/cnvkit/hmm/{sample}.icns', sample=wc),
-    # 'results/cnvkit/hmm/heatmap.cnv.pdf',
+    'results/cnvkit'+suffix+'/hmm/heatmap.cnv.pdf',
     ## w/ PureCN's PSCBS
     expand('results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv', sample=wc),
     ## w/ PureCN's Hclust
