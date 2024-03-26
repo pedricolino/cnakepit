@@ -2,6 +2,9 @@
 
 mkdir -p results/stats
 
+printf "\nCollect the gene-level copy number changes for all samples per branch.\n"
+Rscript workflow/scripts/gene_calls_per_branch_to_tsv.R 
+
 printf "\nCollect subset of specific (e.g. WES-matching) samples in one folder (results/collection_of_specific_samples).\n"
 ./workflow/scripts/collect_purecn_results_for_specific_samples.sh ~/work/sign-oc/wes_panel_results/corresponding_panels_names.tsv
 
