@@ -33,7 +33,7 @@ sex:
   sex:  'F' # female or male?
 
 # genome version
-genome_version: "hg19" # valid options: "hg38", "hg19"
+genome_version: "hg19" # valid options: "hg38", "hg19" (-> version b37 as required by Mutect2)
 
 # Path to reference genome and its index file. Will be downloaded if absent. Current pipeline settings are for hg38.
 reference_hg38:
@@ -69,7 +69,7 @@ pon:
   reference_sample_names: "resources/data/lowpurity_samples.tsv" # list of sample names chosen for PON creation, leave it empty if previous is false
   directory_suffix: "lowpurity" # if testing multiple PON versions, describe the current one here
 
-# chromosome column must be like "chr1", not "1"
+# chromosome / contig names must be of type "chr1" for hg38 and "1" for hg19 in the paneldesign.
 
 panel_design: "resources/paneldesign/MH_Covered_no_annot_no_chr.bed"
 #panel_design: "/data/gpfs-1/users/cemo10_c/work/sign-oc/bed-files/3337191_Covered.bed" # SIGN-OC panel design
