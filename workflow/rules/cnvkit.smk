@@ -55,48 +55,48 @@ if config['pon']['second_run_with_pon'] == True:
             'cnvkit.py reference -o {output.pon} -f {input.fasta} {params.extra} {params.sex} {params.amplicon} {params.target_cnn} {params.antitarget_cnn} 2> {log}'
 
 
+if config['compute_mappability']:
+    rule download_sv_blacklist:
+        input:
+            HTTP.remote(config['sv_blacklist'+'_'+config['genome_version']]['link'], keep_local=True)
+        output:
+            config['sv_blacklist'+'_'+config['genome_version']]['bed']
+        benchmark:
+            'benchmarks/cnvkit/general/download_sv_blacklist.txt'
+        log:
+            'logs/cnvkit/general/download_sv_blacklist/log',
+        shell:
+            'mv {input} {output}'
 
-# use remote file instead of cnvkit.py access output which causes problems
-rule download_mappability:
-    input:
-        HTTP.remote(config['mappability'+'_'+config['genome_version']]['link'], keep_local=True)
-    output:
-        config['mappability'+'_'+config['genome_version']]['bed']
-    benchmark:
-        'benchmarks/cnvkit/general/download_mappability.txt'
-    log:
-        'logs/cnvkit/general/download_mappability/log',
-    shell:
-        'mv {input} {output}'
+    rule cnvkit_access:
+        input:
+            ref = config['reference'+'_'+config['genome_version']]['fasta'],
+            sv_blacklist = config['sv_blacklist'+'_'+config['genome_version']]['bed'],
+        output:
+            config['mappability'+'_'+config['genome_version']]['bed']
+        benchmark:
+            'benchmarks/cnvkit/general/access.txt'
+        log:
+            'logs/cnvkit/general/access/log',
+        params:
+            extra = '',
+        conda:
+            '../envs/cnv_calling.yaml'
+        shell:
+            'cnvkit.py access {input.ref} --exclude {input.sv_blacklist} -o {output} {params.extra} 2> {log}'
 
-rule download_sv_blacklist:
-    input:
-        HTTP.remote(config['sv_blacklist'+'_'+config['genome_version']]['link'], keep_local=True)
-    output:
-        config['sv_blacklist'+'_'+config['genome_version']]['bed']
-    benchmark:
-        'benchmarks/cnvkit/general/download_sv_blacklist.txt'
-    log:
-        'logs/cnvkit/general/download_sv_blacklist/log',
-    shell:
-        'mv {input} {output}'
-
-rule cnvkit_access:
-    input:
-        ref = config['reference'+'_'+config['genome_version']]['fasta'],
-        sv_blacklist = config['sv_blacklist'+'_'+config['genome_version']]['bed'],
-    output:
-        'results/cnvkit/general/access.bed'
-    benchmark:
-        'benchmarks/cnvkit/general/access.txt'
-    log:
-        'logs/cnvkit/general/access/log',
-    params:
-        extra = '',
-    conda:
-        '../envs/cnv_calling.yaml'
-    shell:
-        'cnvkit.py access {input.ref} --exclude {input.sv_blacklist} -o {output} {params.extra} 2> {log}'
+else:
+    rule download_mappability:
+        input:
+            HTTP.remote(config['mappability'+'_'+config['genome_version']]['link'], keep_local=True)
+        output:
+            config['mappability'+'_'+config['genome_version']]['bed']
+        benchmark:
+            'benchmarks/cnvkit/general/download_mappability.txt'
+        log:
+            'logs/cnvkit/general/download_mappability/log',
+        shell:
+            'mv {input} {output}'
 
 rule cnvkit_target:
     input:
@@ -117,7 +117,7 @@ rule cnvkit_target:
 rule cnvkit_antitarget:
     input:
         bed = config['panel_design'],
-        access = mappability
+        access = config['mappability'+'_'+config['genome_version']]['bed']
     output:
         my_antitargets,
     benchmark:
@@ -141,7 +141,7 @@ rule cnvkit_autobin:
     input:
         bams = expand(BAMs_for_CNV_calling, sample=subset.index),
         targets = my_targets,
-        access = mappability,
+        access = config['mappability'+'_'+config['genome_version']]['bed'],
         antitarget = my_antitargets,
     output:
         target = autobin_targets,

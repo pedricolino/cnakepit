@@ -51,12 +51,6 @@ BAM_index_for_CNV_calling = BAMs_for_CNV_calling + '.bai'
 # location for reference genome indices
 stem = str(Path('resources') / 'reference' / ref_file.stem)
 
-# compute or download mappability file?
-if config['compute_mappability']:
-  mappability = config['mappability'+'_'+config['genome_version']]['bed']
-else:
-  mappability = 'results/cnvkit/general/access.bed'
-
 # first run with generic reference or second run with PON for CNVkit?
 if config['pon']['second_run_with_pon']:
   suffix = '_'+config['pon']['directory_suffix']+'_pon' # add results to new folders with suffix
@@ -104,7 +98,7 @@ rule all:
     expand('results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv', sample=wc),
     
     # for QC analysis only
-    # 'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed
+    'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed
     'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap:
     
     # save the used configuration file
