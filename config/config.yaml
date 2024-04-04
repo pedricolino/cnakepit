@@ -12,28 +12,28 @@ amplicon: false
 
 # If amplicon, set this to false to ignore off-target reads (theoretically, no off-target reads are sequenced with amplicon-based capture).
 # If the reference is filtered or masked, probably best to not consider off-targets reads.
-consider_off_targets: false
+consider_off_targets: true
 
 # Do the samples require specific preprocessing for unique molecular identifiers (UMIs)? (Specifically for HRD dataset)
 contain_UMIs: false
 
 # Mask regions of interest in the reference genome? If yes, specify the amount of bp padding around the regions of interest.
-mask_reference: true
+mask_reference: false
 padding: 500 # 500 is appr. NGS fragment size
 
 # compute mappability for the reference genome or download the premade one from CNVkit?
-compute_mappability: false
+compute_mappability: true
 
 # compute or download reference dictionary?
 compute_dict: false
 
 # hard code sex? Useful for ovarian cancer, for example.
 sex:
-  hard_code: true # set to true if you want to hard code
+  hard_code: false # set to true if you want to hard code
   sex:  'F' # female or male?
 
 # genome version
-genome_version: "hg38" # valid options: "hg38", "hg19"
+genome_version: "hg19" # valid options: "hg38", "hg19"
 
 # Path to reference genome and its index file. Will be downloaded if absent. Current pipeline settings are for hg38.
 reference_hg38:
@@ -52,7 +52,7 @@ reference_hg19:
   fasta: "resources/reference/human_g1k_v37.fasta"
   # index: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.fasta.fai"
   index: "resources/reference/human_g1k_v37.fasta.fai"
-  dict: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.dict"
+  dict: "resources/reference/human_g1k_v37.dict"
   fa_genome: "TBD"
   fasta_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta"
   index_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta.fai"
@@ -71,7 +71,7 @@ pon:
 
 # chromosome column must be like "chr1", not "1"
 
-panel_design: "resources/paneldesign/3337191_Covered.bed"
+panel_design: "resources/paneldesign/MH_Covered_no_annot_no_chr.bed"
 #panel_design: "/data/gpfs-1/users/cemo10_c/work/sign-oc/bed-files/3337191_Covered.bed" # SIGN-OC panel design
 # panel_design: "resources/paneldesign/all_covered_no_chr.bed" # HRD panel design
 # panel_design: "resources/paneldesign/MH_Covered_liftover_hg38.bed" # MH panel design
@@ -114,8 +114,8 @@ mappability_hg38:
   link: "github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed"
 
 mappability_hg19:
-  bed: "resources/mappability/access-5k-mappable.hg19.bed"
-  link: "github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed"
+  bed: "resources/mappability/access.bed"
+  link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml" # TBD, placeholder
 
 sv_blacklist_hg38:
   bed: "resources/mappability/sv_blacklist.bed"
@@ -123,7 +123,7 @@ sv_blacklist_hg38:
 
 sv_blacklist_hg19:
   bed: "/fast/work/groups/cubi/projects/biotools/xTea/rep_lib_annotation/blacklist/hg19/sv_blacklist.bed"
-  link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml"
+  link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml" # TBD, placeholder
 
 masked_ref: "resources/reference/masked.fa"
 
