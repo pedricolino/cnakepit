@@ -1,12 +1,22 @@
 ################ BWA ######################
 
-rule bed_for_qualimap:
-    input: config["panel_design"]
-    output: config["qualimap_bed"]
-    shell:
-        """
-        cat {input} | grep '^chr' | awk 'BEGIN{{OFS="\\t"}}{{print $1,$2,$3,$4,0,"."}}' > {output}
-        """ # https://stackoverflow.com/questions/50965417/awk-command-fails-in-snakemake-use-singularity
+
+if config['genome_version'] == 'hg38':
+    rule bed_for_qualimap:
+        input: config["panel_design"]
+        output: config["qualimap_bed"]
+        shell:
+            """
+            cat {input} | grep '^chr' | awk 'BEGIN{{OFS="\\t"}}{{print $1,$2,$3,$4,0,"."}}' > {output}
+            """ # https://stackoverflow.com/questions/50965417/awk-command-fails-in-snakemake-use-singularity
+else:
+    rule bed_for_qualimap:
+        input: config["panel_design"]
+        output: config["qualimap_bed"]
+        shell:
+            """
+            cat {input} | grep -E '^[0-9XY]' | awk 'BEGIN{{OFS="\\t"}}{{print $1,$2,$3,$4,0,"."}}' > {output}
+            """
 
 # qualimap needs sorted bam files as input
 rule qualimap_bwa:
