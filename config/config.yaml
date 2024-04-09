@@ -94,8 +94,8 @@ gnomad_af_only_hg38:
 gnomad_af_only_hg19:
   vcf: "/fast/work/groups/cubi/projects/biotools/static_data/app_support/GATK/b37/af-only-gnomad.raw.sites.vcf.gz"
   index: "/fast/work/groups/cubi/projects/biotools/static_data/app_support/GATK/b37/af-only-gnomad.raw.sites.vcf.gz.tbi"
-  vcf_link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml"
-  index_link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml"
+  vcf_link: "https://www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.raw.sites.grch37.vcf.gz" # not tested
+  index_link: "https://www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.raw.sites.grch37.vcf.gz.tbi"
 
 common_germline_variants_hg38:
   vcf: "resources/common-biallelic/small_exac_common_3.hg38.vcf.gz"
