@@ -17,7 +17,7 @@ echo "Starting CNAkepit pipeline at $start_time. Look out for snakes..."
 #--- Activate bash cmd printing, debug info ------------------------------------
 
 set -x
->&2 hostname
+hostname >&2
 
 #--- Enforce existence of TMPDIR -----------------------------------------------
 
@@ -39,8 +39,8 @@ export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 snakemake \
     --use-conda \
-    --conda-frontend mamba \
     --retries 2 \
+    --conda-frontend conda \
     --profile cubi-v1 \
     --rerun-incomplete \
     --rerun-triggers mtime \
@@ -57,13 +57,12 @@ snakemake \
 #   --jobs=200 # run up to 200 jobs at a time, does not limit number of cores used at a time
 #   --cores=2000 # limit the number of cores used at a time to 2000, the limit for the 'short' partition on the cluster. Experimental.
 
-
 #--- Finish up -----------------------------------------------------------------
 
 set +x
 
 end_time=$(date +"%Y-%m-%d %H:%M:%S")
->&2 echo "Job ended at $end_time"
+echo >&2 "Job ended at $end_time"
 
 # Calculate and print the total runtime in hours and minutes
 start_seconds=$(date -d "$start_time" +"%s")
@@ -71,7 +70,7 @@ end_seconds=$(date -d "$end_time" +"%s")
 runtime_seconds=$((end_seconds - start_seconds))
 
 runtime_hours=$((runtime_seconds / 3600))
-runtime_minutes=$(( (runtime_seconds % 3600) / 60 ))
+runtime_minutes=$(((runtime_seconds % 3600) / 60))
 
->&2 echo "Total runtime: $runtime_hours hours and $runtime_minutes minutes"
->&2 echo "All done. You may have leave the cnakepit now. Have a nice day."
+echo >&2 "Total runtime: $runtime_hours hours and $runtime_minutes minutes"
+echo >&2 "All done. You may have leave the cnakepit now. Have a nice day."
