@@ -70,39 +70,44 @@ else:
 include: 'rules/cnvkit.smk'
 include: 'rules/purecn.smk'
 
-# select results to be obtained in the end
-rule all:
-  input:
-    # CNVkit's CBS
-    expand('results/cnvkit'+suffix+'/cbs/{sample}_diagram.cnv.pdf', sample=wc),
-    expand('results/cnvkit'+suffix+'/cbs/{sample}_scatter.cnv.pdf', sample=wc),
-    #  expand('results/cnvkit/cbs/{sample}.icns', sample=wc),
-    'results/cnvkit'+suffix+'/cbs/heatmap.cnv.pdf',
-    ## w/ PureCN's PSCBS
-    expand('results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv', sample=wc),
-    ## w/ PureCN's Hclust
-    expand('results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv', sample=wc),
-    ## w/ PureCN's none
-    expand('results/purecn'+suffix+'/cbs_none/{sample}/{sample}.csv', sample=wc),
+if config['pon_rds']['use_true_pon_instead']:
+  include: 'rules/cnv_calling_with_true_pon.smk'
+  rule all:
+    input:
+      expand('results/cnv_calling_with_true_pon/purecn/cbs/{sample}/{sample}.csv', sample=wc)
+else:
+  rule all:
+    input:
+      # CNVkit's CBS
+      expand('results/cnvkit'+suffix+'/cbs/{sample}_diagram.cnv.pdf', sample=wc),
+      expand('results/cnvkit'+suffix+'/cbs/{sample}_scatter.cnv.pdf', sample=wc),
+      #  expand('results/cnvkit/cbs/{sample}.icns', sample=wc),
+      'results/cnvkit'+suffix+'/cbs/heatmap.cnv.pdf',
+      ## w/ PureCN's PSCBS
+      expand('results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv', sample=wc),
+      ## w/ PureCN's Hclust
+      expand('results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv', sample=wc),
+      ## w/ PureCN's none
+      expand('results/purecn'+suffix+'/cbs_none/{sample}/{sample}.csv', sample=wc),
 
-    # CNVkit's HMM
-    expand('results/cnvkit'+suffix+'/hmm/{sample}_diagram.cnv.pdf', sample=wc),
-    expand('results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.pdf', sample=wc),
-    # expand('results/cnvkit/hmm/{sample}.icns', sample=wc),
-    'results/cnvkit'+suffix+'/hmm/heatmap.cnv.pdf',
-    ## w/ PureCN's PSCBS
-    expand('results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv', sample=wc),
-    ## w/ PureCN's Hclust
-    expand('results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv', sample=wc),
-    ## w/ PureCN's none
-    expand('results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv', sample=wc),
-    
-    # for QC analysis only
-    'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed
-    'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap:
-    
-    # save the used configuration file
-    saved_config,
+      # CNVkit's HMM
+      expand('results/cnvkit'+suffix+'/hmm/{sample}_diagram.cnv.pdf', sample=wc),
+      expand('results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.pdf', sample=wc),
+      # expand('results/cnvkit/hmm/{sample}.icns', sample=wc),
+      'results/cnvkit'+suffix+'/hmm/heatmap.cnv.pdf',
+      ## w/ PureCN's PSCBS
+      expand('results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv', sample=wc),
+      ## w/ PureCN's Hclust
+      expand('results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv', sample=wc),
+      ## w/ PureCN's none
+      expand('results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv', sample=wc),
+      
+      # for QC analysis only
+      #'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed
+      #'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap:
+      
+      # save the used configuration file
+      saved_config,
 
 
 rule save_config:
