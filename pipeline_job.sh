@@ -41,6 +41,7 @@ snakemake \
     --use-conda \
     --retries 2 \
     --conda-frontend conda \
+    --conda-prefix ~/work/miniconda/envs \
     --profile cubi-v1 \
     --rerun-incomplete \
     --rerun-triggers mtime \
