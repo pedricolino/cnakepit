@@ -19,3 +19,4 @@ dependencies:
   - snakemake-wrapper-utils=0.3
   - r-biocmanager # to install patched version of PSCBS with support of interval weights
   - bcftools==1.11 # version set by Nina, maybe can be removed
+  - r-r.utils # for PureCN's coverage.R
