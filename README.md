@@ -22,19 +22,18 @@ This pipeline was originally forked (and later *unforked*) from [this private re
 
 ## Installation
 
-1. Install conda (usually already installed on clusters)
-2. [Install a conda environment with SnakeMake:](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html):
-    - Optionally but highly recommended to first install mamba: ``conda install -n base -c conda-forge mamba``
-    - Install a SnakeMake environment: ``mamba create -c conda-forge -c bioconda -n snakemake-vanilla snakemake=7.32.3`` (replace ``mamba`` with ``conda`` if you want to waste more time with waiting). Note that I specified an older version of SnakeMake because, as of January '24, the newest version is incompatible with the current SnakeMake profile of the CUBI cluster and our pipeline_job.sh.
+1. [Install conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) (usually already installed on clusters)
+2. [Install a conda environment with SnakeMake](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html): ``conda create -c conda-forge -c bioconda -n snakemake-vanilla snakemake=7.32.3``  
+   Note that I specified an older version of SnakeMake because, as of January '24, the newest version is incompatible with the current SnakeMake profile of the CUBI cluster and our pipeline_job.sh.  
 All other required tools and dependencies will be installed automatically by SnakeMake during the first run of the pipeline.
 
 ## Usage
 
 1. Set your configuration in the config/config.yaml file. Most options are documented or self-explanatory.
 2. In the resources directory, add your panel design BED file and your samples (sheet) to the data subdirectory.
-3. Activate your conda environment with SnakeMake installed: ``mamba activate snakemake``.
+3. Activate your conda environment with SnakeMake installed: ``conda activate snakemake-vanilla``.
 4. Before actually running the pipeline, test your configuration with a [dry run](https://snakemake.readthedocs.io/en/stable/executing/cli.html#useful-command-line-arguments) by adding ``-n`` to the SnakeMake command.
-The pipeline can be run either by submitting the job script with ``sbatch pipeline_job.sh`` or by calling SnakeMake directly with a command like ``snakemake --use-conda or snakemake --use-conda -c 8`` (preferably on a compute node).
+The pipeline can be run either by submitting the job script with ``sbatch pipeline_job.sh`` to [SLURM](https://slurm.schedmd.com/quickstart.html) or by calling SnakeMake directly with a command like ``snakemake --use-conda or snakemake --use-conda -c 8`` (preferably on a compute node).
 
 ## General workflow
 
@@ -45,6 +44,7 @@ The pipeline can be run either by submitting the job script with ``sbatch pipeli
 - Tumor analysis and CNV correction by [PureCN](https://doi.org/10.1186/s13029-016-0060-z):
     - either hierarchical clustering of CNVs or
     - minimal re-segmentation with [PSCBS](https://doi.org/10.1093%2Fbioinformatics%2Fbtr329)
+- For testing purposes, there is now an option to include a premade panel of normals file (RDS format) for PureCN, which will skip the coverage computation and segmentation by CNVkit and consequently any additional round of CNV calling with any other panel of normals.
 
 ```mermaid
 flowchart TD
