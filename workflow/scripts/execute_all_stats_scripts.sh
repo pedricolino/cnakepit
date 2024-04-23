@@ -1,12 +1,12 @@
 #!/bin/bash
 
+printf "\nCollect subset of specific (e.g. WES-matching) samples in one folder (results/collection_of_specific_samples).\n"
+./workflow/scripts/collect_purecn_results_for_specific_samples.sh resources/data/names_of_subset_samples.csv
+
 mkdir -p results/stats
 
 printf "\nCollect the gene-level copy number changes for all samples per branch.\n"
 Rscript workflow/scripts/gene_calls_per_branch_to_tsv.R
-
-printf "\nCollect subset of specific (e.g. WES-matching) samples in one folder (results/collection_of_specific_samples).\n"
-./workflow/scripts/collect_purecn_results_for_specific_samples.sh resources/data/names_of_subset_samples.txt
 
 printf "\nCount the number of successful PureCN runs\n"
 ./workflow/scripts/count_successful_purecn_runs.sh
@@ -31,3 +31,7 @@ Rscript workflow/scripts/collect_purecn_optima.R $(ls -d results/purecn/*/ | xar
 
 printf "\nCollect for all genes and samples the absolute copy numbers and log2 ratios found by PureCN\n"
 Rscript workflow/scripts/collect_gene_copy_numbers_log2ratios.R $(ls -d results/purecn/*/ | xargs)
+
+cp results/qc_map_bwa/multiqc_data/multiqc_general_stats.txt results/stats/multiqc_general_stats.txt
+
+ls results/purecn/cbs_Hclust >results/stats/all_processed_samples.csv
