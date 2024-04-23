@@ -644,7 +644,7 @@ global_optima %>%
   mutate(pp_score = purity / ploidy^2) %>%
   filter(sample %in% samples_high_mapp_high_rd) -> optima_scored
 
-pon_size <- 10
+pon_size <- nrow(optima_scored) / 10
 
 optima_scored %>%
   ggplot(aes(x = purity, y = ploidy)) +
@@ -694,6 +694,8 @@ lowploidy %>%
 
 # Compare found purity values with the ones estimated by the pathologists
 
+Note that this is just a test with one specific branch, which is mostly likely not the best performing one.
+
 ```{r, fig.cap="Comparison of purity values estimated by PureCN and the pathologists"}
 excel_file <- paste0(dir, "/../resources/data/s_panel_pathology.xlsx")
 
@@ -703,18 +705,25 @@ if (!file.exists(excel_file)) {
 } else {
   readxl::read_excel(excel_file, skip = 1) %>%
     select(Name...1, `Tumor Purity`) %>%
+    rename("sample" = Name...1) %>%
     mutate(
-      Name...1 = ifelse(grepl("[A-Z]0+[0-9]+", Name...1), sub("0+", "", Name...1, ), Name...1)
+      # names are different because of the addition or removal of leading zeros after M
+      sample = ifelse(grepl("[A-Z]0+[0-9]+", sample),
+                      sub("0+", "", sample, ), 
+                      sample),
+      # sometimes they have a - instead of an _
+      sample = str_replace(sample, "-", "_")
     ) -> truth
 
   global_optima %>%
     select(sample, purity) %>%
-    mutate(
-      sample = str_remove(sample, "_.*") %>%
-        str_replace("-", "_"),
-      sample = ifelse(grepl("[A-Z]0+[0-9]+", sample), sub("0+", "", sample, ), sample)
-    ) %>%
-    left_join(truth, by = c("sample" = "Name...1")) %>%
+    mutate(sample = str_remove(sample, "_S[0-9]+"),
+           sample = ifelse(grepl("[A-Z]0+[0-9]+", sample),
+                          sub("0+", "", sample, ), 
+                          sample),
+           sample = str_replace(sample, "-", "_")
+           ) %>%
+    left_join(truth, by = c("sample" = "sample")) %>%
     rename(
       "purity_purecn" = purity,
       "purity_pathologists" = `Tumor Purity`
