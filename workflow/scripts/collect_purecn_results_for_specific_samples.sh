@@ -8,11 +8,23 @@ mkdir -p $OUT
 for pon in results/purecn*; do
     echo "Processing $pon"
     for branch in $(ls -d $pon/*/); do
-        mkdir -p $OUT/$branch
+        branch_name=$(basename $branch)
+        mkdir -p $OUT/$branch_name
         while IFS= read -r name; do
-            cp $(find $branch -name "$name*_dnacopy.seg") "results/collection_of_specific_samples/${branch}${name}_dnacopy.seg"
-            cp $(find $branch -name "$name*_genes.csv") "results/collection_of_specific_samples/${branch}${name}_genes.csv"
-            cp $(find $branch -name "$name*.rds") "results/collection_of_specific_samples/${branch}${name}.rds"
+            seg_files=$(find $branch -name "$name*_dnacopy.seg")
+            if [ -n "$seg_files" ]; then
+                cp "$seg_files" "$OUT/$branch_name/${name}_dnacopy.seg"
+            fi
+
+            genes_files=$(find $branch -name "$name*_genes.csv")
+            if [ -n "$genes_files" ]; then
+                cp "$genes_files" "$OUT/$branch_name/${name}_genes.csv"
+            fi
+
+            rds_files=$(find $branch -name "$name*.rds")
+            if [ -n "$rds_files" ]; then
+                cp "$rds_files" "$OUT/$branch_name/${name}.rds"
+            fi
         done <$sample_names_table
     done
 done
