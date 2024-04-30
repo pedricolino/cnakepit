@@ -5,3 +5,9 @@ logs/
 .snakemake/
 benchmarks/
 workflow/scripts/__pycache__/
+*.png
+*.html
+*.md
+tests/
+test/
+*.config.yaml
