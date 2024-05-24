@@ -39,7 +39,7 @@ rule cnvkit_create_panel_of_normals:
     log:
         'logs/cnvkit'+suffix+'/general/cnvkit_create_panel_of_normals/log',
     conda:
-        '../envs/cnv_calling.yaml'
+        '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py reference -o {output.pon} -f {input.fasta} {params.extra} {params.amplicon} {params.target_cnn} {params.antitarget_cnn} 2> {log}'
 
@@ -158,7 +158,7 @@ rule purecn_cbs_Hclust_w_pon:
     resources:
         mem=lambda wildcards, attempt: '%dG' % (4 * 8 * attempt), # 4 GB per thread, 8 threads
     threads: 8
-    conda: "../envs/cnv_calling.yaml"
+    conda: "~/work/miniconda/envs/cnv_calling"
     shell:
         """PURECN=$(Rscript -e "cat(system.file('extdata', package = 'PureCN'))")
         Rscript $PURECN/PureCN.R \

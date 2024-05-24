@@ -38,7 +38,7 @@ rule trim:
     runtime=lambda wildcards, attempt: 24*60 if attempt > 1 else 4*60, # 4h=short partition limit, or 24h
     cores=lambda wc, threads: threads
   conda:
-    "../envs/trim_map.yaml"
+    "~/work/miniconda/envs/trim_map"
   shell:
     "trimmomatic PE "
       "-threads {threads} "

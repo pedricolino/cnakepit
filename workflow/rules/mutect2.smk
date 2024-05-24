@@ -29,7 +29,7 @@ if config['compute_dict']:
     rule mutect2_ref_dict:
         input: config['reference'+'_'+config['genome_version']]["fasta"]
         output: config['reference'+'_'+config['genome_version']]["dict"]
-        conda: "../envs/cnv_calling.yaml"
+        conda: "~/work/miniconda/envs/cnv_calling"
         log: "logs/mutect2_dict/mutect2_dict.log"
         shell: "gatk CreateSequenceDictionary -R {input} 2> {log}"
 else:
@@ -67,7 +67,7 @@ rule mutect2_bam:
     log:
         "logs/mutect2/{sample}.log",
     conda:
-        "../envs/cnv_calling.yaml"
+        "~/work/miniconda/envs/cnv_calling"
     shell:
         "gatk Mutect2 -R {input.fasta} -I {input.map} -L {input.targets} -O {output.vcf} {params.extra} --native-pair-hmm-threads {threads} --germline-resource {input.gnomad} --f1r2-tar-gz {output.f1r2} --tmp-dir ${{TMPDIR}} &> {log}"
 
@@ -83,7 +83,7 @@ rule learn_read_orientation_model:
     log:
         "logs/read_orientation_model/{sample}.log"
     conda:
-        "../envs/cnv_calling.yaml"
+        "~/work/miniconda/envs/cnv_calling"
     shell:
         "gatk LearnReadOrientationModel -I {input.f1r2} -O {output} --tmp-dir ${{TMPDIR}} &> {log}"
 
@@ -99,7 +99,7 @@ rule get_pile_up_summaries:
     log:
         "logs/pile_up_summaries/{sample}.log"
     conda:  
-        "../envs/cnv_calling.yaml"
+        "~/work/miniconda/envs/cnv_calling"
     shell:
         "gatk GetPileupSummaries -I {input.bam} -V {input.common} -L {input.common} -O {output} --tmp-dir ${{TMPDIR}} &> {log}"
 
@@ -114,7 +114,7 @@ rule calculate_contamination:
     log:
         "logs/calculate_contamination/{sample}.log"
     conda:
-        "../envs/cnv_calling.yaml"
+        "~/work/miniconda/envs/cnv_calling"
     shell:
         "gatk CalculateContamination -I {input.pileup} -O {output} --tmp-dir ${{TMPDIR}} &> {log}"
 
@@ -127,7 +127,7 @@ rule filter_mutect_calls:
     log:
         "logs/filter_mutect_calls/{sample}.log",
     conda:
-        "../envs/cnv_calling.yaml"
+        "~/work/miniconda/envs/cnv_calling"
     output:
         vcf_filt="results/mutect2/filtered/{sample}_filtered.vcf.gz",
     benchmark: "benchmarks/filter_mutect_calls/{sample}.txt"
@@ -145,7 +145,7 @@ rule extract_germline_variants:
     benchmark:
         "benchmarks/extract_germline_variants/{sample}.txt"
     conda:
-        "../envs/cnv_calling.yaml"
+        "~/work/miniconda/envs/cnv_calling"
     shell:
         """
         bcftools view -i 'FILTER~"germline"' {input} > {output} 2> {log}

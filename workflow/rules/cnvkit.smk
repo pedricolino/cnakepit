@@ -50,7 +50,7 @@ if config['pon']['second_run_with_pon'] == True:
         log:
             'logs/cnvkit'+suffix+'/general/cnvkit_create_panel_of_normals/log',
         conda:
-            '../envs/cnv_calling.yaml'
+            '~/work/miniconda/envs/cnv_calling'
         shell:
             'cnvkit.py reference -o {output.pon} -f {input.fasta} {params.extra} {params.sex} {params.amplicon} {params.target_cnn} {params.antitarget_cnn} 2> {log}'
 
@@ -81,7 +81,7 @@ if config['compute_mappability']:
         params:
             extra = '',
         conda:
-            '../envs/cnv_calling.yaml'
+            '~/work/miniconda/envs/cnv_calling'
         shell:
             'cnvkit.py access {input.ref} --exclude {input.sv_blacklist} -o {output} {params.extra} 2> {log}'
 
@@ -110,7 +110,7 @@ rule cnvkit_target:
     params:
         extra = '--split',
     conda:
-        '../envs/cnv_calling.yaml'
+        '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py target {input} -o {output} {params.extra} 2> {log}'
 
@@ -127,7 +127,7 @@ rule cnvkit_antitarget:
     params:
         extra = '',
     conda:
-        '../envs/cnv_calling.yaml'
+        '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py antitarget {input.bed} --access {input.access} -o {output} {params.extra} 2> {log}'
 
@@ -157,7 +157,7 @@ rule cnvkit_autobin:
     log:
         'logs/cnvkit/general/autobin/log',
     conda:
-        '../envs/cnv_calling.yaml'
+        '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py autobin {input.bams} --targets {input.targets} --access {input.access} --target-output-bed {output.target} --antitarget-output-bed {output.antitarget} --method {params.method} {params.extra} 2> {log}'
 
@@ -177,7 +177,7 @@ rule cnvkit_coverage:
     log:
         'logs/cnvkit/general/coverage/{sample}.log',
     conda:
-        '../envs/cnv_calling.yaml'
+        '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py coverage {input.bam} {input.targets} --processes {threads} -o {output.target_coverage} {params.extra} && '
         'cnvkit.py coverage {input.bam} {input.antitargets} --processes {threads} -o {output.antitarget_coverage} {params.extra} 2> {log}'
@@ -197,7 +197,7 @@ rule cnvkit_generic_ref:
     log:
         'logs/cnvkit/general/ref_generic/log',
     conda:
-        '../envs/cnv_calling.yaml'
+        '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py reference -o {output.FlatReference_cnn} -f {input.fasta} -t {input.targets} -a {input.antitargets} {params.extra} {params.sex} {params.amplicon} 2> {log}'
 
@@ -213,7 +213,7 @@ rule cnvkit_fix:
     benchmark: 'benchmarks/cnvkit'+suffix+'/general/fix/{sample}.txt'
     log: 'logs/cnvkit'+suffix+'/general/fix/{sample}.log',
     conda:
-        '../envs/cnv_calling.yaml'
+        '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py fix {input.target_coverage} {input.antitarget_coverage} {input.reference} -o {output} {params.extra} {params.amplicon} 2> {log}'
 
@@ -231,7 +231,7 @@ rule cnvkit_segment_cbs:
     # no --smooth-cbs bc of this error: https://github.com/etal/cnvkit/issues/594. Happens with HRD panel + b37 reference, may be due to lone bins in the "unlocalized" sequences in the reference
     threads: 8
     resources: mem=lambda wildcards, attempt: '%dG' % (4 * attempt),
-    conda: '../envs/cnv_calling.yaml'
+    conda: '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py segment {input.copy_ratios} --vcf {input.germline_vcf} -o {output} --processes {threads} {params.extra} 2> {log}'
 
@@ -245,7 +245,7 @@ rule cnvkit_scatter_cbs:
     benchmark: 'benchmarks/cnvkit'+suffix+'/cbs/{sample}_scatter.txt'
     log: 'logs/cnvkit'+suffix+'/cbs/scatter/{sample}.log',
     params: extra = '',
-    conda: '../envs/cnv_calling.yaml'
+    conda: '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py scatter {input.copy_ratio} --segment {input.segment} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
 
@@ -263,7 +263,7 @@ rule cnvkit_diagram_cbs:
     log:
         'logs/cnvkit'+suffix+'/cbs/diagram/{sample}.log',
     conda:
-        '../envs/cnv_calling.yaml'
+        '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py diagram {input.copy_ratio} --segment {input.segment} -o {output} {params.extra} 2> {log}'
 
@@ -281,7 +281,7 @@ rule cnvkit_heatmap_cbs:
     log:
         'logs/cnvkit'+suffix+'/cbs/heatmap.log',
     conda:
-        '../envs/cnv_calling.yaml'
+        '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py heatmap -o {output} {input.segments} &> {log}'
 
@@ -299,7 +299,7 @@ rule export_seg_cbs:
     log:
         'logs/cnvkit'+suffix+'/cbs/export_seg/{sample}.log',
     conda:
-        '../envs/cnv_calling.yaml'
+        '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py export seg {input.cns} -o {output} {params.extra} 2> {log}'
 
@@ -318,7 +318,7 @@ rule cnvkit_call_cbs:
     log:
         'logs/cnvkit'+suffix+'/cbs/call/{sample}.log',
     conda:
-        '../envs/cnv_calling.yaml'
+        '~/work/miniconda/envs/cnv_calling'
     shell:
         'cnvkit.py call {input.cns} --vcf {input.germline_vcf} -o {output} {params.extra} 2> {log}'
 

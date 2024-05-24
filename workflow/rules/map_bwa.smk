@@ -30,7 +30,7 @@ rule bwa_index_reference:
     params:
         algorithm="bwtsw",
     conda:
-        "../envs/trim_map.yaml"
+        "~/work/miniconda/envs/trim_map"
     wrapper:
         "v1.7.0/bio/bwa/index"
 
@@ -56,7 +56,7 @@ rule bwa_mem_samples:
         runtime=lambda wildcards, attempt: 24*60 if attempt > 1 else 4*60,
         cores=lambda wc, threads: threads
     conda:
-        "../envs/trim_map.yaml"
+        "~/work/miniconda/envs/trim_map"
     wrapper:
         "v1.7.0/bio/bwa/mem"
 
@@ -72,7 +72,7 @@ rule bwa_index_samples:
     resources:
         mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
     conda:
-        "../envs/trim_map.yaml"
+        "~/work/miniconda/envs/trim_map"
     params:
         extra="",  # optional params string
     wrapper:
@@ -93,7 +93,7 @@ if not config["amplicon"]:
         resources:
             mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
         conda:
-            "../envs/cnv_calling.yaml"
+            "~/work/miniconda/envs/cnv_calling"
         params:
             extra=""
         wrapper:
