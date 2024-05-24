@@ -74,7 +74,7 @@ if config['pon_rds']['use_true_pon_instead']:
   include: 'rules/cnv_calling_with_true_pon.smk'
   rule all:
     input:
-      expand('results/cnv_calling_with_true_pon/purecn/cbs/{sample}/{sample}.csv', sample=wc)
+      expand('results/cnv_calling_with_true_pon/purecn/CBS/{sample}/{sample}.csv', sample=wc)
 else:
   rule all:
     input:
