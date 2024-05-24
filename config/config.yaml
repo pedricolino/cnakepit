@@ -15,7 +15,7 @@ amplicon: false
 consider_off_targets: true
 
 # Do the samples require specific preprocessing for unique molecular identifiers (UMIs)? (Specifically for HRD dataset)
-contain_UMIs: true
+contain_UMIs: false
 
 # Mask regions of interest in the reference genome? If yes, specify the amount of bp padding around the regions of interest.
 mask_reference: false
@@ -64,7 +64,7 @@ reference_hg19:
 data:
   samples_in_directory: false # boolean, are samples or their symlinks in resource/data?
   # if previous is false, give path to sample sheet
-  sample_sheet_path: "resources/data/sample_sheet_test.tsv" # tab-separated columns: sample|fq1|fq2
+  sample_sheet_path: "resources/data/sample_sheet.tsv" # tab-separated columns: sample|fq1|fq2
 
 # first run with generic reference or second run with chosen samples as panel of normals (PON) for CNVkit?
 pon:
@@ -76,10 +76,13 @@ pon:
 pon_rds:
   use_true_pon_instead: true # set to true if you want to use a true pon.rds
   rds: "resources/true_pon/normaldb.rds" # path to rds file
-  intervals_file: "resources/paneldesign/intervals.txt.no_chr.txt" # path to normalized intervals file
-  fasta: "/data/cephfs-1/work/projects/cubit/20.05/static_data/reference/hg19/ucsc/hg19.fa" # fasta reference file used to create pon.rds and intervals file, if applicable
+  intervals_file: "resources/paneldesign/baits_hg19_intervals.txt" # path to normalized intervals file
+  different_contigs: false # set to true if the reference genome is different from the one used to create the pon.rds (e.g. GATK's b37 aka hg19 vs actual hg19)
+  fasta: "resources/reference/human_g1k_v37.fasta" # fasta reference file used to create pon.rds and intervals file, if applicable
   chain_file: "resources/reference/b37tohg19.chain" # chain file for liftover, if applicable
+  mapping_bias_available: true # set to true if mapping bias file is available and give location in next line
   mapping_bias: "resources/true_pon/mapping-bias-file.rds" # mapping bias rds file used with PureCN
+  different_blacklist: false # set to true if the blacklist file is different from the one in sv_blacklist_hg19 below
   blacklist: "resources/true_pon/hg19_simpleRepeats.bed"
 
 
