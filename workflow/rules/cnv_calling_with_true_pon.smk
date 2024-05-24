@@ -13,7 +13,8 @@ rule coverage:
     output: 'results/cnv_calling_with_true_pon/coverage/{sample}/{sample}_coverage_loess.txt.gz'
     params:
         sampleid='{sample}',
-    conda: '../envs/cnv_calling.yaml'
+#    conda: '~/work/miniconda/envs/cnv_calling.yaml'
+    conda: '~/work/miniconda/envs/cnv_calling'
     log: 'logs/cnv_calling_with_true_pon/coverage/{sample}.log'
     benchmark: 'benchmarks/cnv_calling_with_true_pon/coverage/{sample}.tsv'
     threads: 1
@@ -29,50 +30,52 @@ rule coverage:
 # zcat $OUT/$SAMPLEID/${SAMPLEID}_coverage_loess.txt.gz |
 #     awk 'NR>1 {print "chr"$0; next} 1' >$OUT/$SAMPLEID/${SAMPLEID}_coverage_loess_w_chr.txt.gz
 
-# add 'chr' to the contig lines to make it compatible with the used reference genome
-rule add_chr_to_coverage:
-    input:
-        'results/cnv_calling_with_true_pon/coverage/{sample}/{sample}_coverage_loess.txt.gz'
-    output:
-        'results/cnv_calling_with_true_pon/coverage/{sample}/{sample}_coverage_loess_w_chr.txt.gz'
-    shell:
-        """
-        zcat {input} | awk 'NR>1 {{print "chr"$0; next}} 1' >{output}
-        """
+if config['pon_rds']['different_contigs']:
+    # add 'chr' to the contig lines to make it compatible with the used reference genome
+    rule add_chr_to_coverage:
+        input:
+            'results/cnv_calling_with_true_pon/coverage/{sample}/{sample}_coverage_loess.txt.gz'
+        output:
+            'results/cnv_calling_with_true_pon/coverage/{sample}/{sample}_coverage_loess_w_chr.txt.gz'
+        shell:
+            """
+            zcat {input} | awk 'NR>1 {{print "chr"$0; next}} 1' >{output}
+            """
 
-# gatk --java-options "-Xmx80G" LiftoverVcf \
-#     -I $MUTECTFOLDER/$SAMPLEID.vcf.gz \
-#     -O $OUT/$SAMPLEID/${SAMPLEID}_hg19.vcf.gz \
-#     -C b37tohg19.chain \
-#     --REJECT $OUT/$SAMPLEID/${SAMPLEID}_rejected_variants.vcf.gz \
-#     --REFERENCE_SEQUENCE $FASTA \
-#     --TMP_DIR ~/scratch/tmp
+    # gatk --java-options "-Xmx80G" LiftoverVcf \
+    #     -I $MUTECTFOLDER/$SAMPLEID.vcf.gz \
+    #     -O $OUT/$SAMPLEID/${SAMPLEID}_hg19.vcf.gz \
+    #     -C b37tohg19.chain \
+    #     --REJECT $OUT/$SAMPLEID/${SAMPLEID}_rejected_variants.vcf.gz \
+    #     --REFERENCE_SEQUENCE $FASTA \
+    #     --TMP_DIR ~/scratch/tmp
 
-# liftover the vcf file from b37 (required by Mutect2) to hg19 (required by custom pon.rds)
-rule liftover_vcf:
-    input:
-        vcf_filt='results/mutect2/filtered/{sample}_filtered.vcf.gz',
-        chain = config['pon_rds']['chain_file'],
-        fasta = config['pon_rds']['fasta']
-    output:
-        lifted_over='results/cnv_calling_with_true_pon/vcf/{sample}/{sample}_hg19.vcf.gz',
-        rejected='results/cnv_calling_with_true_pon/vcf/{sample}/{sample}_rejected_variants.vcf.gz'
-    params:
-        sampleid='{sample}',
-    resources:
-        mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
-    conda: '../envs/cnv_calling.yaml'
-    log: 'logs/cnv_calling_with_true_pon/liftover_vcf/{sample}.log'
-    benchmark: 'benchmarks/cnv_calling_with_true_pon/liftover_vcf/{sample}.tsv'
-    threads: 1
-    shell:
-        "gatk --java-options --Xmx{resources.mem} LiftoverVcf "
-            "-I {input.vcf_filt} "
-            "-O {output.lifted_over} "
-            "-C {input.chain} "
-            "--REJECT {output.rejected} "
-            "--REFERENCE_SEQUENCE {input.fasta} "
-            "--TMP_DIR ~/scratch/tmp 2> {log}"
+    # liftover the vcf file from b37 (required by Mutect2) to hg19 (required by custom pon.rds)
+    rule liftover_vcf:
+        input:
+            vcf_filt='results/mutect2/filtered/{sample}_filtered.vcf.gz',
+            chain = config['pon_rds']['chain_file'],
+            fasta = config['pon_rds']['fasta']
+        output:
+            lifted_over='results/cnv_calling_with_true_pon/vcf/{sample}/{sample}_hg19.vcf.gz',
+            rejected='results/cnv_calling_with_true_pon/vcf/{sample}/{sample}_rejected_variants.vcf.gz'
+        params:
+            sampleid='{sample}',
+        resources:
+            mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
+    #    conda: '~/work/miniconda/envs/cnv_calling.yaml'
+        conda: '~/work/miniconda/envs/cnv_calling'
+        log: 'logs/cnv_calling_with_true_pon/liftover_vcf/{sample}.log'
+        benchmark: 'benchmarks/cnv_calling_with_true_pon/liftover_vcf/{sample}.tsv'
+        threads: 1
+        shell:
+            "gatk --java-options -Xmx{resources.mem} LiftoverVcf "
+                "-I {input.vcf_filt} "
+                "-O {output.lifted_over} "
+                "-C {input.chain} "
+                "--REJECT {output.rejected} "
+                "--REFERENCE_SEQUENCE {input.fasta} "
+                "--TMP_DIR ~/scratch/tmp 2> {log}"
 
 # Rscript $PURECN/PureCN.R --out $OUT/$SAMPLEID \
 #     --tumor $OUT/$SAMPLEID/${SAMPLEID}_coverage_loess_w_chr.txt.gz \
@@ -90,14 +93,15 @@ rule liftover_vcf:
 # parameters as they are in the pipeline from patho
 rule purecn_true_pon_cbs:
     input:
-        coverage = 'results/cnv_calling_with_true_pon/coverage/{sample}/{sample}_coverage_loess_w_chr.txt.gz',
-        vcf = 'results/cnv_calling_with_true_pon/vcf/{sample}/{sample}_hg19.vcf.gz',
+        coverage = 'results/cnv_calling_with_true_pon/coverage/{sample}/{sample}_coverage_loess_w_chr.txt.gz' if config['pon_rds']['different_contigs'] else 'results/cnv_calling_with_true_pon/coverage/{sample}/{sample}_coverage_loess.txt.gz',
+        vcf = 'results/cnv_calling_with_true_pon/vcf/{sample}/{sample}_hg19.vcf.gz' if config['pon_rds']['different_contigs'] else 'results/mutect2/filtered/{sample}_filtered.vcf.gz',
         stats = 'results/mutect2/unfiltered/{sample}.vcf.gz.stats',
         normaldb = config['pon_rds']['rds'],
-        mapping_bias = config['pon_rds']['mapping_bias'],
+        mapping_bias = config['pon_rds']['mapping_bias'] if config['pon_rds']['mapping_bias_available'] else '',
         intervals = config['pon_rds']['intervals_file'],
-        blacklist = config['pon_rds']['blacklist']
-    output: 'results/cnv_calling_with_true_pon/purecn/cbs/{sample}/{sample}.csv'
+        blacklist = config['pon_rds']['blacklist'] if config['pon_rds']['different_blacklist'] else config['sv_blacklist'+'_'+config['genome_version']]['bed'],
+    # output: 'results/cnv_calling_with_true_pon/purecn/CBS/{sample}/{sample}.csv'
+    output: 'results/cnv_calling_with_true_pon/purecn/CBS/{sample}/{sample}.csv'
     params:
         sampleid='{sample}',
         genome=config['genome_version'],
@@ -109,15 +113,19 @@ rule purecn_true_pon_cbs:
         sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex'],
         bootstrapping=100,
         purecn_method='CBS',
-
+        mappingbias= '' if not config['pon_rds']['mapping_bias_available'] else '--mapping-bias-file',
+    resources: mem=lambda wildcards, attempt: '%dG' % (4 * 8 * attempt), # 4 GB per thread, 8 threads
     threads: 8   
-    conda: '../envs/cnv_calling.yaml'
-    log: 'logs/cnv_calling_with_true_pon/purecn/cbs/{sample}.log'
-    benchmark: 'benchmarks/cnv_calling_with_true_pon/purecn/cbs/{sample}.tsv'
-    threads: 1
+#    conda: '~/work/miniconda/envs/cnv_calling.yaml'
+    conda: '~/work/miniconda/envs/cnv_calling'
+    # log: 'logs/cnv_calling_with_true_pon/purecn/cbs/{sample}.log'
+    log: 'logs/cnv_calling_with_true_custom_pon/purecn/CBS/{sample}.log'
+    # benchmark: 'benchmarks/cnv_calling_with_true_pon/purecn/cbs/{sample}.tsv'
+    benchmark: 'benchmarks/cnv_calling_with_true_custom_pon/purecn/CBS/{sample}.tsv'
     shell:
         """
         PURECN=$(Rscript -e 'cat(system.file("extdata", package = "PureCN"))')
+        mkdir -p results/cnv_calling_with_true_custom_pon/purecn/{params.purecn_method}/{params.sampleid}
         Rscript $PURECN/PureCN.R \
             --tumor {input.coverage} \
             --sampleid {params.sampleid} \
@@ -125,18 +133,18 @@ rule purecn_true_pon_cbs:
             --stats-file {input.stats} \
             --fun-segmentation {params.purecn_method} \
             --normaldb {input.normaldb} \
-            --mapping-bias-file {input.mapping_bias} \
+            {params.mappingbias} {input.mapping_bias} \
             --intervals {input.intervals} \
             --snp-blacklist {input.blacklist} \
             --genome {params.genome} \
-            --out results/cnv_calling_with_true_pon/purecn/{params.purecn_method}/{params.sampleid}/{params.sampleid} \
+            --out results/cnv_calling_with_true_custom_pon/purecn/{params.purecn_method}/{params.sampleid}/{params.sampleid} \
             --min-purity {params.minpurity} \
             --max-ploidy {params.maxploidy} \
             --max-copy-number {params.maxcopynumber} \
-            --mincoverage {params.mincoverage} \
+            --min-total-counts {params.mincoverage} \
             --cores {threads} \
             --seed {params.random_nb} \
             --bootstrap-n {params.bootstrapping} \
             {params.sex} \
-            --force --post-optimize --seed 123 &> {log}
+            --force --post-optimize --seed 123 2> {log}
             """
