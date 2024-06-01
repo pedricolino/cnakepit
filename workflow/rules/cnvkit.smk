@@ -7,8 +7,8 @@ HTTP = HTTPRemoteProvider()
 my_targets = 'results/cnvkit/general/my_targets.bed'
 my_antitargets = 'results/cnvkit/general/my_antitargets.bed'
 
-autobin_targets = 'results/cnvkit/general/'+bedname+'_target.bed'
-autobin_antitargets = 'results/cnvkit/general/'+bedname+'_antitarget.bed'
+autobin_targets = 'results/cnvkit/general/my_targets.target.bed'
+autobin_antitargets = 'results/cnvkit/general/my_targets.antitarget.bed'
 
 
 # if second round, create 2 long strings with all PON (anti-/)target coverage files
@@ -19,7 +19,6 @@ if config['pon']['second_run_with_pon'] == True:
         names = file.readlines()
 
     # Remove newline characters
-
     names = [name.strip() for name in names]
 
     # Format the sample names
@@ -159,7 +158,9 @@ rule cnvkit_autobin:
     conda:
         '~/work/miniconda/envs/cnv_calling'
     shell:
-        'cnvkit.py autobin {input.bams} --targets {input.targets} --access {input.access} --target-output-bed {output.target} --antitarget-output-bed {output.antitarget} --method {params.method} {params.extra} 2> {log}'
+        'cnvkit.py autobin {input.bams} --targets {input.targets} --access {input.access} --method {params.method} {params.extra} 2> {log} &&'
+        'mv my_targets.target.bed {output.target} && mv my_targets.antitarget.bed {output.antitarget}'
+        #  --target-output-bed {output.target} --antitarget-output-bed {output.antitarget} are not supported anymore by newer CNVkit versions
 
 
 rule cnvkit_coverage:
