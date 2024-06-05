@@ -102,5 +102,5 @@ rule multiqc_map_bowtie2:
     conda:
         "../envs/qc.yaml"
     shell:
-        "multiqc ./results/qc/qualimap/qualimap_bowtie2 -o results/qc_map_bowtie2 2> {log}"
+        "multiqc ./results/qc/qualimap/qualimap_bowtie2 -o results/qc_map_bowtie2 --export 2> {log}"
 
