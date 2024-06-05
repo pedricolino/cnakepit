@@ -22,7 +22,7 @@ mask_reference: false
 padding: 500 # 500 is appr. NGS fragment size
 
 # compute mappability for the reference genome or download the premade one from CNVkit?
-compute_mappability: false
+compute_mappability: true
 
 # compute or download reference dictionary?
 compute_dict: false
@@ -33,7 +33,7 @@ sex:
   sex:  'F' # female or male?
 
 # For hg19, chromosome / contig names must be of type "chr1" for hg38 and "1" in the paneldesign.
-panel_design: "resources/paneldesign/all_covered_annot_no_chr.bed"
+panel_design: "resources/paneldesign/MH_Covered_no_annot_no_chr.bed"
 
 # genome version
 genome_version: "hg19" # valid options: "hg38", "hg19" (-> version b37 as required by Mutect2)
@@ -69,12 +69,12 @@ data:
 # first run with generic reference or second run with chosen samples as panel of normals (PON) for CNVkit?
 pon:
   second_run_with_pon: false # set to true when this is the second run with a PON
-  reference_sample_names: "resources/data/lowpurity_samples.tsv" # list of sample names chosen for PON creation, leave it empty if previous is false
+  reference_sample_names: "results/stats/lowpurity_samples.tsv" # list of sample names chosen for PON creation, leave it empty if previous is false
   directory_suffix: "lowpurity" # if testing multiple PON versions, describe the current one here
 
 # If true normal samples are available, you can create a pon.rds panel of normals file with PureCN and use it with this pipeline.
 pon_rds:
-  use_true_pon_instead: true # set to true if you want to use a true pon.rds
+  use_true_pon_instead: false # set to true if you want to use a true pon.rds
   rds: "resources/true_pon/normaldb.rds" # path to rds file
   intervals_file: "resources/paneldesign/baits_hg19_intervals.txt" # path to normalized intervals file
   different_contigs: false # set to true if the reference genome is different from the one used to create the pon.rds (e.g. GATK's b37 aka hg19 vs actual hg19)
@@ -147,7 +147,6 @@ caller_options: "--ploidy 1 --prior 0.001"
 # bcftools mpileup:
 # e.g. "--max-depth 100 --min-BQ 15"
 mpileup_options: "--max-depth 100 --min-BQ 15"
-
 
 
 #TESTING PURPOSES:
