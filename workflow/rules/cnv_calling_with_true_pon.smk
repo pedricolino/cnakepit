@@ -14,7 +14,7 @@ rule coverage:
     params:
         sampleid='{sample}',
 #    conda: '~/work/miniconda/envs/cnv_calling.yaml'
-    conda: '~/work/miniconda/envs/cnv_calling'
+    conda: '~/work/miniconda/envs/cnv_calling_new_cnvkit'
     log: 'logs/cnv_calling_with_true_pon/coverage/{sample}.log'
     benchmark: 'benchmarks/cnv_calling_with_true_pon/coverage/{sample}.tsv'
     threads: 1
@@ -64,7 +64,7 @@ if config['pon_rds']['different_contigs']:
         resources:
             mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
     #    conda: '~/work/miniconda/envs/cnv_calling.yaml'
-        conda: '~/work/miniconda/envs/cnv_calling'
+        conda: '~/work/miniconda/envs/cnv_calling_new_cnvkit'
         log: 'logs/cnv_calling_with_true_pon/liftover_vcf/{sample}.log'
         benchmark: 'benchmarks/cnv_calling_with_true_pon/liftover_vcf/{sample}.tsv'
         threads: 1
@@ -117,7 +117,7 @@ rule purecn_true_pon_cbs:
     resources: mem=lambda wildcards, attempt: '%dG' % (4 * 8 * attempt), # 4 GB per thread, 8 threads
     threads: 8   
 #    conda: '~/work/miniconda/envs/cnv_calling.yaml'
-    conda: '~/work/miniconda/envs/cnv_calling'
+    conda: '~/work/miniconda/envs/cnv_calling_new_cnvkit'
     # log: 'logs/cnv_calling_with_true_pon/purecn/cbs/{sample}.log'
     log: 'logs/cnv_calling_with_true_pon/purecn/CBS/{sample}.log'
     # benchmark: 'benchmarks/cnv_calling_with_true_pon/purecn/cbs/{sample}.tsv'
