@@ -81,7 +81,7 @@ else:
       # CNVkit's CBS
       expand('results/cnvkit'+suffix+'/cbs/{sample}_diagram.cnv.pdf', sample=wc),
       expand('results/cnvkit'+suffix+'/cbs/{sample}_scatter.cnv.pdf', sample=wc),
-      #  expand('results/cnvkit/cbs/{sample}.icns', sample=wc),
+      expand('results/cnvkit'+suffix+'/cbs/{sample}.icns', sample=wc),
       'results/cnvkit'+suffix+'/cbs/heatmap.cnv.pdf',
       ## w/ PureCN's PSCBS
       expand('results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv', sample=wc),
@@ -93,7 +93,7 @@ else:
       # CNVkit's HMM
       expand('results/cnvkit'+suffix+'/hmm/{sample}_diagram.cnv.pdf', sample=wc),
       expand('results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.pdf', sample=wc),
-      # expand('results/cnvkit/hmm/{sample}.icns', sample=wc),
+      expand('results/cnvkit'+suffix+'/hmm/{sample}.icns', sample=wc),
       'results/cnvkit'+suffix+'/hmm/heatmap.cnv.pdf',
       ## w/ PureCN's PSCBS
       expand('results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv', sample=wc),
@@ -103,8 +103,8 @@ else:
       expand('results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv', sample=wc),
       
       # for QC analysis only
+      # 'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap:
       #'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed
-      #'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap:
       
       # save the used configuration file
       saved_config,
