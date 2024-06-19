@@ -60,7 +60,7 @@ rule multiqc_map_bwa:
     conda:
         "../envs/qc.yaml"
     shell:
-        "multiqc ./results/qc/qualimap/qualimap_bwa -o results/qc_map_bwa 2> {log}"
+        "multiqc ./results/qc/qualimap/qualimap_bwa -o results/qc_map_bwa --export 2> {log}"
 
 ################# Bowtie2 ######################
 
