@@ -33,5 +33,6 @@ printf "\nCollect for all genes and samples the absolute copy numbers and log2 r
 Rscript workflow/scripts/collect_gene_copy_numbers_log2ratios.R $(ls -d results/purecn/*/ | xargs)
 
 cp results/qc_map_bwa/multiqc_data/multiqc_general_stats.txt results/stats/multiqc_general_stats.txt
+cp results/qc_map_bwa/multiqc_data/general_stats_table.tsv results/stats/general_stats_table.tsv
 
 ls results/purecn/cbs_Hclust >results/stats/all_processed_samples.csv
