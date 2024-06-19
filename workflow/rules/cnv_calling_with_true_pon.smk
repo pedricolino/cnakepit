@@ -119,13 +119,13 @@ rule purecn_true_pon_cbs:
 #    conda: '~/work/miniconda/envs/cnv_calling.yaml'
     conda: '~/work/miniconda/envs/cnv_calling'
     # log: 'logs/cnv_calling_with_true_pon/purecn/cbs/{sample}.log'
-    log: 'logs/cnv_calling_with_true_custom_pon/purecn/CBS/{sample}.log'
+    log: 'logs/cnv_calling_with_true_pon/purecn/CBS/{sample}.log'
     # benchmark: 'benchmarks/cnv_calling_with_true_pon/purecn/cbs/{sample}.tsv'
-    benchmark: 'benchmarks/cnv_calling_with_true_custom_pon/purecn/CBS/{sample}.tsv'
+    benchmark: 'benchmarks/cnv_calling_with_true_pon/purecn/CBS/{sample}.tsv'
     shell:
         """
         PURECN=$(Rscript -e 'cat(system.file("extdata", package = "PureCN"))')
-        mkdir -p results/cnv_calling_with_true_custom_pon/purecn/{params.purecn_method}/{params.sampleid}
+        mkdir -p results/cnv_calling_with_true_pon/purecn/{params.purecn_method}/{params.sampleid}
         Rscript $PURECN/PureCN.R \
             --tumor {input.coverage} \
             --sampleid {params.sampleid} \
@@ -137,7 +137,7 @@ rule purecn_true_pon_cbs:
             --intervals {input.intervals} \
             --snp-blacklist {input.blacklist} \
             --genome {params.genome} \
-            --out results/cnv_calling_with_true_custom_pon/purecn/{params.purecn_method}/{params.sampleid}/{params.sampleid} \
+            --out results/cnv_calling_with_true_pon/purecn/{params.purecn_method}/{params.sampleid}/{params.sampleid} \
             --min-purity {params.minpurity} \
             --max-ploidy {params.maxploidy} \
             --max-copy-number {params.maxcopynumber} \
