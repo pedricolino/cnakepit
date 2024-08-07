@@ -1,0 +1,391 @@
+---
+title: "All main figures"
+output: html_document
+date: "2024-07-08"
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r chunk setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = FALSE)
+```
+
+```{r packages setup, include=FALSE}
+.packages <-
+  c(
+    "tidyverse",
+    "BiocManager",
+    "gridExtra",
+    "rmarkdown",
+    "knitr",
+    "reshape2",
+    "ggpubr",
+    "this.path",
+    "DiagrammeR",
+    "ggflowchart",
+    "cowplot",
+    "png",
+    "ComplexHeatmap",
+    "cvms",
+    "factoextra",
+    "cluster",
+    "caret",
+    "ggplotify"
+  )
+.bioconductor_packages <- c("GenomicRanges", "karyoploteR")
+
+# Install CRAN packages (if not already installed)
+.inst <- .packages %in% installed.packages()
+if(length(.packages[!.inst]) > 0) install.packages(.packages[!.inst], dependencies = TRUE, quiet = TRUE)
+
+
+# Install Bioconductor packages (if not already installed)
+.inst <- .bioconductor_packages %in% installed.packages()
+if(length(.bioconductor_packages[!.inst]) > 0) BiocManager::install(.bioconductor_packages[!.inst], dependencies = TRUE, ask = FALSE)
+
+# Load packages into session 
+lapply(.bioconductor_packages, require, character.only=TRUE)
+lapply(.packages, require, character.only=TRUE)
+
+dir = dirname(this.path()) # Get directory of running file
+```
+
+```{r parameters setup}
+# Set colors per panel design
+signoc_col = "#7570b3"
+mh_col = "#08bcc4"
+
+# Gene call metrics for SIGN-OC and MH
+gene_call_metrics_mh_signoc = paste0(dir, "/../summarising report/gene_call_metrics_for_dumbbellplot.rds")
+```
+
+
+```{r}
+matching_ids_w_nb = read_tsv(paste0(dir, "/matching_IDs_with_sample_nb.tsv"), 
+                             show_col_types = FALSE)
+
+readRDS(paste0(dir, "/../SIGN-OC/masked ref/results/data_to_plot_wes_gene_calls.rds")) %>%
+  mutate(panel = "SIGN-OC") %>%
+  right_join(matching_ids_w_nb, by = c("Sampleid" = "panel_ID")) %>%
+  mutate(Sampleid = sample_ID,
+         wes_call = str_to_title(wes_call),
+         wes_call = ifelse(wes_call %in% c("Amplification", "Deletion"), wes_call, "Neutral")) %>%
+  select(gene, Sampleid, wes_call, panel) -> signoc_wes_gene_calls
+```
+
+
+```{r, include = TRUE, fig.width=10, fig.height=7}
+readRDS(paste0(dir, "/../MH/hg37_1000_samples/results/data_to_plot_wes_gene_calls.rds")) %>%
+  mutate(panel = "MH",
+         # replace samplid with A to E
+         Sampleid = case_when(
+           Sampleid == "M03527_22" ~ "A",
+           Sampleid == "M02263_21" ~ "B",
+           Sampleid == "M01409_22" ~ "C",
+           Sampleid == "M01014_20" ~ "D",
+           Sampleid == "M00340_21" ~ "E"
+         )) %>%
+  mutate(wes_call = str_to_title(wes_call)) %>%
+  rbind(signoc_wes_gene_calls) -> foo
+
+foo %>%
+  dplyr::rename(Call = wes_call) %>%
+  ggplot(aes(x = factor(Sampleid, levels = rev(c("A", "B", "C", "D", "E", 1:28))), fill = Call)) +
+  # define colors
+  scale_fill_manual(values = c("Deletion" = "skyblue2", "Neutral" = "azure2", "Amplification" = "salmon2")) +
+  geom_bar(position = "stack") +
+  # show number of calls per type to the right side of every bar, not in it
+  geom_text(stat = "count", aes(label = ..count..), 
+            position = position_stack(vjust = 0.5),
+            size = 3) +
+  labs(y = "Sample ID",
+       x = "Number of gene-wise copy number calls") +
+  facet_grid(~panel, scales = "free", space = "free") +
+  theme_minimal()
+```
+
+# Deletions benchmark
+
+
+```{r read in genecallmetrics}
+foo = readRDS(gene_call_metrics_mh_signoc)
+
+foo %>%
+  mutate(
+    pon = case_when(
+      grepl("no_pon", pon) ~ "no PON",
+      grepl("highpurity", pon) ~ "high purity PON",
+      grepl("lowpurity", pon) ~ "low purity PON",
+      grepl("lowploid", pon) ~ "low ploidy PON",
+      grepl("cohort", pon) ~ "cohort as PON"
+    ),
+    methods = case_when(
+      grepl("cbs_Hclust", methods) ~ "CBS & Hclust",
+      grepl("cbs_PSCBS", methods) ~ "CBS & PSCBS",
+      grepl("cbs_none", methods) ~ "CBS & none",
+      grepl("hmm_Hclust", methods) ~ "HMM & Hclust",
+      grepl("hmm_PSCBS", methods) ~ "HMM & PSCBS",
+      grepl("hmm_none", methods) ~ "HMM & none"
+    )
+  ) -> foo
+```
+
+
+```{r gene calls diff ds amp, eval=TRUE, layout="l-page", fig.width=13, fig.height=10, include = TRUE, fig.retina=5}
+plot_gene_calls_different_datasets = function(df, call_type_to_plot) {
+  foo %>%
+    mutate(metric_type = case_when(
+        grepl("f1", metric) ~ "F1",
+        grepl("recall", metric) ~ "Recall",
+        grepl("precision", metric) ~ "Precision",
+        grepl("mcc", metric) ~ "MCC"
+      ),
+      call_type = case_when(
+        grepl("amp", metric) ~ "amp",
+        grepl("del", metric) ~ "del"
+      ),
+      pon = factor(pon, levels = c("no PON", "low purity PON", "low ploidy PON", "cohort as PON", "high purity PON"))
+      ) %>%
+    filter(call_type == call_type_to_plot & group == "Sampleid") %>%
+    filter(metric_type %in% c("F1", "Precision", "Recall")) %>%
+    pivot_wider(names_from = dataset, values_from = value) %>%
+    mutate(diff = abs(`SIGN-OC` - MH)) %>%
+    pivot_longer(cols = c(`SIGN-OC`, MH),
+                 names_to = "dataset",
+                 values_to = "value") -> cbshclust
+  
+  cbshclust %>%
+    filter(dataset == "SIGN-OC") -> signoc2
+  
+  cbshclust %>%
+    filter(dataset == "MH") -> mh
+  
+  linesize = 1.2
+  linealpha = .6
+  
+  cbshclust %>%
+    ggplot() +
+    geom_segment(data = signoc2,
+                 aes(x = value,
+                     xend = mh$value,
+                     y = methods,
+                     yend = mh$methods), #use the $ operator to fetch data from our "Females" tibble
+                 color = "#aeb6bf",
+                 size = 4.5, #Note that I sized the segment to fit the points
+                 alpha = .5) +
+    
+    # vertical line with max of no_pon
+    geom_vline(data = mh %>% 
+                 group_by(metric_type) %>% 
+                 filter(pon == "no PON") %>%
+                 #filter(metric_type == "f1") %>%
+                 summarise(value = max(value,na.rm = TRUE)),
+               aes(xintercept = value, color = "MH: maximum value without PON"),
+               linetype = "dashed",
+               alpha = linealpha,
+               size = linesize) +
+    geom_vline(data = signoc2 %>% 
+                 group_by(metric_type) %>% 
+                 filter(pon == "no PON") %>%
+                #filter(metric_type == "f1") %>%
+                summarise(value = max(value, na.rm = TRUE)),
+               aes(xintercept = value, color = "SIGN-OC: maximum value without PON"),
+               linetype = "dashed",
+               alpha = linealpha,
+               size = linesize) +
+    
+    # vertical line with max of all
+    geom_vline(data = mh %>% 
+                 group_by(metric_type) %>% 
+                 #filter(metric_type == "f1") %>%
+                 summarise(value = max(value,na.rm = TRUE)),
+               aes(xintercept = value, color = "MH: maximum value"),
+               linetype = "dotted",
+               alpha = linealpha,
+               size = linesize) +
+    geom_vline(data = signoc2 %>% 
+                 group_by(metric_type) %>% 
+                 #filter(metric_type == "f1") %>%
+                 summarise(value = max(value, na.rm = TRUE)),
+               aes(xintercept = value, color = "SIGN-OC: maximum value"),
+               linetype = "dotted",
+               alpha = linealpha,
+               size = linesize) +
+    
+    # plot the data points
+    geom_point(aes(x = value, 
+                   y = methods, 
+                   color = dataset,
+                   # color = methods, shape = dataset
+                   ), 
+               size = 4) +
+    scale_x_continuous(limits = c(0, 1)) +
+    scale_color_manual(values = c("MH" = mh_col, 
+                                  "SIGN-OC" = signoc_col, 
+                                  "MH: maximum value without PON" = mh_col, 
+                                  "SIGN-OC: maximum value without PON" = signoc_col, 
+                                  "MH: maximum value" = mh_col, 
+                                  "SIGN-OC: maximum value" = signoc_col)) +
+    labs(
+         #title = "Comparison of SIGN-OC and MH600",
+         x = "Mean",
+         y = "Method") +
+    
+    # plot separately for every pon and metric (f1, recall, ...)
+    facet_grid(pon ~ metric_type) +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+}
+```
+
+```{r gene calls diff ds del, eval=TRUE, layout="l-page", fig.width=13, fig.height=10, include = TRUE, fig.retina=5}
+plot_gene_calls_different_datasets(foo, "del")
+```
+
+
+# Plot CNAs
+
+```{r, fig.width = 10, fig.height = 6, fig.retina = 4}
+matching_ids = read_tsv(paste0(dir, "/matching_IDs_with_sample_nb.tsv"))
+
+# function to read in paneldesign BED file and create a GRanges object
+read_bed_file <- function(bedfile){
+  bed <- read.table(bedfile, header = FALSE, sep = "\t")
+  bed <- bed[, 1:min(4, ncol(bed))]
+  colnames(bed)[1:3] <- c("chr", "start", "end")
+ 
+  # create granges object
+  gr <- makeGRangesFromDataFrame(bed, keep.extra.columns = TRUE)
+  
+  return(gr)
+}
+
+# paneldesign bed files
+bedfile_signoc <- paste0(dir, "/../BEDfiles/3337191_Covered_no_headers.bed")
+  
+# read in bed files
+paneldesign_gr <- read_bed_file(bedfile_signoc)
+
+
+plot_wes_panel <- function(wesname, panelname, wesfile = NULL, panelfile = NULL, panelcnrfile = NULL, gene_density = FALSE, plot_coverage = FALSE, panel_del_cutoff = 0.1, panel_amp_cutoff = 7) {
+  # find filepaths if not given
+  if (is.null(wesfile)) {
+    wesfile <- paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/wes/bwa_mem2.cnvkit.", wesname, "-T1-DNA1-WES1.call.cns")
+  }
+  if (is.null(panelfile)) {
+    panelfile <- paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/purecn_lowploidy_pon/cbs_Hclust/", panelname, "_dnacopy.seg")
+  }
+  if (is.null(panelcnrfile)) {
+    panelcnrfile <- paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/cnvkit/general/", panelname, ".cnr")
+  }
+
+  # read and process files
+  wes <- read.table(wesfile, header = TRUE, sep = "\t")
+  wes_gr <- makeGRangesFromDataFrame(wes, keep.extra.columns = TRUE)
+  seg <- read.table(panelfile, header = TRUE, sep = "\t")
+  seg <- seg[, c(2, 3, 4, 7)]
+  colnames(seg) <- c("chr", "start", "end", "C")
+  seg$chr <- paste0("chr", seg$chr)
+  # sometimes, CNVkit calls chrX chr22, fix this
+  seg$chr[which(seg$chr == "chr22" & seg$end > 5e7)] <- "chrX"
+  
+  panel_gr <- makeGRangesFromDataFrame(seg, keep.extra.columns = TRUE)
+  panel_cns <- read.table(panelcnrfile, header = TRUE, sep = "\t")
+  panel_cns <- panel_cns[, c(1, 2, 3, 7)]
+  #  panel_cns[,4] = log10(panel_cns[,4])
+  panel_cns_gr <- makeGRangesFromDataFrame(panel_cns, keep.extra.columns = TRUE)
+
+  # plotting
+  wes_r0 <- 0
+  panel_r0 <- -0.695
+  boundary <- -0.35
+
+  kp <- plotKaryotype(genome = "hg38", plot.type = 1, ideogram.plotter = NULL, 
+                      main = paste0(
+                        ifelse(panel_amp_cutoff == 7,
+                               "Default thresholds for CNA detection in panel sample ",
+                               "Loose thresholds for CNA detection in panel sample "),
+                        matching_ids$sample_ID[matching_ids$panel_ID == panelname]
+                      )
+                      )
+
+  if (gene_density) {
+    kpPlotDensity(kp, paneldesign_gr,
+      window.size = 0.6e6, data.panel = "ideogram",
+      col = "darkgreen", border = "white", r0 = -1.2, r1 = -5
+    )
+  } else {
+    kpPlotRegions(kp, data = paneldesign_gr, col = "green3", r0 = -0.7, r1 = -0.85)
+  }
+
+  # plot grey background
+  kpDataBackground(kp, data.panel = 2, col = "#eeeeee", r0 = -0.7, r1 = 0)
+
+  # plot WES CNVs
+  kpPlotRegions(kp,
+    data = wes_gr[which(wes_gr$cn < 2), ], avoid.overlapping = FALSE,
+    col = "skyblue", r0 = wes_r0, r1 = boundary
+  )
+  kpPlotRegions(kp,
+    data = wes_gr[which(wes_gr$cn > 2), ], avoid.overlapping = FALSE,
+    col = "salmon", r0 = wes_r0, r1 = boundary
+  )
+
+  # plot panel CNVs
+  kpPlotRegions(kp,
+    data = panel_gr[which(panel_gr$C < panel_del_cutoff), ],
+    avoid.overlapping = FALSE,
+    col = "darkblue", r0 = panel_r0, r1 = boundary
+  )
+  kpPlotRegions(kp,
+    data = panel_gr[which(panel_gr$C > panel_amp_cutoff), ],
+    avoid.overlapping = FALSE,
+    col = "darkred", r0 = panel_r0, r1 = boundary
+  )
+
+  if (plot_coverage) {
+    # plot coverage
+    kpPlotDensity(
+      kp, panel_cns_gr,
+      window.size = 0.6e6, data.panel = "ideogram",
+      col = "#3388FF", border = "#3388FF", r0 = 1.5, r1 = 5
+    )
+  }
+}
+
+paneldir <- paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/purecn_lowploidy_pon/cbs_Hclust")
+panelfiles <- list.files(paneldir, pattern = "dnacopy.*.seg", full.names = TRUE)
+# extract the name
+panelnames <- gsub(".*/", "", panelfiles)
+panelnames <- gsub("_dnacopy.seg", "", panelnames)
+# look up the corresponding wes names in the table
+names <- read.table(paste0(dir, "/../SIGN-OC/masked ref/results/cnv_cmp.tsv"), header = TRUE, sep = "\t")
+wesnames <- names$barcode_label[match(panelnames, names$FASTQ_FILE)]
+
+i=11
+p1 <- as.ggplot(expression(plot_wes_panel(wesnames[i], panelnames[i])))
+p2 <- as.ggplot(expression(plot_wes_panel(wesnames[i], panelnames[i], panel_del_cutoff = 2, panel_amp_cutoff = 6)))
+# plot side by side
+grid.arrange(p1, p2, ncol = 2)
+```
+
+# LFC correlation
+
+```{r plot the distribution of correlations, include = TRUE}
+# function to calculate the correlation between the log2ratios of the panel and WES
+corr_cmp_genemean_wes_panel = function(cmp) {
+    cors = data.frame(sample=rep(NA, length(cmp)), cor=rep(NA, length(cmp)))
+    for (i in 1:length(cmp)) {
+      cors$sample[i] = names(cmp)[i]
+      # remove rows with NAs
+      cmp[[i]] = cmp[[i]] %>% filter(!is.na(wes) & !is.na(panel))
+      cors$cor[i] = cor(cmp[[i]][, 2], cmp[[i]][, 3])[1,1]
+    }
+    return(cors)
+}
+
+cmp_non_adj = readRDS(paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/cmp_non_adj.rds"))
+cors_non_adj = corr_cmp_genemean_wes_panel(cmp_non_adj[[1]])
+hist(cors_non_adj$cor, breaks = 10, col = signoc_col, 
+     xlab = "Correlation coefficient", main=NULL)
+```
+

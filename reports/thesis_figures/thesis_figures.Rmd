@@ -1,0 +1,1701 @@
+---
+title: "All main figures"
+output: html_document
+date: "2024-07-08"
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r chunk setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = FALSE)
+```
+
+```{r packages setup, include=FALSE}
+# Required packages
+.packages <-
+  c(
+    "tidyverse",
+    "BiocManager",
+    "gridExtra",
+    "rmarkdown",
+    "knitr",
+    "reshape2",
+    "ggpubr",
+    "this.path",
+    "DiagrammeR",
+    "ggflowchart",
+    "cowplot",
+    "png",
+    "ComplexHeatmap",
+    "cvms",
+    "factoextra",
+    "cluster",
+    "caret",
+    "magrittr"
+  )
+.bioconductor_packages <- c("GenomicRanges", "karyoploteR")
+
+# Install CRAN packages (if not already installed)
+.inst <- .packages %in% installed.packages()
+if(length(.packages[!.inst]) > 0) install.packages(.packages[!.inst], dependencies = TRUE, quiet = TRUE)
+
+
+# Install Bioconductor packages (if not already installed)
+.inst <- .bioconductor_packages %in% installed.packages()
+if(length(.bioconductor_packages[!.inst]) > 0) BiocManager::install(.bioconductor_packages[!.inst], dependencies = TRUE, ask = FALSE)
+
+# Load packages into session 
+lapply(.bioconductor_packages, require, character.only=TRUE)
+lapply(.packages, require, character.only=TRUE)
+
+# Get directory of running script to use relative paths
+dir = dirname(this.path())
+```
+
+```{r parameters and file paths setup}
+# Set colors per panel design
+signoc_col = "#7570b3"
+mh_col = "#08bcc4"
+
+# Set paths of all input and output files
+
+# panel designs
+bedfile_signoc <- paste0(dir, "/../BEDfiles/3337191_Covered_no_headers.bed")
+bedfile_mh <- paste0(dir, "/../BEDfiles/MH_Covered_liftover_hg38.bed")
+
+# global optima
+global_optima_signoc = paste0(dir, "/../SIGN-OC/masked ref/results/global_optima.rds")
+global_optima_mh = paste0(dir, "/../MH/hg37_1000_samples/results/global_optima.rds")
+
+# Gene call metrics for SIGN-OC and MH
+gene_call_metrics_mh_signoc = paste0(dir, "/../summarising report/gene_call_metrics_for_dumbbellplot.rds")
+
+# Performance for different cutoffs
+rds_mh = paste0(dir, "/../MH/hg37_1000_samples/results/diff_cutoffs_gene_call_comparison_CNVkit.rds")
+rds_signoc = paste0(dir, "/../SIGN-OC/masked ref/results/diff_cutoffs_gene_call_comparison_CNVkit.rds")
+
+# MH purity comparison
+mh_purity_cmp = paste0(dir, "/../MH/hg37_1000_samples/results/purity_comparison.rds")
+
+# LFC values for panels and WES
+lfc_per_seq_type = paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/cmp_non_adj.rds")
+
+# Performance for different cohort sizes
+diff_cohort_sizes_performance = paste0(dir, "/../MH/hg37_1000_samples/results/diff_cohort_sizes_gene_calls_gene_call_metrics.rds")
+```
+
+# Figure 3: Analysis includes different DNA panels, synthetic panels of normals and segmentation methods.
+
+```{r flowchart}
+#library(ggflowchart)
+A = "Multiple panels"
+B = "Different panels of normals"
+C = "CBS vs HMM"
+D = "Hclust vs PSCBS vs none"
+
+data <- tibble::tibble(from = c(A, B, C),
+                       to = c(B, C, D))
+
+text_x_offset = -.4
+
+ggflowchart(data, fill = "skyblue", family = "sans") + # sans -> arial
+  annotate(
+    "text",
+    x = text_x_offset,
+    y = 1,
+    label = "CNVkit",
+    angle = 90
+  ) +
+  annotate(
+    "text",
+    x = text_x_offset,
+    y = -0,
+    label = "PureCN",
+    angle = 90
+  ) -> p1
+```
+
+
+```{r prepare bedfiles}
+# function to read in paneldesign BED file and create a GRanges object
+read_bed_file <- function(bedfile){
+  bed <- read.table(bedfile, header = FALSE, sep = "\t")
+  bed <- bed[, 1:min(4, ncol(bed))]
+  colnames(bed)[1:3] <- c("chr", "start", "end")
+ 
+  # create granges object
+  gr <- makeGRangesFromDataFrame(bed, keep.extra.columns = TRUE)
+  
+  return(gr)
+}
+
+# read in bed files
+signoc <- read_bed_file(bedfile_signoc)
+mh <- read_bed_file(bedfile_mh)
+
+# calculate total size per panel
+total_size_signoc <- sum(width(signoc))
+total_size_mh <- sum(width(mh))
+
+# print as table
+data.frame(panel = c("SIGN-OC", "MH600"), total_size = c(total_size_signoc, total_size_mh)) %>%
+  as_tibble() %>%
+  mutate(Mbp = round(total_size / 1e6, 2),
+         relative_to_SIGN_OC = round(total_size / total_size_signoc, 2)) -> panel_overview
+
+# filter out non-gene contig names and count unique genes
+filter_count_genes = function(gene_list){
+  gene_list %>%
+  unique %>%
+  str_remove_all("chr[0-9xyXY]+:[0-9-]+") %>%
+  str_remove_all(",") %>%
+  unique() %>%
+  .[!. == ""] %>%
+  length
+}
+
+panel_overview$nb_of_genes = c(filter_count_genes(signoc$V4), filter_count_genes(mh$V4))
+```
+
+```{r paneldesigns}
+p2 = function() {
+  kp <-
+    plotKaryotype(
+      genome = "hg38",
+      plot.type = 2,
+      ideogram.plotter = NULL,
+      family = "sans",
+      font = 1,
+      labels.plotter = NULL
+      #cex = 2
+    )
+  kpAddChromosomeNames(kp, chr.names = c(as.character(1:22), "X", "Y"))
+
+  # position variables
+  offset = -0.2
+  step = 0.75
+  h1 = offset - step / 2 * 3
+  h2 = offset - step / 2
+  h3 = offset + step / 2
+  
+  kpDataBackground(kp, data.panel = 1, col = "#eeeeee", r0 = h1, r1 = h3)
+  
+  kpPlotRegions(
+    kp,
+    data = read_bed_file(bedfile_signoc),
+    data.panel = 1,
+    col = signoc_col,
+    r0 = h1, 
+    r1 = h2
+  )
+  
+  kpPlotRegions(
+    kp,
+    data = read_bed_file(bedfile_mh),
+    data.panel = 1,
+    col = mh_col,
+    r0 = h2,
+    r1 = h3
+  )
+  
+  v = 1:9
+  legend(
+  x = 0.45,
+  y = 0.48,
+  ncol = 3L,
+  legend = c(
+    '', '# genes', 'Size (Mbp)', '# matched\nWES samples',
+    'MH', c("619", '2.89', '5'),
+    'SIGN-OC', c("232", '2.24', '28')
+  ),
+  cex = .8,
+  text.width = .12,
+  fill = c(0,0,0,0,mh_col,0,0,0,signoc_col, 0,0,0),
+  border = "white",
+  bty = "n",
+  )
+}
+```
+
+
+```{r purity ploidy plot}
+global_optima_list = list()
+
+global_optima_list$signoc = readRDS(global_optima_signoc)
+global_optima_list$mh = readRDS(global_optima_mh)
+
+# merge list into one table
+global_optima = bind_rows(
+  global_optima_list$signoc %>% mutate(panel = "SIGN-OC"),
+  global_optima_list$mh %>% mutate(panel = "MH")
+)
+
+# facet plot purity and ploidy
+global_optima %>%
+  ggplot(aes(x = purity, y = ploidy, color = panel)) +
+  # reduce point size
+  geom_point(size = .9) + 
+  scale_x_continuous(limits = c(0, 1)) +
+  facet_wrap(~panel) +
+  labs(x = "Purity", y = "Ploidy") +
+  # vertical line for 10% samples with lowest purity
+  geom_vline(data = global_optima %>% 
+                 group_by(panel) %>%
+                 summarise(value = quantile(purity, 0.9, na.rm = TRUE)),
+             aes(xintercept = value, color = "10% quantile purity"),
+             linewidth = .6,
+             linetype = "dashed") +
+  # vertical line for 10% samples with highest purity
+  geom_vline(data = global_optima %>% 
+               group_by(panel) %>%
+               summarise(value = quantile(purity, 0.1, na.rm = TRUE)),
+             aes(xintercept = value, color = "90% quantile purity"),
+             linewidth = .6,
+             linetype = "dashed") +
+  # horizontal line for 10% samples with lowest ploidy
+  geom_hline(data = global_optima %>% 
+               group_by(panel) %>%
+               summarise(value = quantile(ploidy, 0.1, na.rm = TRUE)),
+             aes(yintercept = value, color = "10% quantile ploidy"),
+             linewidth = .6,
+             linetype = "dashed") +
+  # colors for points and lines
+  scale_color_manual(
+    values = c(
+      "10% quantile purity" = "red",
+      "90% quantile purity" = "orange2",
+      "10% quantile ploidy" = "olivedrab",
+      "SIGN-OC" = signoc_col,
+      "MH" = mh_col
+    ),
+    breaks = c(
+      "10% quantile purity",
+      "10% quantile ploidy",
+      "90% quantile purity",
+      "SIGN-OC",
+      "MH"
+    )
+  ) +
+  #theme_bw() +
+  #theme(strip.text = element_text(face="bold", size=9),
+  #      text=element_text(family="sans")) +
+  guides(color = guide_legend(override.aes = list(size = 2),title = NULL)) -> p3
+```
+
+
+```{r fig3, fig.width=9, fig.height=9, fig.retina=4, include = TRUE}
+# with cowplot, p1 on top left, p2 on top right, p3 on bottom left and right
+top_row = plot_grid(p1, p2,
+                    labels = c('A', 'B'),
+                    ncol = 2, rel_widths = c(1, 2.3))
+plot_grid(top_row, p3,
+          labels = c('', 'C'),
+          ncol = 1, rel_heights = c(1.2, 1))
+```
+
+# Figure 4: Synthetic panels of normal and CBS improve the calling of gene level amplifications while further segmentation with PSCBS is detrimental.
+
+
+```{r read in genecallmetrics}
+foo = readRDS(gene_call_metrics_mh_signoc)
+
+foo %>%
+  mutate(
+    pon = case_when(
+      grepl("no_pon", pon) ~ "no PON",
+      grepl("highpurity", pon) ~ "high purity PON",
+      grepl("lowpurity", pon) ~ "low purity PON",
+      grepl("lowploid", pon) ~ "low ploidy PON",
+      grepl("cohort", pon) ~ "cohort as PON"
+    ),
+    methods = case_when(
+      grepl("cbs_Hclust", methods) ~ "CBS & Hclust",
+      grepl("cbs_PSCBS", methods) ~ "CBS & PSCBS",
+      grepl("cbs_none", methods) ~ "CBS & none",
+      grepl("hmm_Hclust", methods) ~ "HMM & Hclust",
+      grepl("hmm_PSCBS", methods) ~ "HMM & PSCBS",
+      grepl("hmm_none", methods) ~ "HMM & none"
+    )
+  ) -> foo
+```
+
+
+```{r gene calls diff ds amp, eval=TRUE, layout="l-page", fig.width=13, fig.height=10, include = TRUE, fig.retina=5}
+plot_gene_calls_different_datasets = function(df, call_type_to_plot) {
+  foo %>%
+    mutate(metric_type = case_when(
+        grepl("f1", metric) ~ "F1",
+        grepl("recall", metric) ~ "Recall",
+        grepl("precision", metric) ~ "Precision",
+        grepl("mcc", metric) ~ "MCC"
+      ),
+      call_type = case_when(
+        grepl("amp", metric) ~ "amp",
+        grepl("del", metric) ~ "del"
+      ),
+      pon = factor(pon, levels = c("no PON", "low purity PON", "low ploidy PON", "cohort as PON", "high purity PON"))
+      ) %>%
+    filter(call_type == call_type_to_plot & group == "Sampleid") %>%
+    filter(metric_type %in% c("F1", "Precision", "Recall")) %>%
+    pivot_wider(names_from = dataset, values_from = value) %>%
+    mutate(diff = abs(`SIGN-OC` - MH)) %>%
+    pivot_longer(cols = c(`SIGN-OC`, MH),
+                 names_to = "dataset",
+                 values_to = "value") -> cbshclust
+  
+  cbshclust %>%
+    filter(dataset == "SIGN-OC") -> signoc2
+  
+  cbshclust %>%
+    filter(dataset == "MH") -> mh
+  
+  linesize = 1.2
+  linealpha = .6
+  
+  cbshclust %>%
+    ggplot() +
+    geom_segment(data = signoc2,
+                 aes(x = value,
+                     xend = mh$value,
+                     y = methods,
+                     yend = mh$methods), #use the $ operator to fetch data from our "Females" tibble
+                 color = "#aeb6bf",
+                 size = 4.5, #Note that I sized the segment to fit the points
+                 alpha = .5) +
+    
+    # vertical line with max of no_pon
+    geom_vline(data = mh %>% 
+                 group_by(metric_type) %>% 
+                 filter(pon == "no PON") %>%
+                 #filter(metric_type == "f1") %>%
+                 summarise(value = max(value,na.rm = TRUE)),
+               aes(xintercept = value, color = "MH: maximum value without PON"),
+               linetype = "dashed",
+               alpha = linealpha,
+               size = linesize) +
+    geom_vline(data = signoc2 %>% 
+                 group_by(metric_type) %>% 
+                 filter(pon == "no PON") %>%
+                #filter(metric_type == "f1") %>%
+                summarise(value = max(value, na.rm = TRUE)),
+               aes(xintercept = value, color = "SIGN-OC: maximum value without PON"),
+               linetype = "dashed",
+               alpha = linealpha,
+               size = linesize) +
+    
+    # vertical line with max of all
+    geom_vline(data = mh %>% 
+                 group_by(metric_type) %>% 
+                 #filter(metric_type == "f1") %>%
+                 summarise(value = max(value,na.rm = TRUE)),
+               aes(xintercept = value, color = "MH: maximum value"),
+               linetype = "dotted",
+               alpha = linealpha,
+               size = linesize) +
+    geom_vline(data = signoc2 %>% 
+                 group_by(metric_type) %>% 
+                 #filter(metric_type == "f1") %>%
+                 summarise(value = max(value, na.rm = TRUE)),
+               aes(xintercept = value, color = "SIGN-OC: maximum value"),
+               linetype = "dotted",
+               alpha = linealpha,
+               size = linesize) +
+    
+    # plot the data points
+    geom_point(aes(x = value, 
+                   y = methods, 
+                   color = dataset,
+                   # color = methods, shape = dataset
+                   ), 
+               size = 4) +
+    scale_x_continuous(limits = c(0, 1)) +
+    scale_color_manual(values = c("MH" = mh_col, 
+                                  "SIGN-OC" = signoc_col, 
+                                  "MH: maximum value without PON" = mh_col, 
+                                  "SIGN-OC: maximum value without PON" = signoc_col, 
+                                  "MH: maximum value" = mh_col, 
+                                  "SIGN-OC: maximum value" = signoc_col)) +
+    labs(
+         #title = "Comparison of SIGN-OC and MH600",
+         x = "Mean",
+         y = "Method") +
+    
+    # plot separately for every pon and metric (f1, recall, ...)
+    facet_grid(pon ~ metric_type) +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+}
+
+
+plot_gene_calls_different_datasets(foo, "amp")
+```
+
+
+# Figure 5: More lenient calling of gene level amplifications is detrimental to performance. 
+
+```{r read in genecalls}
+gene_call_metrics_mh = readRDS(rds_mh)$gene_call_metrics
+gene_call_metrics_signoc = readRDS(rds_signoc)$gene_call_metrics
+```
+
+```{r plot different cutoffs, eval=TRUE, include = TRUE}
+give.n <- function(x){
+  return(c(y = -0.025, label = length(x))) 
+  # experiment with the multiplier to find the perfect position
+}
+gene_call_metrics_mh %>%
+  mutate(dataset = "MH") %>%
+  rbind(gene_call_metrics_signoc %>% mutate(dataset = "SIGN-OC"))  %>% 
+  mutate(cutoffs = factor(cutoffs, levels = c("loose", "default", "strict")),
+         dataset = factor(dataset, levels = c("SIGN-OC", "MH"))) %>%
+  pivot_longer(cols = ends_with("amp"), names_to = "metric2", values_to = "value2") %>%
+  select(metric2, value2, cutoffs, group, dataset) %>%
+  filter(group == "Sampleid") %>%
+  filter(metric2 %in% c("f1_amp", "precision_amp", "recall_amp")) %>%
+  mutate(metric2 = str_remove(metric2, "_amp")) %>%
+  filter(!is.na(value2)) %>%
+  #group_by(dataset, cutoffs, metric2) %>% mutate(n = n()) %>% 
+  #mutate(label = paste0(cutoffs,'\nN = ',n)) %>%
+  mutate(metric2 = str_to_title(metric2)) %>%
+  # plotting starts here
+  ggplot(aes(x = cutoffs, y = value2, fill = dataset)) + #, alpha = cutoffs)) +
+  geom_boxplot(aes(alpha = cutoffs)) +
+  geom_point(position = position_dodge2(width = .5), size = 1) +
+  labs(x = "Parameter choice for calling gene amplifications",
+       y = "Metric value") +
+  scale_y_continuous(limits = c(-0.05, 1)) +
+  facet_grid(dataset ~ metric2, scales = 'free_x') +
+  scale_fill_manual(values = c(signoc_col, mh_col)) +
+  stat_summary(fun.data = give.n, geom = "text", fun.y = median,
+               position = position_dodge(width = 0.75),
+               vjust = 0.9, size = 3.5, color = "green4") + 
+  guides(alpha = "none")
+```
+
+
+# Figure 6 PureCN’s tumor ploidy and purity 2D grid search produces tumor purity estimations different to those made by pathologists. 
+
+
+```{r plot purity comparison}
+purity_comparison = readRDS(mh_purity_cmp)
+
+fit1 <- lm(purity_purecn ~ purity_pathologists, data = purity_comparison)   
+
+
+# plot pathologists' vs PureCN's purity values
+purity_comparison %>%
+  ggplot(aes(x = purity_pathologists, y = purity_purecn)) +
+  geom_count(color = mh_col) +
+  #scale_size(range = c(1, 10)) +
+  geom_abline(intercept = 0,
+              slope = 1,
+              color = "red") +
+  labs(x = "Pathologists' purity estimation", y = "PureCN's purity estimation") +
+  scale_x_continuous(breaks = seq(0, 100, 10), limits = c(0, 100)) +
+  scale_y_continuous(breaks = seq(0, 100, 10), limits = c(0, 100))  +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  stat_cor(label.y = 100, color = "#262626", vjust = 0, size = 3) +
+  stat_regline_equation(label.y = 95, color = "blue", vjust = 0, size = 3) +
+  stat_cor(aes(label = paste(..rr.label..)),label.y = 90, color = "blue", vjust = 0, size = 3) +
+  theme(legend.position = "top", ) -> p4
+  #stat_mean() 
+  #stat_summary() 
+p4
+#summary(lm(purity_purecn ~ purity_pathologists, data = purity_comparison))
+```
+
+
+```{r splitviolin}
+# https://stackoverflow.com/a/74895850
+GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
+                           draw_group = function(self, data, ..., draw_quantiles = NULL) {
+  data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+  grp <- data[1, "group"]
+  newdata <- plyr::arrange(transform(data, x = if (grp %% 2 == 1) xminv else xmaxv), if (grp %% 2 == 1) y else -y)
+  newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+  newdata[c(1, nrow(newdata) - 1, nrow(newdata)), "x"] <- round(newdata[1, "x"])
+
+  if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+    stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <=
+      1))
+    quantiles <- ggplot2:::create_quantile_segment_frame(data, draw_quantiles)
+    aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+    aesthetics$alpha <- rep(1, nrow(quantiles))
+    both <- cbind(quantiles, aesthetics)
+    quantile_grob <- GeomPath$draw_panel(both, ...)
+    ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+  }
+  else {
+    ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+  }
+})
+
+geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
+                              draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
+                              show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+        params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+}
+
+
+global_all = readRDS(paste0(dir, "/../MH/hg37_1000_samples/results/purity_ploidy_all_optima.rds"))
+
+global_all_signoc = readRDS(paste0(dir, "/../SIGN-OC/masked ref/results/purity_ploidy_all_optima.rds"))
+
+bind_rows(
+  global_all %>% mutate(panel = "MH"),
+  global_all_signoc %>% mutate(panel = "SIGN-OC")
+) -> global_all
+
+
+global_all %>%
+  dplyr::rename(Ploidy = total.ploidy,
+         Purity = purity) %>%
+  pivot_longer(cols = c(Purity, Ploidy)) %>%
+  mutate(panel = factor(panel, levels = c("SIGN-OC", "MH")),
+         Type = paste0(panel, ": ", type) %>% factor(levels = c(
+           "MH: global optimum", 
+           "MH: all local optima",
+           "SIGN-OC: global optimum", 
+           "SIGN-OC: all local optima" 
+           ))) %>%
+  ggplot(aes(x = panel, y = value, 
+             col = Type, fill = after_scale(col),
+             alpha = type)) +
+    geom_split_violin(trim = FALSE, show.legend = TRUE) +
+    #geom_boxplot(width = .07, outlier.shape = NA, 
+    #             col = "#555555", fill = NA,
+    #             position = position_dodge(.1)) +
+    coord_flip() +
+    facet_wrap(~name, scales = "free_x") +
+    labs(x = "Panel", y = "Value") +
+    theme(legend.position = "bottom") + 
+    scale_color_manual(values=c(
+      "MH: global optimum" = alpha(mh_col, 1),
+      "MH: all local optima" = alpha(mh_col, .3),
+      "SIGN-OC: global optimum" = alpha(signoc_col, 1),
+      "SIGN-OC: all local optima" = alpha(signoc_col, .3)
+    )) +
+    scale_alpha_manual(values = c(.3, 1), guide = "none") -> p5
+p5
+```
+
+```{r load png}
+#library(grid)
+#library(png)
+optima_grid = paste0(dir, "/M02864_21_S7_local_optima mh 1000 no pon cbs hclust.png")
+#readPNG(optima_grid)
+
+img1 <-  rasterGrob(as.raster(readPNG(optima_grid)), interpolate = FALSE)
+```
+
+```{r fig 6, fig.width=9, fig.height=9, fig.retina=4, include = TRUE}
+top_row = plot_grid(img1, p4,
+                    labels = c('A', 'B'),
+                    ncol = 2, rel_widths = c(1, 1))
+plot_grid(top_row, p5,
+          labels = c('', 'C'),
+          ncol = 1, rel_heights = c(1, 1))
+```
+
+
+# Figure 7 Increasing cohort sizes improve calling of gene level amplifications. 
+
+```{r}
+gene_call_metrics = readRDS(diff_cohort_sizes_performance)
+
+gene_call_metrics %>%
+  mutate(cohort_size = factor(cohort_size, levels = c("50", "100", "300", "600", "1000"))) %>%
+  pivot_longer(cols = ends_with("amp"), names_to = "metric2", values_to = "value2") %>%
+  select(metric2, value2, cohort_size, group) %>%
+  filter(group == "Sampleid") %>%
+  # filter(cutoffs %in% c("default", "loose")) %>%
+  filter(metric2 == "f1_amp") %>%
+  # median per cohort size
+  group_by(cohort_size) %>%
+  summarise(median = median(value2, na.rm=TRUE))
+```
+
+
+```{r fig7 diff cohort sizes, include = TRUE}
+give.n <- function(x){
+  return(c(y = 0, label = length(x))) 
+  # experiment with the multiplier to find the perfect position
+}
+
+gene_call_metrics %>%
+  mutate(cohort_size = factor(cohort_size, levels = c("50", "100", "300", "600", "1000"))) %>%
+  pivot_longer(cols = ends_with("amp"), names_to = "metric2", values_to = "value2") %>%
+  select(metric2, value2, cohort_size, group) %>%
+  filter(group == "Sampleid") %>%
+  # filter(cutoffs %in% c("default", "loose")) %>%
+  filter(metric2 == "f1_amp") %>%
+  ggplot(aes(x = cohort_size, y = value2)) + #, fill = cohort_size)) +
+  geom_boxplot(fill = mh_col) +
+  geom_point(position = position_dodge2(width = .5)) +
+  labs(x = "Different cohort sizes",
+       y = "F1") +
+  scale_y_continuous(limits = c(0, 1)) +
+  stat_summary(fun.data = give.n, geom = "text", fun.y = median,
+               position = position_dodge(width = 0.75),
+               vjust = 1, size = 3.5, color = "green4")
+```
+
+
+# Figure 8 Clustering based on log2 fold changes reveals high intra-method and low intra-patient similarity.
+
+
+```{r read in metricmat from cnvmetrics}
+metricLog_2_distMatrix = function(metricLog_filepath, mat_type = "dist") {
+  metricMat = readRDS(metricLog_filepath)[["LOG2RATIO"]]
+  ## Prepare matrix by filling upper triangle
+  diag(metricMat) <- 1.0
+  ## Prepare matrix to be able to calculate distance
+  metricMat[lower.tri(metricMat) & is.na(metricMat)] <- 0.0
+  ## Prepare matrix by filling upper triangle
+  metricMat[upper.tri(metricMat)] <- t(metricMat)[upper.tri(metricMat)]
+  metricMat[is.na(metricMat)] <- 0.0
+  
+  if (mat_type == "dist") {return(1-metricMat)
+  } else if (mat_type == "sim") {return(metricMat)}
+  else {stop("Error: mat_type must be either 'dist' 
+             for distance or 'sim' for similarity.")}
+}
+
+mat_type = "dist"
+metricMat_wes = metricLog_2_distMatrix(
+  paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/wes/metricLog_wes_chr8_pd.rds"), 
+  mat_type = mat_type)
+
+metricMat_panel = metricLog_2_distMatrix(
+  paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/wes/metricLog_chr8_panel.rds"), 
+  mat_type = mat_type)
+```
+
+
+```{r read in nb of amps and dels}  
+metriclog_file = paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/log2ratio_metric_non_adj.rds")
+metricLog <- readRDS(metriclog_file)
+
+m = metricLog[["LOG2RATIO"]]
+# make m symmetric
+m[upper.tri(m)] = t(m)[upper.tri(m)]
+
+mat_type = "dist"
+m2 = metricLog_2_distMatrix(
+  metriclog_file, 
+  mat_type = mat_type)
+
+  
+# add annotation for the heatmap: nb of CNVs in WES
+read_tsv(paste0(dir, "/../SIGN-OC/masked ref/results/nb_amplifications_wes.tsv"),
+         show_col_types = FALSE) %>%
+  inner_join(read_tsv(paste0(dir, "/../SIGN-OC/masked ref/results/nb_deletions_wes.tsv"),
+                      show_col_types = FALSE),
+             by = "sample") %>%
+  mutate(sample = str_replace_all(sample, "-", "_"),
+         total_gene_cn_changes = `# gene amplifications` + `# gene deletions`) %>%
+  #right_join(nams, by = c("sample" = "value")) %>%
+  # duplicate every row
+  bind_rows(., .)-> nb_wes_cn_genes
+# order
+nb_wes_cn_genes = nb_wes_cn_genes[match(colnames(m) %>% str_remove("_[wespanel]*$"), nb_wes_cn_genes$sample),]
+
+branch = "/../SIGN-OC/masked ref/results/collection_of_specific_samples/purecn_lowploidy_pon/cbs_Hclust"
+
+# annotate with nb of gene CN changes in panels
+panel_gene_calls_file = paste0(dir, str_replace(branch, "pon/", "pon_"), "_gene_calls.tsv")
+panel_gene_calls = read_tsv(panel_gene_calls_file, show_col_types = FALSE)
+# count amp and del
+panel_summary = data.frame(sample=NA, gene_amp=NA, gene_del = NA, total_cn_changes = NA)
+for (i in 2:ncol(panel_gene_calls)) {
+  j = i - 1
+  sample = colnames(panel_gene_calls)[i]
+  # count how many times the copy number is not neutral
+  gene_amp = sum(panel_gene_calls[, i] == "AMPLIFICATION", na.rm = TRUE)
+  gene_del = sum(panel_gene_calls[, i] == "DELETION", na.rm = TRUE)
+  total_cn_changes = sum(is.na(panel_gene_calls[, i]))
+  panel_summary[j, ] = c(sample, gene_amp, gene_del, total_cn_changes)
+}
+# merge panel and wes gene nb tables
+colnames(panel_summary) = c("sample", "gene_amp", "gene_del", "gene_cn")
+panel_summary$sample %<>% str_replace_all("-", "_") %>% paste0("_panel")
+colnames(nb_wes_cn_genes) = c("sample", "gene_amp", "gene_del", "gene_cn", "nb")
+nb_wes_cn_genes$sample %<>% str_replace_all("-", "_") %>% paste0("_wes")
+nb_cn = rbind(panel_summary, nb_wes_cn_genes)
+nb_cn = nb_cn[match(colnames(m), nb_cn$sample),]
+apply(nb_cn[, 2:4], 2, as.numeric) -> nb_cn[, 2:4]
+```
+
+
+```{r give samples numbers}
+colnames(m) %>%
+  as_tibble %>%
+  mutate(panel_name = str_remove(value %>% str_remove("_[wespanel]*$"), "_panel"),
+         nb = rep(1:(nrow(.)/2), each = 2),
+         type = str_remove(value, ".*_"),
+         nb_type = paste0(nb, "_", type)) -> names_df
+
+saveRDS(names_df, paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/names_df.rds"))
+
+colnames(m) = names_df$nb_type
+rownames(m) = names_df$nb_type
+```
+
+
+
+```{r replace sample names with numbers}
+matching_ids_file = "/../SIGN-OC/masked ref/resources/data/matching_IDs.tsv"
+matching_ids = read_tsv(paste0(dir, matching_ids_file), show_col_types = FALSE)
+matching_ids %>%
+  mutate(panel_ID_underscore = str_replace_all(panel_ID, "-", "_")) %>%
+  filter(panel_ID_underscore %in% (panel_summary$sample %>% str_remove("_panel"))) %>%
+  # add a column with numbers to differentiate the samples
+  mutate(sample_ID = 1:nrow(.)) -> matching_ids
+
+write_tsv(matching_ids, paste0(dir, "/matching_IDs_with_sample_nb.tsv"))
+
+# replace colnames and rownames in m with sample_ID
+newnames = colnames(m)
+for (i in 1:nrow(matching_ids)) {
+  name = matching_ids$panel_ID_underscore[i]
+  id_nb = matching_ids$sample_ID[i]
+  rows_to_replace = grep(matching_ids$panel_ID_underscore[i], colnames(m) %>% str_remove("_[panelwes]*$"))
+  newnames[rows_to_replace] = paste0(id_nb, "_", colnames(m)[i] %>% str_remove("^.*_"))
+}
+
+colnames(m) = newnames
+rownames(m) = newnames
+```
+
+```{r how many matched samples are most similar to each other}
+is_matching_max = rep(FALSE, nrow(m))
+count = 0
+for (row in 1:nrow(m)) {
+  rowname = rownames(m)[row]
+  rowname = str_remove(rowname, "_.*")
+  colnames(m)[which(m[row, ] == max(m[row, ], na.rm = TRUE))] %>% str_remove("_.*") -> most_similar
+  if (rowname == most_similar) {
+    count = count + 1
+    is_matching_max[row] = TRUE
+  }
+}
+```
+
+```{r heatmap annotation}
+distinct_colors = c(
+    "1" = "red",
+    "2" = "honeydew",
+    "3" = "green",
+    "4" = "purple",
+    "5" = "orange",
+    "6" = "yellow",
+    "7" = "brown",
+    "8" = "cyan",
+    "9" = "magenta",
+    "10" = "pink",
+    "11" = "rosybrown",
+    "12" = "mistyrose",
+    "13" = "salmon",
+    "14" = "lightblue",
+    "15" = "darkcyan",
+    "16" = "khaki",
+    "17" = "darkorange",
+    "18" = "yellow",
+    "19" = "lemonchiffon2",
+    "20" = "plum",
+    "21" = "thistle",
+    "22" = "burlywood",
+    "23" = "deepskyblue",
+    "24" = "magenta3",
+    "25" = "skyblue2",
+    "26" = "coral",
+    "27" = "antiquewhite",
+    "28" = "lightgreen"
+  )
+
+set.seed(1)
+ha = HeatmapAnnotation(
+  "# gene amplifications" = anno_barplot(nb_cn$gene_amp, gp = gpar(fill = "salmon", col = "salmon")),
+  "# gene deletions" = anno_barplot(nb_cn$gene_del, gp = gpar(fill = "skyblue", col = "skyblue")),
+  "Most similar sample is matched?" = is_matching_max,
+  "Sequencing type" = colnames(m) %>% 
+    str_remove("^.*_") %>% 
+    str_to_title() %>% 
+    replace(which(. == "Wes"), "WES"),
+  #sample_ID = colnames(m) %>% str_remove("_[wespanel]*$"),
+  "Sample ID" = anno_simple(colnames(m) %>% str_remove("_.*"), pch = rep(as.character(1:28), each=2), pt_size = unit(1, "snpc")*0.5, col = distinct_colors),
+  col = list(
+  #  sample_IDx = colnames(m) %>% str_remove("_[wespanel]*$") %>% unique %>% length %>% rainbow, # bug when removing x?
+    "Sequencing type" = c("WES" = "lightblue", "Panel" = "yellow"),
+    "Most similar sample is matched?" = c("TRUE" = "green", "FALSE" = "red")
+    )
+)
+
+hal = rowAnnotation(
+  sample_ID = anno_simple(colnames(m) %>% str_remove("_.*"), pch = rep(as.character(1:28), each=2), pt_size = unit(1, "snpc")*0.5, col = distinct_colors),
+  show_annotation_name = FALSE
+)
+```
+
+
+```{r plot non-adj panel and wes ratios, fig.width=11, fig.height=9.5, layout="l-page", fig.retina = 2, fig.cap="Heatmap of the log2ratio metric", include = TRUE}
+
+clustering_method = "complete"
+
+htmp = suppressMessages(
+  Heatmap(m, 
+        top_annotation = ha, 
+        name="Similarity",
+        row_names_gp = gpar(fontsize = 7),
+        column_names_gp = gpar(fontsize = 7),
+        left_annotation = hal,
+        #col = colorRamp2(c(min(m2, na.rm = TRUE), .95, max(m2, na.rm = TRUE)), c("red", "lightblue", "blue")),
+        #clustering_method_rows = clustering_method,
+        #clustering_method_columns = clustering_method,
+        show_row_names = FALSE,
+        show_column_names = FALSE,
+       #cluster_rows = rev(as.dendrogram(d_m)),
+       #cluster_columns = d_m,
+        heatmap_legend_param = list(legend_height = unit(4, "cm"))
+  )
+)
+draw(htmp, merge_legend = TRUE, padding = unit(rep(1,4), "cm"))
+```
+
+## Try again but with assymmetrical axes
+
+```{r plot small heatmap non-adj panel and wes ratios, fig.width=11, fig.height=9.5, layout="l-page", fig.retina = 2, fig.cap="Heatmap of the log2ratio metric", include = TRUE}
+# only wes in rows and only panels in columns
+wes_idx = which(str_detect(rownames(m), "wes"))
+pan_idx = which(str_detect(colnames(m), "panel"))
+mm = m[wes_idx, pan_idx] 
+
+# is the most similar sample specifically FROM THE OTHER SEQUENCING TYPE the matched sample?
+is_matching_max_spec_row = rep(FALSE, nrow(mm))
+count = 0
+for (row in 1:nrow(mm)) {
+  # define sample id of wes sample in question
+  rowname = rownames(mm)[row]
+  rowname = str_remove(rowname, "_.*")
+  # which panel sample is most similar
+  which(mm[row, ] == max(mm[row, ], na.rm = TRUE)) %>% str_remove("_.*") -> most_similar
+  # does this panel sample have the same id as the wes sample
+  if (rowname == most_similar) {
+    count = count + 1
+    is_matching_max_spec_row[row] = TRUE
+  }
+}
+# same with columns = panels
+is_matching_max_spec_col = rep(FALSE, nrow(mm))
+count = 0
+for (col in 1:ncol(mm)) {
+  # define sample id of panel sample in question
+  colname = colnames(mm)[col]
+  colname = str_remove(colname, "_.*")
+  # which wes sample is most similar
+  which(mm[, col] == max(mm[, col], na.rm = TRUE)) %>% str_remove("_.*") -> most_similar
+  # does this wes sample have the same id as the panel sample
+  if (colname == most_similar) {
+    count = count + 1
+    is_matching_max_spec_col[col] = TRUE
+  }
+}
+
+# annotations for only panels in columns
+anno_pan = HeatmapAnnotation(
+  "# gene amplifications" = anno_barplot(nb_cn$gene_amp[pan_idx], gp = gpar(fill = "salmon", col = "salmon")),
+  "# gene deletions" = anno_barplot(nb_cn$gene_del[pan_idx], gp = gpar(fill = "skyblue", col = "skyblue")),
+  "Is the most similar\nWES sample matched?" = is_matching_max_spec_col,
+  #sample_ID = colnames(m) %>% str_remove("_[wespanel]*$"),
+  "Sample ID" = anno_simple(colnames(mm) %>% str_remove("_.*"), pch = rep(as.character(1:28), each=1), pt_size = unit(1, "snpc")*0.5, col = distinct_colors),
+  col = list(
+  #  sample_IDx = colnames(m) %>% str_remove("_[wespanel]*$") %>% unique %>% length %>% rainbow, # bug when removing x?
+    "Sequencing type" = c("WES" = "lightblue", "Panel" = "yellow"),
+    "Is the most similar\nWES sample matched?" = c("TRUE" = "green", "FALSE" = "red")
+    ),
+  annotation_name_gp = gpar(fontsize = 10)
+)
+
+# annotations for only wes in rows
+anno_wes = rowAnnotation(
+  "# gene amplifications" = anno_barplot(nb_cn$gene_amp[wes_idx], gp = gpar(fill = "salmon", col = "salmon")),
+  "# gene deletions" = anno_barplot(nb_cn$gene_del[wes_idx], gp = gpar(fill = "skyblue", col = "skyblue")),
+  "Is the most similar\npanel sample matched?" = is_matching_max_spec_row,
+  #sample_ID = colnames(m) %>% str_remove("_[wespanel]*$"),
+  "Sample ID" = anno_simple(rownames(mm) %>% str_remove("_.*"), pch = rep(as.character(1:28), each=1), pt_size = unit(1, "snpc")*0.5, col = distinct_colors),
+  col = list(
+  #  sample_IDx = colnames(m) %>% str_remove("_[wespanel]*$") %>% unique %>% length %>% rainbow, # bug when removing x?
+    "Sequencing type" = c("WES" = "lightblue", "Panel" = "yellow"),
+    "Is the most similar\npanel sample matched?" = c("TRUE" = "green", "FALSE" = "red")
+    ),
+  annotation_name_gp = gpar(fontsize = 10),
+  annotation_name_rot = 90
+)
+
+htmp = suppressMessages(
+  Heatmap(mm, 
+        top_annotation = anno_pan,
+        left_annotation = anno_wes,
+        name="Similarity",
+        #row_names_gp = gpar(fontsize = 7),
+        #column_names_gp = gpar(fontsize = 7),
+        #left_annotation = hal,
+        #col = colorRamp2(c(min(m2, na.rm = TRUE), .95, max(m2, na.rm = TRUE)), c("red", "lightblue", "blue")),
+        #clustering_method_rows = clustering_method,
+        #clustering_method_columns = clustering_method,
+        show_row_names = FALSE,
+        show_column_names = FALSE,
+       #cluster_rows = rev(as.dendrogram(d_m)),
+       #cluster_columns = d_m,
+        heatmap_legend_param = list(legend_height = unit(4, "cm")),
+       column_km = 2,
+       row_km = 2,
+       
+  )
+)
+draw(htmp, merge_legend = TRUE, padding = unit(rep(1,4), "cm"))
+```
+
+
+
+# Figure 9 The SIGN-OC panel allows for correct calling of unchanged copy numbers for HGSOC relevant genes but leads to overestimation of gene amplifications. 
+
+## Histograms
+
+
+```{r}
+prepare_gene_bin_log2ratio = function(cmp, genes) {
+  myc_list = lapply(cmp, function(df) {
+    df %>% filter(gene %in% genes)
+  })
+  do.call(rbind, myc_list) %>% 
+    pivot_longer(cols = c("wes", "panel"), names_to = "Method", values_to = "log2ratio") %>%
+    mutate(Method = Method %>% str_to_title(),
+           Method = ifelse(Method == "Wes", "WES", Method))
+}
+
+myc_non_adj = prepare_gene_bin_log2ratio(
+  readRDS(paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/cmp_non_adj.rds"))[[1]],
+  genes = c(
+            #"BRCA1", # HRD 
+            "GAPDH", # housekeeping
+            # from paper
+            "MYC",
+            "KRAS", 
+            "PIK3CA", 
+            "CCNE1", 
+            "TERT",
+            # paper: genes from the mTOR and RAS survival pathways
+            "IGFR1",
+            "GAB2",
+            "PTK6",
+            "KRAS",
+            "AKT1",
+            "AKT2",
+            "AKT3"
+            # paper: idem but deletions
+            #"NF1",
+            #"PTEN"
+            )
+)
+
+myc_non_adj$gene %<>% factor(levels = c("MYC", "PIK3CA", "KRAS", "AKT1", "GAPDH"))
+
+
+
+#install.packages("philentropy")
+library(philentropy)
+
+for (gene_x in c("MYC", "PIK3CA", "KRAS", "AKT1", "GAPDH")) {
+  print(gene_x)
+  
+  myc_non_adj %>%
+  filter(gene == gene_x) %>%
+  select(-gene) -> myc_log2ratios
+  
+  # reorganize the data to have one column for panel and one for WES log2ratios
+  myc_log2ratios[which(myc_log2ratios$Method == "Panel"), "log2ratio"] -> panel
+  myc_log2ratios[which(myc_log2ratios$Method == "WES"), "log2ratio"] -> wes
+  
+  # bin the log2ratios in each column into 10 bins
+  bins = 15
+  cbind(panel, wes) %>%
+    as.matrix() %>%
+    apply(2, function(x) {
+      cut(x, breaks = seq(-.83, 2.49, length.out = 15), labels = FALSE)
+    }) -> binned
+    
+  binned[,1] %>% factor(levels = 1:bins) %>% table -> panelbins
+  binned[,2] %>% factor(levels = 1:bins) %>% table -> wesbins
+  
+  cbind(panelbins, wesbins) %>%
+    # as porbabilities
+    apply(2, function(x) {
+      x = x + abs(min(x)) # add the minimum value to all values to make them positive
+      x = x / sum(x) # divide by the sum to make them sum to 1 to obtain probabilities as required by KL
+      x
+    }) %>%
+    t() %>%
+    KL(unit = 'log') %>% 
+    round(digits = 1) %>%
+    print()
+}
+
+# make a function to calculate KL divergence that takes gene as input
+KL_gene = function(gene_x) {
+  myc_non_adj %>%
+  filter(gene == gene_x) %>%
+  select(-gene) -> myc_log2ratios
+  
+  # reorganize the data to have one column for panel and one for WES log2ratios
+  myc_log2ratios[which(myc_log2ratios$Method == "Panel"), "log2ratio"] -> panel
+  myc_log2ratios[which(myc_log2ratios$Method == "WES"), "log2ratio"] -> wes
+  
+  # bin the log2ratios in each column into 10 bins
+  bins = 15
+  cbind(panel, wes) %>%
+    as.matrix() %>%
+    apply(2, function(x) {
+      cut(x, breaks = seq(-.83, 2.49, length.out = 15), labels = FALSE)
+    }) -> binned
+    
+  binned[,1] %>% factor(levels = 1:bins) %>% table -> panelbins
+  binned[,2] %>% factor(levels = 1:bins) %>% table -> wesbins
+  
+  cbind(panelbins, wesbins) %>%
+    # as porbabilities
+    apply(2, function(x) {
+      x = x + abs(min(x)) # add the minimum value to all values to make them positive
+      x = x / sum(x) # divide by the sum to make them sum to 1 to obtain probabilities as required by KL
+      x
+    }) %>%
+    t() %>%
+    KL(unit = 'log') %>% 
+    round(digits = 1) %>%
+    return()
+}
+
+KL_gene("MYC")
+```
+
+```{r histograms, fig.width=10, fig.height=3, layout="l-page", fig.retina = 2}
+# function to filter log2ratios for one specified gene
+prepare_gene_bin_log2ratio = function(cmp, genes) {
+  myc_list = lapply(cmp, function(df) {
+    df %>% filter(gene %in% genes)
+  })
+  do.call(rbind, myc_list) %>% 
+    pivot_longer(cols = c("wes", "panel"), names_to = "Method", values_to = "log2ratio") %>%
+    mutate(Method = Method %>% str_to_title(),
+           Method = ifelse(Method == "Wes", "WES", Method))
+}
+
+myc_non_adj = prepare_gene_bin_log2ratio(
+  readRDS(paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/cmp_non_adj.rds"))[[1]],
+  genes = c(
+            #"BRCA1", # HRD 
+            "GAPDH", # housekeeping
+            # from paper
+            "MYC",
+            "KRAS", 
+            "PIK3CA", 
+            "CCNE1", 
+            "TERT",
+            # paper: genes from the mTOR and RAS survival pathways
+            "IGFR1",
+            "GAB2",
+            "PTK6",
+            "KRAS",
+            "AKT1",
+            "AKT2",
+            "AKT3"
+            # paper: idem but deletions
+            #"NF1",
+            #"PTEN"
+            )
+)
+
+myc_non_adj$gene %<>% factor(levels = c("MYC", "PIK3CA", "KRAS", "AKT1", "GAPDH"))
+
+myc_non_adj %<>% mutate(KL = 0)
+for (gene_x in unique(myc_non_adj$gene)) {
+  myc_non_adj$KL[which(myc_non_adj$gene == gene_x)] = KL_gene(gene_x)
+}
+
+# plot histogram of log2ratios for each gene and panel_type
+ggplot(myc_non_adj, aes(x = log2ratio, fill = Method)) +
+  geom_histogram(position = "identity", alpha = 0.5, breaks = seq(-.83, 2.49, length.out = 15)) +
+  facet_grid(~gene, switch = "y", ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "LFC",
+       y = "count") +
+  # add KL value for each gene
+  geom_text(aes(x = 2, y = 17, label = paste0("KL = ", KL)),
+            size = 3, hjust = 0.5, vjust = 1,
+            color = "#262626", check_overlap = TRUE) +
+  theme(legend.position = "top") -> f9a
+f9a
+```
+
+
+
+## Confusion matrices for each gene
+
+```{r find genes}
+wes_gene_calls <- paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/data_cna_gistic.txt")
+neutral <- 0 # copy number value denoting no change in WES table
+matching_IDs <- paste0(dir, "/../SIGN-OC/masked ref/resources/data/matching_IDs.tsv") # leave empty if identical names in panels
+
+read_tsv(wes_gene_calls, col_names = TRUE, show_col_types = FALSE) %>%
+  dplyr::select(-Entrez_Gene_Id) %>%
+  mutate(Hugo_Symbol = toupper(Hugo_Symbol)) -> wes
+colnames(wes) <- gsub("-T1", "", colnames(wes))
+colnames(wes)[1] <- "gene"
+
+wes[which(wes$gene == "BLTP1"), "gene"] <- "KIAA1109" # KIAA1109 corresponds to BLTP1 (Entrez Gene ID 84162)
+wes %>% arrange(gene) -> wes
+
+# replace all NA values with 0
+wes[is.na(wes)] <- 0
+
+p_gene_calls = paste0(dir, "/../SIGN-OC/masked ref/results/collection_of_specific_samples/purecn_lowploidy_pon_cbs_Hclust_gene_calls.tsv")
+
+read_tsv(p_gene_calls, show_col_types = FALSE) %>%
+  arrange(gene) -> panel
+
+specific_genes = c('MYC', 'PIK3CA', 'CCNE1', 'KRAS', 'TERT', 'AKT1', 'GAPDH')#, 'BRCA1')#, 'NF1', 'PTEN')
+
+genes_in_panel_results = specific_genes[which(specific_genes %in% panel$gene)]
+
+cat("Among the mentioned genes, the following are found in the panel results: ", genes_in_panel_results, "\n")
+```
+
+```{r match wes and panel names}
+ids <- read_tsv(matching_IDs, show_col_types = FALSE)
+# replace the colnames corresponding to the secondary_ID with the panel_ID. Look up the corresponding name for each column in ids
+for (i in 2:ncol(wes)) {
+  colnames(wes)[i] <- ids$panel_ID[which(ids$secondary_ID == colnames(wes)[i])]
+}
+```
+
+
+```{r}
+# instead of doing it again here, save the confusion matrices created in the for loop in the wes vs panel report script.
+panel %>%
+  filter(gene %in% specific_genes) %>%
+  pivot_longer(cols = -gene, names_to = "sample", values_to = "panel_call") %>%
+  mutate(panel_call = ifelse(is.na(panel_call), 'NEUTRAL', panel_call)) -> p
+
+wes[, which(!is.na(names(wes)))] %>%
+  filter(gene %in% specific_genes & gene %in% panel$gene) %>%
+  pivot_longer(cols = -gene, names_to = "sample", values_to = "wes_cn_gain") -> w
+
+full_join(p, w, by = c("gene", "sample")) -> pw
+```
+
+
+```{r plot confusion matrices}
+tablelist = list()
+for (genename in unique(pw$gene)) {
+  pw %>%
+    filter(gene == genename) %>%
+    dplyr::select(panel_call, wes_cn_gain) %>%
+    mutate(wes_cn_gain = case_when(
+      wes_cn_gain > neutral ~ "amplification",
+      wes_cn_gain < neutral ~ "deletion",
+      wes_cn_gain == neutral ~ "neutral"
+    )) %>%
+    # define levels
+    mutate(
+       panel_call = tolower(panel_call),
+       wes_cn_gain = tolower(wes_cn_gain),
+       panel_call = ifelse(panel_call == "amplification", "amp.", "neutral"),
+       wes_cn_gain = ifelse(wes_cn_gain == "amplification", "amp.", "neutral"),
+       panel_call = factor(panel_call, levels = c("neutral", "amp.")),#, "deletion")),
+       wes_cn_gain = factor(wes_cn_gain, levels = c("neutral", "amp."))#, "deletion")),
+      ) -> df
+
+  apply(df, 2, factor, levels = c("neutral", "amp.")) -> df2
+  confusionMatrix(as.factor(df2[,"panel_call"]), factor(df2[,"wes_cn_gain"], levels = c("neutral", "amp.")), positive = "amp.") -> conf
+  
+  table <- data.frame(conf$table)
+  
+  conf$table %>%
+    as_tibble %>%
+    mutate(gene = genename) -> tablelist[[genename]]
+}
+
+tables = reduce(tablelist, rbind)
+tables %<>% arrange(factor(gene, c("MYC", "PIK3CA", "KRAS", "AKT1", "GAPDH")))
+
+plot_list = list()
+for (gene_x in tables$gene %>% unique) {
+  tables %>%
+    filter(gene == gene_x) %>%
+    plot_confusion_matrix(
+      target_col = "Reference",
+      prediction_col = "Prediction",
+      counts_col = "n",
+      add_sums = FALSE,
+      counts_on_top = T,
+      add_row_percentages = F,
+      add_col_percentages = F,
+      digits = 0,
+      #add_normalized = F,
+      font_normalized = font(vjust = 1),
+      font_counts = font(vjust = 0) 
+    ) +
+    #ggtitle(gene_x) +
+    xlab("WES") +
+    ylab("Panel") -> plot_list[[gene_x]]
+}
+f9c = plot_grid(plotlist = plot_list, nrow = 1)
+f9c
+```
+
+
+## Scatterplot of log2ratios
+
+```{r read in log2ratios}
+cmp_non_adj = readRDS(lfc_per_seq_type)
+
+# filter for only the genes of interest
+int_df = list()
+for (i in 1:length(cmp_non_adj[[1]])) {
+  cmp_non_adj[[1]][[i]] %>% 
+    filter(gene %in% specific_genes) %>%
+    mutate(sample = names(cmp_non_adj[[1]])[i]) %>%
+    rename(wes_log2ratio = wes, panel_log2ratio = panel) -> int_df[[i]]
+}
+# merge list to big df
+cmp_filt = do.call(rbind, int_df)
+```
+
+
+```{r define call types}
+wes_neutral = 2
+p_amp = 7
+p_del = 0.5
+cn = cmp_non_adj[[2]]
+
+cn_filt = list()
+for (i in 1:length(cn)) {
+  cn[[i]] %>% 
+    filter(gene %in% genes_in_panel_results) %>%
+    mutate(sample = names(cn)[i]) -> x
+  x$Type = case_when(
+        x$wes == wes_neutral & x$panel < p_amp & x$panel >= p_del ~ "TN",
+        x$wes == wes_neutral & x$panel >= p_amp ~ "FP amplification",
+        x$wes == wes_neutral & x$panel < p_del ~ "FP deletion",
+        x$wes > wes_neutral & x$panel < p_del ~ "FP detected amplification but is deletion",
+        x$wes < wes_neutral & x$panel >= p_amp ~ "FP detected deletion but is amplification",
+        x$wes > wes_neutral & x$panel >= p_amp ~ "TP amplification",
+        x$wes < wes_neutral & x$panel < p_del ~ "TP deletion",
+        x$wes > wes_neutral & x$panel < p_amp & x$panel >= p_del ~ "FN amplification",
+        x$wes < wes_neutral & x$panel >= p_del ~ "FN deletion",
+      )
+  cn_filt[[i]] = x  %>% rename(C_wes = wes, C_panel = panel)
+}
+
+cn_filt = do.call(rbind, cn_filt)
+```
+
+```{r merge cmps}
+# merge cn_filt and cmp_filt
+cmp_log_cn = cmp_filt %>% 
+  left_join(cn_filt, by = c("sample", "gene"))
+```
+
+```{r scatterplots,  layout="l-screen-inset", fig.width=8, fig.height=4, fig.retina=3}
+# for every gene in cmp_filt, create a scatterplot with wes and panel columns
+#limits = c(-1.5, 1.5)
+limits = range(cmp_log_cn[, 2:3])
+cmp_log_cn %>% 
+  # we want to emphasize amplification calls, thus we remove any notion of deletion in the following as was suggested
+  mutate(Type = case_when(
+    Type == "FP deletion" ~ "TN",
+    Type == "FN deletion" ~ "TN",
+    Type == "TN" ~ "TN",
+    Type == "FP detected amplification but is deletion" ~ "FP",
+    Type == "FP detected deletion but is amplification" ~ "FN",
+    Type == "TP deletion" ~ "TN",
+    Type == "FN amplification" ~ "FN",
+    Type == "TP amplification" ~ "TP",
+    Type == "FP amplification" ~ "FP"
+  )
+  ) %>%
+  mutate(gene = factor(gene, levels = c("MYC", "PIK3CA", "KRAS", "AKT1", "GAPDH"))) %>%
+    ggplot(aes(x = wes_log2ratio, y = panel_log2ratio, color = Type)) +
+    geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+    geom_point() +
+    # limit x and y
+    coord_cartesian(xlim = limits, ylim = limits) +
+    # theme_minimal() +
+    scale_color_manual(values = c(
+      "TN" = "darkgrey",
+      "FP" = "orange",
+      "FN" = "red",
+      "TP" = "green"
+      #"TP amplification" = "green",
+      #"TP deletion" = "darkgreen",
+      #"FN amplification" = "tomato",
+      #"FN deletion" = "cyan",
+      #"FP detected amplification but is deletion" = "red",
+      #"FP deletion" = "blue",
+      #"FP amplification" = "deeppink",
+      #"FP detected deletion but is amplification" = "darkred"
+    )) +
+  facet_wrap(~gene, nrow = 1) +
+  theme(legend.position = "top")  + 
+theme(
+  strip.background = element_blank(),
+  strip.text.x = element_blank()
+  ) +
+    xlab("LFC in WES") +
+    ylab("LFC in panel")  +
+#  stat_cor(label.y = 2.4, color = "#262626", vjust = 0, size = 3) +
+  stat_cor(aes(label = paste(..rr.label..)),label.y = 2.3, color = "black", vjust = 0, size = 3) -> f9b
+f9b
+```
+
+```{r fig9, fig.width=11, fig.height=7, fig.retina=6, include = TRUE}
+plot_grid(f9a, f9b, f9c, ncol = 1, 
+          rel_heights = c(1, 1, .6),
+          labels = "AUTO")
+```
+
+
+
+# Figure 10 Independent clustering of panel and WES samples into two clusters identifies samples with high load of CNVs. 
+
+
+## with k = 2
+
+
+```{r prepare clustering}
+metricMat_wes %>% colnames() %>% as_tibble %>%
+  mutate(name_underscores = str_replace_all(value, "-", "_")) %>%
+  left_join(names_df, by = c("name_underscores" = "panel_name")) %>%
+  filter(type == "wes") %>%
+  pull(nb) -> newnames_wes
+
+colnames(metricMat_wes) = newnames_wes
+rownames(metricMat_wes) = newnames_wes
+
+metricMat_panel %>% colnames() %>% as_tibble %>%
+  mutate(name_underscores = str_replace_all(value, "-", "_")) %>%
+  left_join(names_df, by = c("name_underscores" = "panel_name")) %>%
+  filter(type == "panel") %>%
+  pull(nb) -> newnames_panel
+
+colnames(metricMat_panel) = newnames_panel
+rownames(metricMat_panel) = newnames_panel
+```
+
+```{r set k to 2}
+k = 2
+```
+
+
+```{r gap statistic}
+fviz_nbclust(
+  metricMat_wes, 
+  cluster::pam, 
+  method = "gap_stat",
+  print.summary = FALSE,
+  nboot = 100,
+  verbose = FALSE
+  ) +
+  labs(title = NULL) +
+  theme_gray() -> f10a2
+f10a2
+```
+```{r}
+library(plyr)
+library(ggplot2)
+
+# Given a matrix `data`, where rows are observations and columns are individual dimensions, compute and plot the gap statistic (according to a uniform reference distribution).
+gap_statistic = function(data, min_num_clusters = 1, max_num_clusters = 10, num_reference_bootstraps = 10) {
+	num_clusters = min_num_clusters:max_num_clusters
+	actual_dispersions = maply(num_clusters, function(n) dispersion(data, n))
+	ref_dispersions = maply(num_clusters, function(n) reference_dispersion(data, n, num_reference_bootstraps))
+	mean_ref_dispersions = ref_dispersions[ , 1]
+	stddev_ref_dispersions = ref_dispersions[ , 2]
+	gaps = mean_ref_dispersions - actual_dispersions
+	
+	print(plot_gap_statistic(gaps, stddev_ref_dispersions, num_clusters))
+	
+	print(paste("The estimated number of clusters is ", num_clusters[which.max(gaps)], ".", sep = ""))
+	
+	list(gaps = gaps, gap_stddevs = stddev_ref_dispersions)
+}
+
+# Plot the gaps along with error bars.
+plot_gap_statistic = function(gaps, stddevs, num_clusters) {
+	qplot(num_clusters, gaps, xlab = "# clusters", ylab = "gap", geom = "line", main = "Estimating the number of clusters via the gap statistic") + geom_errorbar(aes(num_clusters, ymin = gaps - stddevs, ymax = gaps + stddevs), size = 0.3, width = 0.2, colour = "darkblue")
+}
+
+# Calculate log(sum_i(within-cluster_i sum of squares around cluster_i mean)).
+dispersion = function(data, num_clusters) {
+	# R's k-means algorithm doesn't work when there is only one cluster.
+	if (num_clusters == 1) {
+		cluster_mean = aaply(data, 2, mean)
+		distances_from_mean = aaply((data - cluster_mean)^2, 1, sum)
+		log(sum(distances_from_mean))
+	} else {	
+		# Run the k-means algorithm `nstart` times. Each run uses at most `iter.max` iterations.
+		k = kmeans(data, centers = num_clusters, nstart = 10, iter.max = 50)
+		# Take the sum, over each cluster, of the within-cluster sum of squares around the cluster mean. Then take the log. This is `W_k` in TWH's notation.
+		log(sum(k$withinss))
+	}
+}
+
+# For an appropriate reference distribution (in this case, uniform points in the same range as `data`), simulate the mean and standard deviation of the dispersion.
+reference_dispersion = function(data, num_clusters, num_reference_bootstraps) {
+	dispersions = maply(1:num_reference_bootstraps, function(i) dispersion(generate_uniform_points(data), num_clusters))
+	mean_dispersion = mean(dispersions)
+	stddev_dispersion = sd(dispersions) / sqrt(1 + 1 / num_reference_bootstraps) # the extra factor accounts for simulation error
+	c(mean_dispersion, stddev_dispersion)
+}
+
+# Generate uniform points within the range of `data`.
+generate_uniform_points = function(data) {
+	# Find the min/max values in each dimension, so that we can generate uniform numbers in these ranges.
+	mins = aaply(data, 2, min)
+	maxs = apply(data, 2, max)
+
+	num_datapoints = nrow(data)
+	# For each dimension, generate `num_datapoints` points uniformly in the min/max range.
+	uniform_pts = maply(1:length(mins), function(dim) runif(num_datapoints, min = mins[dim], max = maxs[dim]))
+	uniform_pts = t(uniform_pts)
+}
+```
+
+
+```{r alternative gap stat plot}
+gap_statistic(metricMat_wes, 2, 10, 100)
+```
+
+```{r}
+library(parameters)
+
+n_clust <- n_clusters(as.data.frame(metricMat_wes),
+  standardize = FALSE, package = "all", fast = FALSE
+)
+n_clust
+```
+```{r}
+library("see")
+
+plot(n_clust) +
+  # remove title and subtitle
+  labs(title = NULL, subtitle = NULL) -> f10a2_alt
+f10a2_alt
+```
+
+
+```{r}
+n_clusters_gap(as.data.frame(metricMat_wes), k_max = 10, nboot = 10)
+```
+
+
+```{r cluster wes}
+pamResult_wes <-pam(metricMat_wes, k = k)
+wes = pamResult_wes$clustering[names(pamResult_wes$clustering) %>% as.numeric %>% sort %>% as.character()]
+
+# sometimes the previous command returns integer(0) if the input vector's entries have no names
+if (length(wes) == 0) {
+  wes = pamResult_wes$clustering
+}
+
+pamResult_wes$clustering[which(pamResult_wes$clustering == 1)] <- "High CNA load"
+pamResult_wes$clustering[which(pamResult_wes$clustering == 2)] <- "Low CNA load"
+
+fviz_cluster(pamResult_wes, 
+             ellipse.type ="convex",
+             repel = TRUE,
+             main = "WES",
+             stand = FALSE
+             )  +
+  theme(legend.position = "bottom") -> f10b2
+f10b2
+```
+
+
+```{r cluster panel}
+pamResult_panel <-pam(metricMat_panel, k = k)
+panel = pamResult_panel$clustering[names(pamResult_panel$clustering) %>% as.numeric %>% sort %>% as.character()]
+
+pamResult_panel$clustering[which(pamResult_panel$clustering == 1)] <- "High CNA load"
+pamResult_panel$clustering[which(pamResult_panel$clustering == 2)] <- "Low CNA load"
+
+fviz_cluster(pamResult_panel, 
+             ellipse.type ="convex",
+             repel = TRUE,
+             stand = FALSE,
+             main = "Panel"
+             ) +
+  theme(legend.position = "bottom") -> f10c2
+f10c2
+```
+
+
+```{r confusion matrix}
+panel[which(panel == 1)] <- "High CNA load"
+panel[which(panel == 2)] <- "Low CNA load"
+wes[which(wes == 1)] <- "High CNA load"
+wes[which(wes == 2)] <- "Low CNA load"
+conf = confusionMatrix(factor(panel), factor(wes))
+
+conf$table %>% as_tibble %>% 
+  plot_confusion_matrix(
+    target_col = "Reference",
+    prediction_col = "Prediction",
+    counts_col = "n",
+    add_sums = TRUE,
+    digits = 0,
+    counts_on_top = TRUE,
+    font_normalized = font(vjust = 1),
+    font_counts = font(vjust = 0)
+  ) +
+  xlab("WES") +
+  ylab("Panel") -> f10d2
+f10d2
+```
+
+```{r f10 combined k2, fig.width=8, fig.height=7, fig.retina=4, include = TRUE}
+plot_grid(f10a2_alt, f10b2, f10c2, f10d2, 
+          ncol = 2, nrow = 2, 
+          labels = c("A", "B", "C", "D"))
+```
+
+
+## with k=3
+
+```{r set k higher}
+k = 3
+```
+
+
+```{r gap statistic with higher k}
+fviz_nbclust(
+  metricMat_panel, 
+  cluster::pam, 
+  method = "gap_stat",
+  print.summary = FALSE,
+  nboot = 100,
+  verbose = FALSE
+  ) +
+  labs(title = NULL) +
+  theme_gray() -> f10a4
+f10a4
+```
+
+
+```{r}
+n_clusters(as.data.frame(metricMat_panel),
+  package = c("easystats", "NbClust", "mclust"),
+  standardize = FALSE
+) %>%
+  plot() +
+  # remove title and subtitle
+  labs(title = NULL, subtitle = NULL)
+```
+
+```{r cluster wes with higher k}
+pamResult_wes_3k <-pam(metricMat_wes, k = k, diss = FALSE)
+wes_3k = pamResult_wes_3k$clustering[names(pamResult_wes_3k$clustering) %>% as.numeric %>% sort %>% as.character()]
+
+fviz_cluster(pamResult_wes_3k, 
+             ellipse.type ="convex",
+             repel = TRUE,
+             main = "WES"
+             ) -> f10b4_3k
+f10b4_3k
+```
+
+
+```{r cluster panel with higher k}
+pamResult_panel_3k <- pam(metricMat_panel, k = k, diss = FALSE)
+panel_3k = pamResult_panel_3k$clustering[names(pamResult_panel_3k$clustering) %>% as.numeric %>% sort %>% as.character()]
+
+fviz_cluster(pamResult_panel_3k, 
+             ellipse.type ="convex",
+             repel = TRUE,
+             main = "Panel") -> f10c4_3k
+f10c4_3k
+```
+
+
+```{r confusion matrix with higher k}
+conf_3k = confusionMatrix(factor(panel_3k), factor(wes_3k))
+
+conf_3k$table %>% as_tibble %>% 
+  plot_confusion_matrix(
+    target_col = "Reference",
+    prediction_col = "Prediction",
+    counts_col = "n",
+    add_sums = TRUE,
+    digits = 0,
+    counts_on_top = TRUE,
+    font_normalized = font(vjust = 1),
+    font_counts = font(vjust = 0) 
+  )  +
+  labs(title = NULL) -> f10d4_3k
+f10d4_3k
+```
+
+```{r f10 with higher k, fig.width=8, fig.height=7, fig.retina=4, include = TRUE}
+plot_grid(f10a4, f10b4_3k, f10c4_3k, f10d4_3k, 
+          ncol = 2, nrow = 2, 
+          labels = c("A", "B", "C", "D"))
+```
+
+
+# How would the gene-wise comparison metrics look like if WES gene calls were random?
+
+```{r, include = TRUE}
+wes_truth          = c(rep(T,5), rep(F,212))
+signoc_example     = c(TP = 21, FP = 192, TN = 6161, FN = 11)
+signoc_pon_example = c(TP = 24, FP = 94, TN = 6284, FN = 9)
+mh_example         = c(TP = 29, FP = 10, TN = 3000, FN = 4)
+random_example     = function() sample(c(T, F), length(wes_truth), replace = TRUE)
+# random but with only 5 T
+random_example_x   = function(x) sample(c(rep(T,x), rep(F,217-x)), length(wes_truth), replace = TRUE)
+
+# compute f1-score
+f1_score = function(truth, pred) {
+  if(length(names(pred))>0 & all(names(pred) %in% c("TP", "FP", "TN", "FN"))) {
+    tp = pred[["TP"]]
+    fp = pred[["FP"]]
+    fn = pred[["FN"]]
+  } else {
+    tp = sum(truth & pred)
+    fp = sum(!truth & pred)
+    fn = sum(truth & !pred)
+  }
+  precision = tp / (tp + fp)
+  recall = tp / (tp + fn)
+  f1 = 2 * (precision * recall) / (precision + recall)
+  return(round(100*f1,0))
+}
+
+print("Should be 17")
+f1_score(wes_truth, signoc_example)
+print("Should be 32")
+f1_score(wes_truth, signoc_pon_example)
+print("Should be 75-82%")
+f1_score(wes_truth, mh_example)
+print("Absolutely random")
+round(mean(replicate(1e4, f1_score(wes_truth, random_example())), na.rm = TRUE), 0)
+
+res = data.frame("Number of random amplifications" = c(1), 
+                 "F1-score" = round(mean(replicate(1e3, f1_score(wes_truth, random_example_x(1))), na.rm = TRUE), 0))
+for (i in 1:7) {
+  res[i+1,1:2] = c(2^i, round(mean(replicate(1e3, f1_score(wes_truth, random_example_x(2^i))), na.rm = TRUE), 0))
+}
+kable(res)
+print("Note that these are mean values for 1000 replicates. However, NA values are excluded. Thus, when the number of random amplifications is 1, the F1-score is almost always NA, but in the rare case that it hits a gene with a true amplification, the F1-score is 30%. This is why the F1-score is higher the lower the number of random amplification calls is.")
+```
+
