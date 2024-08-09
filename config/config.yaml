@@ -6,6 +6,11 @@
 
 #--- Requires individual changes --------------------------------------------------
 
+# Use existing conda environments (must be the same names) or create new ones just for this pipeline?
+conda_envs:
+  use_existing_envs: false
+  envs_path: "~/work/miniconda/envs/" # path to conda envs if use_existing_envs is true
+
 # This pipeline is mainly built for hybridization-capture based NGS data, but is also implements changes required for amplicon sequencing data.
 # Amplicon seg. data? Consequence: no flagging of PCR duplicates (all of the amplified reads are in fact PCR duplicates by design) 
 amplicon: false
@@ -22,7 +27,7 @@ mask_reference: false
 padding: 500 # 500 is appr. NGS fragment size
 
 # compute mappability for the reference genome or download the premade one from CNVkit?
-compute_mappability: true
+compute_mappability: false
 
 # compute or download reference dictionary?
 compute_dict: false

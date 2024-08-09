@@ -19,7 +19,7 @@ rule bowtie2_build:
         extra="",  # optional parameters
     threads: 8
     conda:
-        "../envs/map_bowtie2.yaml"
+        env_prefix + 'map_bowtie2' + env_suffix
     wrapper:
         "v1.7.0/bio/bowtie2/build"
 
@@ -43,6 +43,6 @@ rule bowtie2:
         extra="",  # optional parameters
     threads: 8  # Use at least two threads
     conda:
-        "../envs/map_bowtie2.yaml"
+        env_prefix + 'map_bowtie2' + env_suffix
     wrapper:
         "v1.7.0/bio/bowtie2/align"

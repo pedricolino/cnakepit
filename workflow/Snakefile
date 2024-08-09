@@ -32,6 +32,13 @@ else:
   print('no samples detected')
 wc = samples.index # store samples in wildcard
 
+# location of conda environments
+if config['conda_envs']['use_existing_envs']:
+  env_prefix = config['conda_envs']['envs_path']
+  env_suffix = ''
+else:
+  env_prefix = '../envs/'
+  env_suffix = '.yaml'
 
 # including UMIs?
 if config['contain_UMIs']:
@@ -95,7 +102,7 @@ else:
       expand('results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.pdf', sample=wc),
       expand('results/cnvkit'+suffix+'/hmm/{sample}.icns', sample=wc),
       'results/cnvkit'+suffix+'/hmm/heatmap.cnv.pdf',
-      ## w/ PureCN's PSCBS
+      # w/ PureCN's PSCBS
       expand('results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv', sample=wc),
       ## w/ PureCN's Hclust
       expand('results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv', sample=wc),
@@ -103,8 +110,8 @@ else:
       expand('results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv', sample=wc),
       
       # for QC analysis only
-      # 'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap:
-      #'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed
+      'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap
+      'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed
       
       # save the used configuration file
       saved_config,

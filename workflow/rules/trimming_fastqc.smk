@@ -8,7 +8,7 @@ rule fastqc_raw_reads:
   log:
     "logs/fastqc/{sample}_{i}.log"
   conda:
-    "../envs/qc.yaml"
+    env_prefix + 'qc' + env_suffix
   threads: 2 # two files per job
   wrapper:
     "v1.4.0/bio/fastqc"
@@ -38,7 +38,7 @@ rule trim:
     runtime=lambda wildcards, attempt: 24*60 if attempt > 1 else 4*60, # 4h=short partition limit, or 24h
     cores=lambda wc, threads: threads
   conda:
-    "~/work/miniconda/envs/trim_map"
+    env_prefix + "trim_map" + env_suffix
   shell:
     "trimmomatic PE "
       "-threads {threads} "
@@ -58,7 +58,7 @@ rule fastqc_trimmed_reads:
   log:
     "logs/fastqc_trim/{sample}_{i}P.log"
   conda:
-    "../envs/qc.yaml"
+    env_prefix + 'qc' + env_suffix
   threads: 2 # two files per job
   wrapper:
     "v1.4.0/bio/fastqc"
@@ -78,7 +78,7 @@ rule multiqc_fastqc_only:
     runtime=24*60, # 24h
     slurm_partition='medium'
   conda:
-    "../envs/qc.yaml"
+    env_prefix + 'qc' + env_suffix
   shell:
     "multiqc ./results/qc/ -o results/qc 2> {log}" 
     "multiqc --force -o results/qc -n multiqc_report_fastqc.html results/qc/fastqc_trim results/qc/fastqc"

@@ -12,7 +12,7 @@ rule bcf_stats:
     params:
         ""
     conda:
-        "../envs/qc.yaml"
+        env_prefix + 'qc' + env_suffix
     wrapper:
         "v1.7.1/bio/bcftools/stats"
 
@@ -31,7 +31,7 @@ rule bcftools_call:
     log:
         "logs/bcftools_call/{sample}.log",
     conda:
-        "../envs/qc.yaml"
+        env_prefix + 'qc' + env_suffix
     wrapper:
         "v1.7.1/bio/bcftools/call"
 
@@ -50,7 +50,7 @@ rule bcftools_mpileup:
     log:
         "logs/bcftools_mpileup/{sample}.log",
     conda:
-        "../envs/qc.yaml"
+        env_prefix + 'qc' + env_suffix
     threads: 
         8
     shell:

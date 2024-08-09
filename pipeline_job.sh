@@ -41,7 +41,6 @@ snakemake \
     --use-conda \
     --retries 2 \
     --conda-frontend conda \
-    --conda-prefix ~/work/miniconda/envs \
     --profile cubi-v1 \
     --rerun-incomplete \
     --rerun-triggers mtime \
@@ -52,6 +51,7 @@ snakemake \
     --keep-going \
     --default-resources slurm_account=hpc-ag-cubi slurm_partition=short "runtime=240"
 
+#    --conda-prefix ~/work/miniconda/envs \
 #    --batch cnvkit_heatmap_hmm=1/6 # process only 1/6 of the samples at a time, up to the rule that requires all samples
 #   --rerun-triggers mtime # prevents rerunning of rules because of (minor) code changes
 #   --keep-going # continue running even if one or few samples continuously cause errors

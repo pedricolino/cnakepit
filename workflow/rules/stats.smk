@@ -8,7 +8,7 @@ rule stats:
     log:
         "logs/samtools/stats/{sample}.log"
     conda:
-        "../envs/qc.yaml"
+        env_prefix + 'qc' + env_suffix
     shell:
         "samtools idxstats {input[0]} > {output} 2> {log}"
 

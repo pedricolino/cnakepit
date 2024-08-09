@@ -5,14 +5,14 @@ rule add_padding:
   output: "resources/paneldesign/padded.bed",
   log: "logs/mask_ref/add_padding.log"
   params: padding = config['padding']
-  conda: "../envs/bedtools.yaml"
+  conda: env_prefix + 'bedtools' + env_suffix
   shell: "bedtools slop -i {input.bed} -g {input.refgenome} -b {params.padding} > {output} 2> {log}"
 
 rule sort_regions:
   input: "resources/paneldesign/padded.bed"
   output: "resources/paneldesign/padded_sorted.bed"
   log: "logs/mask_ref/sort_regions.log"
-  conda: "../envs/bedtools.yaml"
+  conda: env_prefix + 'bedtools' + env_suffix
   shell: "bedtools sort -i {input} > {output} 2> {log}"
 
 rule complement_regions:
@@ -21,7 +21,7 @@ rule complement_regions:
     ref_index = config['reference'+'_'+config['genome_version']]['index']
   output: "resources/paneldesign/complement.bed"
   log: "logs/mask_ref/complement_regions.log"
-  conda: "../envs/bedtools.yaml"
+  conda: env_prefix + 'bedtools' + env_suffix
   shell: "bedtools complement -i {input.bed} -g {input.ref_index} > {output} 2> {log}"
 
 rule mask_reference:
@@ -30,5 +30,5 @@ rule mask_reference:
     mask = "resources/paneldesign/complement.bed"
   output: config['masked_ref']
   log: "logs/mask_ref/mask_reference.log"
-  conda: "../envs/bedtools.yaml"
+  conda: env_prefix + 'bedtools' + env_suffix
   shell: "bedtools maskfasta -fi {input.ref} -bed {input.mask} -fo {output} 2> {log}"

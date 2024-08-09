@@ -39,7 +39,7 @@ rule qualimap_bwa:
     params:
         outdir = "results/qc/qualimap/qualimap_bwa/{sample}"
     conda:
-        "../envs/qc.yaml"
+        env_prefix + 'qc' + env_suffix
     shell:
         "qualimap bamqc -bam {input.map} --feature-file {input.targets} -nt {threads} --java-mem-size={resources.mem} -outdir {params.outdir} 2> {log}"
 
@@ -58,7 +58,7 @@ rule multiqc_map_bwa:
     log:
         "logs/qc_map_bwa/multiqc.log"
     conda:
-        "../envs/qc.yaml"
+        env_prefix + 'qc' + env_suffix
     shell:
         "multiqc ./results/qc/qualimap/qualimap_bwa -o results/qc_map_bwa --export 2> {log}"
 
@@ -74,7 +74,7 @@ rule sort_bowtie2:
     threads:
         16
     conda:
-        "../envs/qc.yaml"
+        env_prefix + 'qc' + env_suffix
     shell:
         "samtools sort -o {output} {input} -@ {threads} 2> {log}"  
 
@@ -88,7 +88,7 @@ rule qualimap_bowtie2:
     params:
         outdir = "results/qc/qualimap/qualimap_bowtie2/{sample}"
     conda:
-        "../envs/qc.yaml"
+        env_prefix + 'qc' + env_suffix
     shell:
         "qualimap bamqc -bam {input} -outdir {params.outdir}"
 
@@ -100,7 +100,7 @@ rule multiqc_map_bowtie2:
     log:
         "logs/qc_map_bowtie2/multiqc.log"
     conda:
-        "../envs/qc.yaml"
+        env_prefix + 'qc' + env_suffix
     shell:
         "multiqc ./results/qc/qualimap/qualimap_bowtie2 -o results/qc_map_bowtie2 --export 2> {log}"
 
