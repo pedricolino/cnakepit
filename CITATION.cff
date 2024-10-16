@@ -1,0 +1,30 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Cnakepit
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Cédric
+    family-names: Moris
+    email: cedric.moris@bih-charite.de
+    affiliation: Berlin Institute of Health at Charité
+    orcid: 'https://orcid.org/0009-0007-1978-1600'
+  - given-names: Nina
+    family-names: Okrožnik
+    email: nina.okroznik@charite.de
+    affiliation: Charité Comprehensive Cancer Center (CCCC)
+repository-code: 'https://github.com/pedricolino/cnakepit'
+abstract: >-
+  A Snakemake pipeline for copy number variant calling
+  without normal tissue samples.
+keywords:
+  - copy number changes
+  - panel sequencing
+  - tumor
+  - Snakemake
+license: MIT
+commit: 0343ea85f0cada08fc6b00a177e4ac6d03116886
