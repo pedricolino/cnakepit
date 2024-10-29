@@ -70,7 +70,7 @@ data:
   samples_in_directory: false # boolean, are samples or their symlinks in resource/data?
   # if previous is false, give path to sample sheet
   sample_sheet_path: "resources/data/sample_sheet.tsv" # tab-separated columns: sample|fq1|fq2
-
+  # sample_sheet_path: "resources/data/benchmarking_samples_sheet.tsv" # selected samples to compare to gold standard
 # first run with generic reference or second run with chosen samples as panel of normals (PON) for CNVkit?
 pon:
   second_run_with_pon: false # set to true when this is the second run with a PON
@@ -80,13 +80,13 @@ pon:
 # If true normal samples are available, you can create a pon.rds panel of normals file with PureCN and use it with this pipeline.
 pon_rds:
   use_true_pon_instead: false # set to true if you want to use a true pon.rds
-  rds: "resources/true_pon/normaldb.rds" # path to rds file
+  rds: "resources/true_pon/normalDB_hg19.rds" # path to rds file
   intervals_file: "resources/paneldesign/baits_hg19_intervals.txt" # path to normalized intervals file
   different_contigs: false # set to true if the reference genome is different from the one used to create the pon.rds (e.g. GATK's b37 aka hg19 vs actual hg19)
   fasta: "resources/reference/human_g1k_v37.fasta" # fasta reference file used to create pon.rds and intervals file, if applicable
   chain_file: "resources/reference/b37tohg19.chain" # chain file for liftover, if applicable
   mapping_bias_available: true # set to true if mapping bias file is available and give location in next line
-  mapping_bias: "resources/true_pon/mapping-bias-file.rds" # mapping bias rds file used with PureCN
+  mapping_bias: "resources/mappability/mapping_bias_hg19.rds" # mapping bias rds file used with PureCN
   different_blacklist: false # set to true if the blacklist file is different from the one in sv_blacklist_hg19 below
   blacklist: "resources/true_pon/hg19_simpleRepeats.bed"
 
@@ -106,8 +106,8 @@ gnomad_af_only_hg38:
   index_link: "www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.hg38.vcf.gz.tbi"
 
 gnomad_af_only_hg19:
-  vcf: "/fast/work/groups/cubi/projects/biotools/static_data/app_support/GATK/b37/af-only-gnomad.raw.sites.vcf.gz"
-  index: "/fast/work/groups/cubi/projects/biotools/static_data/app_support/GATK/b37/af-only-gnomad.raw.sites.vcf.gz.tbi"
+  vcf: "/data/cephfs-1/work/groups/cubi/projects/biotools/GATK_Best_Practices/somatic-b37/af-only-gnomad.raw.sites.vcf.gz"
+  index: "/data/cephfs-1/work/groups/cubi/projects/biotools/GATK_Best_Practices/somatic-b37/af-only-gnomad.raw.sites.vcf.gz.tbi"
   vcf_link: "https://www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.raw.sites.grch37.vcf.gz" # not tested
   index_link: "https://www.bcgsc.ca/downloads/morinlab/reference/af-only-gnomad.raw.sites.grch37.vcf.gz.tbi"
 
@@ -118,26 +118,26 @@ common_germline_variants_hg38:
   index_link: "http://storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz.tbi"
 
 common_germline_variants_hg19:
-  vcf: "/fast/work/groups/cubi/projects/biotools/static_data/app_support/GATK/b37/small_exac_common_3.vcf.gz"
-  index: "/fast/work/groups/cubi/projects/biotools/static_data/app_support/GATK/b37/small_exac_common_3.vcf.gz.tbi"
+  vcf: "/data/cephfs-1/work/groups/cubi/projects/biotools/GATK_Best_Practices/somatic-b37/small_exac_common_3.vcf.gz"
+  index: "/data/cephfs-1/work/groups/cubi/projects/biotools/GATK_Best_Practices/somatic-b37/small_exac_common_3.vcf.gz.tbi"
   vcf_link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml"
   index_link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml"
 
 mappability_hg38:
   bed: "resources/mappability/access.bed"
-  link: "github.com/etal/cnvkit/raw/master/data/access-5k-mappable.hg19.bed"
+  link: "github.com/etal/cnvkit/raw/master/data/access-10kb.hg38.bed"
 
 mappability_hg19:
   bed: "resources/mappability/access.bed"
-  link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml" # TBD, placeholder
+  link: "github.com/etal/cnvkit/raw/master/data/access-10kb.hg19.bed"
 
 sv_blacklist_hg38:
-  bed: "resources/mappability/sv_blacklist.bed"
+  bed: "resources/sv_blacklist/sv_blacklist_hg38.bed"
   link: "http://cf.10xgenomics.com/supp/genome/GRCh38/sv_blacklist.bed"
 
 sv_blacklist_hg19:
-  bed: "/fast/work/groups/cubi/projects/biotools/xTea/rep_lib_annotation/blacklist/hg19/sv_blacklist.bed"
-  link: "https://raw.githubusercontent.com/pedricolino/cnakepit/main/config/config.yaml" # TBD, placeholder
+  bed: "resources/sv_blacklist/sv_blacklist_hg19.bed"
+  link: "https://hgdownload.soe.ucsc.edu/goldenPath/hg19/database/simpleRepeat.txt.gz"
 
 masked_ref: "resources/reference/masked.fa"
 
