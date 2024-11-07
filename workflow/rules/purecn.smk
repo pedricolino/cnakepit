@@ -15,6 +15,7 @@ rule purecn_cbs_Hclust:
         vcf_filt='results/mutect2/filtered/{sample}_filtered.vcf.gz',
         copy_ratios='results/cnvkit'+suffix+'/general/{sample}.cnr',
         seg='results/cnvkit'+suffix+'/cbs/{sample}.seg',
+        blacklist = config['sv_blacklist'+'_'+config['genome_version']]['bed'], # simpleRepeats track as in PureCN's vignette
     output: 'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv'
     resources: mem=lambda wildcards, attempt: '%dG' % (4 * 8 * attempt), # 4 GB per thread, 8 threads
     threads: 8
@@ -36,6 +37,7 @@ rule purecn_cbs_Hclust:
             --sampleid {params.sampleid} \
             --tumor {input.copy_ratios} \
             --seg-file {input.seg} \
+            --snp-blacklist {input.blacklist} \
             --out results/purecn{params.suffix}/{params.cnvkit_method}_{params.purecn_method}/{params.sampleid}/{params.sampleid} \
             --genome hg38 \
             {params.sex} \
