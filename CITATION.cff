@@ -17,6 +17,7 @@ authors:
     family-names: Okrožnik
     email: nina.okroznik@charite.de
     affiliation: Charité Comprehensive Cancer Center (CCCC)
+    orcid: 'https://orcid.org/0009-0005-8145-0090'
 repository-code: 'https://github.com/pedricolino/cnakepit'
 abstract: >-
   A Snakemake pipeline for copy number variant calling
