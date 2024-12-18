@@ -1,0 +1,158 @@
+---
+params:
+title: 'Resources benchmarks'
+output:
+  # distill::distill_article:
+  #   theme: hpstr
+  #   toc: yes
+  #   code_folding: true
+  #   keep_md: true
+  html_document:
+    toc: true
+    code_folding: hide
+    toc_float:
+      collapsed: true
+    theme: flatly
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+.packages <- c("tidyverse","plotly")
+.bioconductor_packages <- c()
+
+# Install CRAN packages (if not already installed)
+.inst <- .packages %in% installed.packages()
+if(length(.packages[!.inst]) > 0) install.packages(.packages[!.inst], dependencies = TRUE, quiet = TRUE)
+
+# Install Bioconductor packages (if not already installed)
+.inst <- .bioconductor_packages %in% installed.packages()
+if(length(.bioconductor_packages[!.inst]) > 0) BiocManager::install(.bioconductor_packages[!.inst], dependencies = TRUE, ask = FALSE)
+
+# Load packages into session 
+lapply(.bioconductor_packages, require, character.only=TRUE)
+lapply(.packages, require, character.only=TRUE)
+
+# set ggplot theme
+theme_set(theme_minimal())
+```
+
+```{r}
+# read in benchmarks file
+d = read_tsv("./../../results/stats/benchmarks.tsv", show_col_types = F)
+# add column for decimal hours
+d$h = d$s / 3600
+# same for minutes
+d$m = d$s / 60
+# convert MB to GB in max_rss
+d$max_rss = d$max_rss / 1024
+```
+
+# Meaning of all recorded measurements
+
+recorded by Snakemake using ``psutil``
+
+| colname | type (unit) | description |
+|-----------|-------------|-----------------------------------------------------------|
+| s | float (seconds) | Running time in seconds |
+| h:m:s | string (-) | Running time in hour, minutes, seconds format |
+| max_rss | float (MB) | Maximum "Resident Set Size”, this is the non-swapped physical memory a process has used. |
+| max_vms | float (MB) | Maximum “Virtual Memory Size”, this is the total amount of virtual memory used by the process |
+| max_uss | float (MB) | “Unique Set Size”, this is the memory which is unique to a process and which would be freed if the process was terminated right now. |
+| max_pss | float (MB) | “Proportional Set Size”, is the amount of memory shared with other processes, accounted in a way that the amount is divided evenly between the processes that share it (Linux only) |
+| io_in | float (MB) | the number of MB read (cumulative). |
+| io_out | float (MB) | the number of MB written (cumulative). |
+| mean_load | float (-) | CPU usage over time, divided by the total running time (first row) |
+| cpu_time | float (-) | CPU time summed for user and system |
+
+# Time distribution
+
+Note that scales differ.
+
+```{r, fig.width = 10}
+# plot time distribution per rule with facet_wrap
+d %>% 
+  ggplot(aes(x = h, fill = rule)) +
+  geom_histogram(bins = 30) +
+  facet_wrap(~rule, scale = "free") +
+  theme(legend.position="none") +
+  labs(x = "Time (h)",
+       y = "Count") -> p_h_each
+p_h_each
+```
+
+```{r}
+# boxplots of time per rule
+d %>% 
+  ggplot(aes(x = rule, y = h, fill = rule)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(legend.position="none") +
+  labs(x = "Rule",
+       y = "Time (h)") -> p_boxplot_time
+ggplotly(p_boxplot_time)
+```
+
+# RAM usage distribution
+
+Using max_rss (Maximum Resident Set Size) as measurement for RAM/memory.  
+Note that scales differ.
+
+```{r, fig.width = 10}
+# plot max_rss distribution per rule with facet_wrap
+d %>% 
+  ggplot(aes(x = max_rss, fill = rule)) +
+  geom_histogram(bins = 30) +
+  facet_wrap(~rule, scale = "free") +
+  theme(legend.position="none") +
+  labs(x = "max_rss (GB)",
+       y = "Count") -> p_max_rss_each
+p_max_rss_each
+```
+
+
+```{r}
+# boxplots of max_rss per rule with log10 scale
+d %>% 
+  ggplot(aes(x = rule, y = max_rss, fill = rule)) +
+  geom_boxplot() +
+  scale_y_log10(
+    limits = c(1e-2, 1e2),
+    breaks = c(1e-2, 1e-1, 1, 10, 100),
+    labels = c("10MB", "100MB", "1GB", "10GB", "100GB"),
+  ) +
+  theme(legend.position="none") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Rule",
+       y = "max_rss") -> p_boxplot_max_rss_log10
+p_boxplot_max_rss_log10
+```
+
+# Maximum and 75th percentile of RAM usage and time
+
+```{r}
+# maximum and 75th percentile of rss and time per rule as table
+d %>%
+  group_by(rule) %>%
+  summarise(
+    max_max_rss = max(max_rss, na.rm = T) %>% round(2),
+    rss_75 = quantile(max_rss, 0.50, na.rm = T) %>% round(2),
+    max_h = max(h, na.rm = T) %>% round(2),
+    h_75 = quantile(h, 0.75, na.rm = T) %>% round(2)
+  ) %>%
+  knitr::kable()
+```
+
+# Recommended values for resources
+
+by taking the maximum +10% and rounding up
+
+```{r}
+d %>%
+  group_by(rule) %>%
+  summarise(
+    max_max_rss = (1.05*max(max_rss, na.rm = T)) %>% round(),
+    max_min = (1.05*max(m, na.rm = T)) %>% round()
+  ) %>%
+  knitr::kable()
+```

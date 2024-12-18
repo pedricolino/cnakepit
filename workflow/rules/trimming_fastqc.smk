@@ -10,6 +10,7 @@ rule fastqc_raw_reads:
   conda:
     env_prefix + 'qc' + env_suffix
   threads: 2 # two files per job
+  priority: 1 # run fastqc before trimming if possible
   wrapper:
     "v1.4.0/bio/fastqc"
 

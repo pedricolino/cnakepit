@@ -30,7 +30,7 @@ rule qualimap_bwa:
     threads: 4
     priority: -2 # error-prone rule, run it last
     resources:
-        mem=lambda wildcards, attempt: '%dG' % (12 * attempt),
+        mem=lambda wildcards, attempt: '%dG' % (18 * attempt),
         slurm_partition = lambda wildcards, attempt: 'medium' if attempt > 1 else 'short',
         runtime=lambda wildcards, attempt: 24*60 if attempt > 1 else 4*60,
         cores=lambda wc, threads: threads

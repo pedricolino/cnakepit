@@ -33,8 +33,8 @@ if config['pon']['second_run_with_pon'] == True:
     rule cnvkit_create_panel_of_normals:
         input:
             fasta=config['reference'+'_'+config['genome_version']]['fasta'],
-            all_target_cnns = expand('results/cnvkit/general/{sample}.targetcoverage.cnn', sample=samples.index),
-            all_antitarget_cnns = expand('results/cnvkit/general/{sample}.antitargetcoverage.cnn', sample=samples.index)
+            all_target_cnns = expand('results/cnvkit/general/{sample}.targetcoverage.cnn', sample=samples_for_calling.index),
+            all_antitarget_cnns = expand('results/cnvkit/general/{sample}.antitargetcoverage.cnn', sample=samples_for_calling.index)
         output:
             pon = 'results/cnvkit'+suffix+'/general/pon.cnn',
         benchmark: 'benchmarks/cnvkit'+suffix+'/general/cnvkit_create_panel_of_normals.txt'
@@ -54,19 +54,20 @@ if config['pon']['second_run_with_pon'] == True:
             'cnvkit.py reference -o {output.pon} -f {input.fasta} {params.extra} {params.sex} {params.amplicon} {params.target_cnn} {params.antitarget_cnn} 2> {log}'
 
 
-if config['compute_mappability']:
-    rule download_sv_blacklist:
-        input:
-            HTTP.remote(config['sv_blacklist'+'_'+config['genome_version']]['link'], keep_local=True)
-        output:
-            config['sv_blacklist'+'_'+config['genome_version']]['bed']
-        benchmark:
-            'benchmarks/cnvkit/general/download_sv_blacklist.txt'
-        log:
-            'logs/cnvkit/general/download_sv_blacklist/log',
-        shell:
-            'mv {input} {output}'
 
+rule download_sv_blacklist:
+    input:
+        HTTP.remote(config['sv_blacklist'+'_'+config['genome_version']]['link'], keep_local=True)
+    output:
+        config['sv_blacklist'+'_'+config['genome_version']]['bed']
+    benchmark:
+        'benchmarks/cnvkit/general/download_sv_blacklist.txt'
+    log:
+        'logs/cnvkit/general/download_sv_blacklist/log',
+    shell:
+        'mv {input} {output}'
+
+if config['compute_mappability']:
     rule cnvkit_access:
         input:
             ref = config['reference'+'_'+config['genome_version']]['fasta'],
@@ -131,10 +132,16 @@ rule cnvkit_antitarget:
         'cnvkit.py antitarget {input.bed} --access {input.access} -o {output} {params.extra} 2> {log}'
 
 # Autobin uses the BAM with median file size, so it's not necessary to use all samples and we can subsample.
-if len(samples) > 50:
-    subset = samples.sample(n=50)
+if not config['different_lanes']:
+    if len(samples) > 50:
+        subset = samples.sample(n=50)
+    else:
+        subset = samples
 else:
-    subset = samples
+    if len(new_samples) > 50:
+        subset = new_samples.sample(n=50)
+    else:
+        subset = new_samples
 
 rule cnvkit_autobin:
     input:
@@ -152,7 +159,7 @@ rule cnvkit_autobin:
     params:
         extra = '',
         method = 'hybrid' if config['consider_off_targets'] else 'amplicon', # Determines whether to use antitarget bins (-> off-target reads).
-        samplenames = samples.index
+        samplenames = samples_for_calling.index
     log:
         'logs/cnvkit/general/autobin/log',
     conda:
@@ -242,7 +249,7 @@ rule cnvkit_scatter_cbs:
         copy_ratio = 'results/cnvkit'+suffix+'/general/{sample}.cnr',
         segment = 'results/cnvkit'+suffix+'/cbs/{sample}.cns',
         germline_vcf = 'results/mutect2/germline/{sample}_germline.vcf'
-    output: 'results/cnvkit'+suffix+'/cbs/{sample}_scatter.cnv.pdf'
+    output: 'results/cnvkit'+suffix+'/cbs/{sample}_scatter.cnv.png'
     benchmark: 'benchmarks/cnvkit'+suffix+'/cbs/{sample}_scatter.txt'
     log: 'logs/cnvkit'+suffix+'/cbs/scatter/{sample}.log',
     params: extra = '',
@@ -263,6 +270,7 @@ rule cnvkit_diagram_cbs:
         extra = '',
     log:
         'logs/cnvkit'+suffix+'/cbs/diagram/{sample}.log',
+    resources: mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
     conda:
         env_prefix + 'cnv_calling' + env_suffix
     shell:
@@ -271,7 +279,7 @@ rule cnvkit_diagram_cbs:
 
 rule cnvkit_heatmap_cbs:
     input:
-        segments = expand('results/cnvkit'+suffix+'/cbs/{sample}.cns', sample=samples.index)
+        segments = expand('results/cnvkit'+suffix+'/cbs/{sample}.cns', sample=samples_for_calling.index)
     output:
         'results/cnvkit'+suffix+'/cbs/heatmap.cnv.pdf'
     benchmark:
@@ -337,7 +345,7 @@ use rule cnvkit_scatter_cbs as cnvkit_scatter_hmm with:
         copy_ratio = 'results/cnvkit'+suffix+'/general/{sample}.cnr',
         segment = 'results/cnvkit'+suffix+'/hmm/{sample}.cns',
         germline_vcf = 'results/mutect2/germline/{sample}_germline.vcf'
-    output: 'results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.pdf'
+    output: 'results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.png'
     benchmark: 'benchmarks/cnvkit'+suffix+'/hmm/{sample}_scatter.txt'
     log: 'logs/cnvkit'+suffix+'/hmm/scatter/{sample}.log',
 
@@ -348,9 +356,10 @@ use rule cnvkit_diagram_cbs as cnvkit_diagram_hmm with:
     output: 'results/cnvkit'+suffix+'/hmm/{sample}_diagram.cnv.pdf'
     benchmark: 'benchmarks/cnvkit'+suffix+'/hmm/{sample}_diagram.txt'
     log: 'logs/cnvkit'+suffix+'/hmm/diagram/{sample}.log',
+    resources: mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
 
 use rule cnvkit_heatmap_cbs as cnvkit_heatmap_hmm with:
-    input: segments = expand('results/cnvkit'+suffix+'/hmm/{sample}.cns', sample=samples.index)
+    input: segments = expand('results/cnvkit'+suffix+'/hmm/{sample}.cns', sample=samples_for_calling.index)
     output: 'results/cnvkit'+suffix+'/hmm/heatmap.cnv.pdf'
     benchmark: 'benchmarks/cnvkit'+suffix+'/hmm/heatmap.txt'
 

@@ -32,6 +32,25 @@ else:
   print('no samples detected')
 wc = samples.index # store samples in wildcard
 
+
+# different lanes?
+if config['different_lanes']:
+  # remove the _L001 and _L002 from the sample names
+  samples_without_lanes = [s.split('_L')[0] for s in wc]
+  # unique names and sorted
+  samples_without_lanes = sorted(set(samples_without_lanes))
+  # create a new dataframe with the unique names and the different lanes in the additional columns
+  new_samples = pd.DataFrame(index = samples_without_lanes, columns = ['lane1', 'lane2'])
+  for sample in samples_without_lanes:
+      new_samples.loc[sample, 'lane1'] = sample + '_L001'
+      new_samples.loc[sample, 'lane2'] = sample + '_L002'
+  samples_for_calling = new_samples
+  # save to a file in resources/data
+  new_samples.to_csv('resources/data/samples_merged_lanes.tsv', sep = '\t')
+else:
+  samples_for_calling = samples
+
+
 # location of conda environments
 if config['conda_envs']['use_existing_envs']:
   env_prefix = config['conda_envs']['envs_path']
@@ -49,6 +68,8 @@ else:
 # hybrid- or amplicon-capture?
 if config['amplicon']:
   BAMs_for_CNV_calling = BAMs_no_PCR_flags
+elif config['different_lanes']:
+  BAMs_for_CNV_calling = 'results/merged_bam/{sample}.bam'
 else:
   BAMs_for_CNV_calling = 'results/mapped_marked/{sample}.bam'
 
@@ -56,7 +77,7 @@ else:
 BAM_index_for_CNV_calling = BAMs_for_CNV_calling + '.bai'
 
 # location for reference genome indices
-stem = str(Path('resources') / 'reference' / ref_file.stem)
+stem = str(Path('resources') / 'reference' / ref_file.stem) if config['compute_bwa_indices'] else config['reference'+'_'+config['genome_version']]["bwa_indices"]
 
 # first run with generic reference or second run with PON for CNVkit?
 if config['pon']['second_run_with_pon']:
@@ -85,36 +106,42 @@ if config['pon_rds']['use_true_pon_instead']:
 else:
   rule all:
     input:
-      # CNVkit's CBS
-      expand('results/cnvkit'+suffix+'/cbs/{sample}_diagram.cnv.pdf', sample=wc),
-      expand('results/cnvkit'+suffix+'/cbs/{sample}_scatter.cnv.pdf', sample=wc),
-      expand('results/cnvkit'+suffix+'/cbs/{sample}.icns', sample=wc),
-      'results/cnvkit'+suffix+'/cbs/heatmap.cnv.pdf',
-      ## w/ PureCN's PSCBS
-      expand('results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv', sample=wc),
-      ## w/ PureCN's Hclust
-      expand('results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv', sample=wc),
-      ## w/ PureCN's none
-      expand('results/purecn'+suffix+'/cbs_none/{sample}/{sample}.csv', sample=wc),
+      saved_config, # save the used configuration file
 
-      # CNVkit's HMM
-      expand('results/cnvkit'+suffix+'/hmm/{sample}_diagram.cnv.pdf', sample=wc),
-      expand('results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.pdf', sample=wc),
-      expand('results/cnvkit'+suffix+'/hmm/{sample}.icns', sample=wc),
-      'results/cnvkit'+suffix+'/hmm/heatmap.cnv.pdf',
-      # w/ PureCN's PSCBS
-      expand('results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv', sample=wc),
-      ## w/ PureCN's Hclust
-      expand('results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv', sample=wc),
-      ## w/ PureCN's none
-      expand('results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv', sample=wc),
-      
+      # for merging different lanes from the same samples after alignment
+      # expand('results/merged_bam/{sample_stripped}.bam.bai', sample_stripped = new_samples.index),
+
       # for QC analysis only
-      'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap
-      'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed
+      # 'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap
+      # 'results/qc/multiqc_report_fastqc.html', # qc report for reads, untrimmed and trimmed
+
+
+      # # for CNA calling
+
+      # # CNVkit's CBS
+      expand('results/cnvkit'+suffix+'/cbs/{sample}_diagram.cnv.pdf', sample=new_samples.index),
+      expand('results/cnvkit'+suffix+'/cbs/{sample}_scatter.cnv.png', sample=new_samples.index),
+      expand('results/cnvkit'+suffix+'/cbs/{sample}.icns', sample=new_samples.index),
+      'results/cnvkit'+suffix+'/cbs/heatmap.cnv.pdf',
+      # ## w/ PureCN's PSCBS
+      # expand('results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv', sample=wc),
+      # ## w/ PureCN's Hclust
+      # expand('results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv', sample=wc),
+      # ## w/ PureCN's none
+      expand('results/purecn'+suffix+'/cbs_none/{sample}/{sample}.csv', sample=new_samples.index),
+
+      # # CNVkit's HMM
+      # expand('results/cnvkit'+suffix+'/hmm/{sample}_diagram.cnv.pdf', sample=wc),
+      # expand('results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.png', sample=wc),
+      # expand('results/cnvkit'+suffix+'/hmm/{sample}.icns', sample=wc),
+      # 'results/cnvkit'+suffix+'/hmm/heatmap.cnv.pdf',
+      # # w/ PureCN's PSCBS
+      # expand('results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv', sample=wc),
+      # ## w/ PureCN's Hclust
+      # expand('results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv', sample=wc),
+      # ## w/ PureCN's none
+      # expand('results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv', sample=wc),
       
-      # save the used configuration file
-      saved_config,
 
 
 rule save_config:

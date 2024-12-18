@@ -1,4 +1,4 @@
-library(tidyverse)
+suppressPackageStartupMessages(library(tidyverse))
 
 dir <- "results/collection_of_specific_samples/results"
 all_genes_file <- "resources/paneldesign/all_genes.csv"
@@ -6,7 +6,7 @@ list.dirs(path = dir, full.names = TRUE, recursive = FALSE) -> pons
 
 # for every folder, read in all _genes.csv files, extract the gene and type columns, and merge into one table with gene as row names and C in the columns names according to the sample name contained in the file name. Then, for every branch, write the table to a file called branch+'_gene_calls.tsv'.
 
-all_genes <- read_csv(all_genes_file, col_names = FALSE) # %>% pull(X1)
+all_genes <- read_csv(all_genes_file, col_names = FALSE, show_col_types = FALSE) # %>% pull(X1)
 
 empty_row_tables <- c()
 list <- list()

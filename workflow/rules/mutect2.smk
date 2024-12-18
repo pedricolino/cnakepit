@@ -61,8 +61,10 @@ rule mutect2_bam:
     threads: 16 # Confirmed in log files that it works, see https://www.biostars.org/p/9549710/#9550707
     resources:
         mem=lambda wildcards, attempt: '%dG' % (8 * attempt),
-        slurm_partition = lambda wildcards, attempt: 'medium' if attempt > 1 else 'short',
-        runtime=lambda wildcards, attempt: 24*60 if attempt > 1 else 4*60,
+        # slurm_partition = lambda wildcards, attempt: 'medium' if attempt > 1 else 'short',
+        slurm_partition = 'medium',
+        # runtime=lambda wildcards, attempt: 24*60 if attempt > 1 else 4*60,
+        runtime=2*24*60, # 2 days max
         cores=lambda wc, threads: threads
     log:
         "logs/mutect2/{sample}.log",

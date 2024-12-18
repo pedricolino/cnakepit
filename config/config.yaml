@@ -8,7 +8,7 @@
 
 # Use existing conda environments (must be the same names) or create new ones just for this pipeline?
 conda_envs:
-  use_existing_envs: false
+  use_existing_envs: true
   envs_path: "~/work/miniconda/envs/" # path to conda envs if use_existing_envs is true
 
 # This pipeline is mainly built for hybridization-capture based NGS data, but is also implements changes required for amplicon sequencing data.
@@ -29,8 +29,17 @@ padding: 500 # 500 is appr. NGS fragment size
 # compute mappability for the reference genome or download the premade one from CNVkit?
 compute_mappability: false
 
+# which aligner should be used? Options: "bwa" or "bwa-mem2"
+aligner: "bwa-mem2"
+
+# are there different lanes for the same sample? If yes, the pipeline will merge the lanes after alignment
+different_lanes: true
+
 # compute or download reference dictionary?
 compute_dict: false
+
+# compute or use precomputed reference index files for bwa?
+compute_bwa_indices: true
 
 # hard code sex? Useful for ovarian cancer, for example.
 sex:
@@ -38,10 +47,10 @@ sex:
   sex:  'F' # female or male?
 
 # For hg19, chromosome / contig names must be of type "chr1" for hg38 and "1" in the paneldesign.
-panel_design: "resources/paneldesign/MH_Covered_no_annot_no_chr.bed"
+panel_design: "resources/paneldesign/SureSelect_Human_ALL_Exon_V7_hg38_Exons.bed"
 
 # genome version
-genome_version: "hg19" # valid options: "hg38", "hg19" (-> version b37 as required by Mutect2)
+genome_version: "hg38" # valid options: "hg38", "hg19" (-> version b37 as required by Mutect2)
 
 # Path to reference genome and its index file. Will be downloaded if absent. Current pipeline settings are for hg38.
 reference_hg38:
@@ -50,6 +59,7 @@ reference_hg38:
 # fasta: "resources/reference/hg38.fa" # use this if you wish to download the reference file
 # ref_index: "resources/reference/hg38.fa.fai"
   dict: "resources/reference/hg38.dict"
+  bwa_indices: "/data/cephfs-1/work/projects/cubit/20.05/static_data/precomputed/BWA/0.7.17/hg38/ucsc/hg38.fa"
   fa_genome: "/data/cephfs-1/work/projects/cubit/20.05/static_data/reference/hg38/ucsc/hg38.fa.genome"
   fasta_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta"
   index_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -61,6 +71,7 @@ reference_hg19:
   # index: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.fasta.fai"
   index: "resources/reference/human_g1k_v37.fasta.fai"
   dict: "resources/reference/human_g1k_v37.dict"
+  bwa_indices: "TBD"
   fa_genome: "TBD"
   fasta_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta"
   index_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta.fai"
