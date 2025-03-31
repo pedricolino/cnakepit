@@ -29,7 +29,8 @@ rule purecn_cbs_Hclust:
         sampleid='{sample}',
         random_nb=randint(1,1000), # use a different seed on retry in case of failure
         suffix=suffix,
-        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex'] 
+        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex'],
+        genome=config['genome_version']
     shell:
         '''PURECN=$(Rscript -e 'cat(system.file("extdata", package = "PureCN"))')
         Rscript $PURECN/PureCN.R \
@@ -39,7 +40,7 @@ rule purecn_cbs_Hclust:
             --seg-file {input.seg} \
             --snp-blacklist {input.blacklist} \
             --out results/purecn{params.suffix}/{params.cnvkit_method}_{params.purecn_method}/{params.sampleid}/{params.sampleid} \
-            --genome hg38 \
+            --genome {params.genome} \
             {params.sex} \
             --fun-segmentation {params.purecn_method} \
             --min-base-quality 20 \
@@ -72,7 +73,8 @@ use rule purecn_cbs_Hclust as purecn_cbs_PSCBS with:
         sampleid='{sample}',
         random_nb=randint(1,1000),
         suffix=suffix,
-        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex']
+        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex'],
+        genome=config['genome_version']
 
 
 use rule purecn_cbs_Hclust as purecn_hmm_Hclust with:
@@ -90,7 +92,8 @@ use rule purecn_cbs_Hclust as purecn_hmm_Hclust with:
         sampleid='{sample}',
         random_nb=randint(1,1000),
         suffix=suffix,
-        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex']
+        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex'],
+        genome=config['genome_version']
 
 
 use rule purecn_cbs_Hclust as purecn_hmm_PSCBS with:
@@ -109,7 +112,8 @@ use rule purecn_cbs_Hclust as purecn_hmm_PSCBS with:
         sampleid='{sample}',
         random_nb=randint(1,1000),
         suffix=suffix,
-        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex']
+        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex'],
+        genome=config['genome_version']
 
 
 use rule purecn_cbs_Hclust as purecn_cbs_none with:
@@ -127,7 +131,8 @@ use rule purecn_cbs_Hclust as purecn_cbs_none with:
         sampleid='{sample}',
         random_nb=randint(1,1000),
         suffix=suffix,
-        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex']
+        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex'],
+        genome=config['genome_version']
 
 
 use rule purecn_cbs_Hclust as purecn_hmm_none with:
@@ -145,4 +150,5 @@ use rule purecn_cbs_Hclust as purecn_hmm_none with:
         sampleid='{sample}',
         random_nb=randint(1,1000),
         suffix=suffix,
-        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex']
+        sex= '' if not config['sex']['hard_code'] else '--sex '+config['sex']['sex'],
+        genome=config['genome_version']
