@@ -53,7 +53,7 @@ else:
 
 # location of conda environments
 if config['conda_envs']['use_existing_envs']:
-  env_prefix = config['conda_envs']['envs_path']
+  env_prefix = ''
   env_suffix = ''
 else:
   env_prefix = '../envs/'
@@ -97,19 +97,22 @@ else:
 # include in any case
 include: 'rules/cnvkit.smk'
 include: 'rules/purecn.smk'
+include: 'rules/additional_analyses.smk'
 
 if config['pon_rds']['use_true_pon_instead']:
   include: 'rules/cnv_calling_with_true_pon.smk'
   rule all:
     input:
-      expand('results/cnv_calling_with_true_pon/purecn/CBS/{sample}/{sample}.csv', sample=wc)
+      expand('results/cnv_calling_with_true_pon/purecn/CBS/{sample}/{sample}.csv', sample=samples_for_calling.index)
 else:
   rule all:
     input:
       saved_config, # save the used configuration file
 
+      # expand('results/ploidyngs/{sample}/{sample}_MaxDepth100_MinCov0.tab', sample = samples_for_calling.index),
+
       # for merging different lanes from the same samples after alignment
-      # expand('results/merged_bam/{sample_stripped}.bam.bai', sample_stripped = new_samples.index),
+      # expand('results/merged_bam/{sample_stripped}.bam.bai', sample_stripped = samples_for_calling.index),
 
       # for QC analysis only
       # 'results/qc_map_bwa/multiqc_report.html', # mapping QC with qualimap
@@ -119,28 +122,28 @@ else:
       # # for CNA calling
 
       # # CNVkit's CBS
-      expand('results/cnvkit'+suffix+'/cbs/{sample}_diagram.cnv.pdf', sample=new_samples.index),
-      expand('results/cnvkit'+suffix+'/cbs/{sample}_scatter.cnv.png', sample=new_samples.index),
-      expand('results/cnvkit'+suffix+'/cbs/{sample}.icns', sample=new_samples.index),
+      expand('results/cnvkit'+suffix+'/cbs/{sample}_diagram.cnv.pdf', sample=samples_for_calling.index),
+      expand('results/cnvkit'+suffix+'/cbs/{sample}_scatter.cnv.png', sample=samples_for_calling.index),
+      expand('results/cnvkit'+suffix+'/cbs/{sample}.icns', sample=samples_for_calling.index),
       'results/cnvkit'+suffix+'/cbs/heatmap.cnv.pdf',
       # ## w/ PureCN's PSCBS
-      # expand('results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv', sample=wc),
+      # expand('results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv', sample=samples_for_calling.index),
       # ## w/ PureCN's Hclust
-      # expand('results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv', sample=wc),
+      # expand('results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv', sample=samples_for_calling.index),
       # ## w/ PureCN's none
-      expand('results/purecn'+suffix+'/cbs_none/{sample}/{sample}.csv', sample=new_samples.index),
+      expand('results/purecn'+suffix+'/cbs_none/{sample}/{sample}.csv', sample=samples_for_calling.index),
 
       # # CNVkit's HMM
-      # expand('results/cnvkit'+suffix+'/hmm/{sample}_diagram.cnv.pdf', sample=wc),
-      # expand('results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.png', sample=wc),
-      # expand('results/cnvkit'+suffix+'/hmm/{sample}.icns', sample=wc),
+      # expand('results/cnvkit'+suffix+'/hmm/{sample}_diagram.cnv.pdf', sample=samples_for_calling.index),
+      # expand('results/cnvkit'+suffix+'/hmm/{sample}_scatter.cnv.png', sample=samples_for_calling.index),
+      # expand('results/cnvkit'+suffix+'/hmm/{sample}.icns', sample=samples_for_calling.index),
       # 'results/cnvkit'+suffix+'/hmm/heatmap.cnv.pdf',
       # # w/ PureCN's PSCBS
-      # expand('results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv', sample=wc),
+      # expand('results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv', sample=samples_for_calling.index),
       # ## w/ PureCN's Hclust
-      # expand('results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv', sample=wc),
+      # expand('results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv', sample=samples_for_calling.index),
       # ## w/ PureCN's none
-      # expand('results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv', sample=wc),
+      # expand('results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv', sample=samples_for_calling.index),
       
 
 
