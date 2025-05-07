@@ -2,7 +2,7 @@ name: qc
 channels:
   - conda-forge
   - bioconda # different order according to multiqc documentation
-  - defaults
+  - nodefaults
 dependencies:
   # - python>=3.7 # multiqc error if lower
   - samtools

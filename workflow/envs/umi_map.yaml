@@ -2,7 +2,7 @@ name: umi_map
 channels:
   - conda-forge
   - bioconda
-  - defaults
+  - nodefaults
 dependencies:
   - bwa=0.7.17
   - picard=2.23.1

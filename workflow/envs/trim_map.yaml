@@ -2,6 +2,7 @@ name: trim_map
 channels:
   - conda-forge
   - bioconda
+  - nodefaults
 dependencies:
   - python<=3.10.6 # 3.10.13 does not work current installed conda version
 
