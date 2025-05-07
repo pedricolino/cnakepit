@@ -9,7 +9,7 @@
 # Use existing conda environments (must be the same names) or create new ones just for this pipeline?
 conda_envs:
   use_existing_envs: true
-  envs_path: "~/work/miniconda/envs/" # path to conda envs if use_existing_envs is true
+  envs_path: "~/work/miniforge3/envs/" # path to conda envs if use_existing_envs is true
 
 # This pipeline is mainly built for hybridization-capture based NGS data, but is also implements changes required for amplicon sequencing data.
 # Amplicon seg. data? Consequence: no flagging of PCR duplicates (all of the amplified reads are in fact PCR duplicates by design) 
@@ -33,7 +33,7 @@ compute_mappability: false
 aligner: "bwa-mem2"
 
 # are there different lanes for the same sample? If yes, the pipeline will merge the lanes after alignment
-different_lanes: true
+different_lanes: false
 
 # compute or download reference dictionary?
 compute_dict: false
@@ -47,10 +47,10 @@ sex:
   sex:  'F' # female or male?
 
 # For hg19, chromosome / contig names must be of type "chr1" for hg38 and "1" in the paneldesign.
-panel_design: "resources/paneldesign/SureSelect_Human_ALL_Exon_V7_hg38_Exons.bed"
+panel_design: "/data/cephfs-1/home/users/cemo10_c/work/project_symlinks/crc/work/pipeline_pdo_ce14/panel/S33266436_Regions_no_chr.bed"
 
 # genome version
-genome_version: "hg38" # valid options: "hg38", "hg19" (-> version b37 as required by Mutect2)
+genome_version: "hg19" # valid options: "hg38", "hg19" (-> version b37 as required by Mutect2)
 
 # Path to reference genome and its index file. Will be downloaded if absent. Current pipeline settings are for hg38.
 reference_hg38:
@@ -67,10 +67,10 @@ reference_hg38:
 
 reference_hg19:
   # fasta: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.fasta"
-  fasta: "resources/reference/human_g1k_v37.fasta"
+  fasta: "/data/cephfs-1/work/projects/cubit/20.05/static_data/reference/GRCh37/g1k_phase1/human_g1k_v37.fasta"
   # index: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.fasta.fai"
-  index: "resources/reference/human_g1k_v37.fasta.fai"
-  dict: "resources/reference/human_g1k_v37.dict"
+  index: "/data/cephfs-1/work/projects/cubit/20.05/static_data/reference/GRCh37/g1k_phase1/human_g1k_v37.fasta.fai"
+  dict: "/data/cephfs-1/work/projects/cubit/20.05/static_data/reference/GRCh37/g1k_phase1/human_g1k_v37.dict"
   bwa_indices: "TBD"
   fa_genome: "TBD"
   fasta_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta"
@@ -85,8 +85,8 @@ data:
 # first run with generic reference or second run with chosen samples as panel of normals (PON) for CNVkit?
 pon:
   second_run_with_pon: false # set to true when this is the second run with a PON
-  reference_sample_names: "results/stats/lowpurity_samples.tsv" # list of sample names chosen for PON creation, leave it empty if previous is false
-  directory_suffix: "lowpurity" # if testing multiple PON versions, describe the current one here
+  reference_sample_names: "resources/data/all_samplenames.tsv" # list of sample names chosen for PON creation, leave it empty if previous is false
+  directory_suffix: "cohort" # if testing multiple PON versions, describe the current one here
 
 # If true normal samples are available, you can create a pon.rds panel of normals file with PureCN and use it with this pipeline.
 pon_rds:
@@ -106,7 +106,8 @@ pon_rds:
 
 adapter_sequences: "resources/adapter/panel-adapter.fa" # for trimming
 
-qualimap_bed: "resources/paneldesign/paneldesign_forQualimap.bed"
+qualimap_bed: "/data/cephfs-1/home/users/cemo10_c/work/project_symlinks/crc/work/pipeline_pdo_ce14/panel/S33266436_Regions_no_chr.bed"
+# qualimap_bed: "resources/paneldesign/paneldesign_forQualimap.bed" # set to this if it fails with the normal BED file
 
 # The paths to reference files which will be downloaded if absent
 
@@ -140,6 +141,7 @@ mappability_hg38:
 
 mappability_hg19:
   bed: "resources/mappability/access.bed"
+  # bed: "resources/mappability/access_no_chr.bed"
   link: "github.com/etal/cnvkit/raw/master/data/access-10kb.hg19.bed"
 
 sv_blacklist_hg38:
@@ -147,7 +149,8 @@ sv_blacklist_hg38:
   link: "http://cf.10xgenomics.com/supp/genome/GRCh38/sv_blacklist.bed"
 
 sv_blacklist_hg19:
-  bed: "resources/sv_blacklist/sv_blacklist_hg19.bed"
+  bed: "resources/sv_blacklist/simpleRepeat.bed"
+  # bed: "resources/sv_blacklist/simpleRepeat_no_chr.txt.gz"
   link: "https://hgdownload.soe.ucsc.edu/goldenPath/hg19/database/simpleRepeat.txt.gz"
 
 masked_ref: "resources/reference/masked.fa"
