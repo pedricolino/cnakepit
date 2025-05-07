@@ -48,6 +48,7 @@ rule purecn_cbs_Hclust:
             --force \
             --post-optimize \
             --cores {threads} \
+            --out-vcf \
             &> {log}
         '''
 
