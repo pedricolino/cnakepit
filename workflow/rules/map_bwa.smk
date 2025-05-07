@@ -1,11 +1,8 @@
 import os
-from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
-
-HTTP = HTTPRemoteProvider()
 
 rule get_ref:
     input:
-        HTTP.remote(config['reference'+'_'+config['genome_version']] ["fasta_link"], keep_local=True)
+        config['reference'+'_'+config['genome_version']] ["fasta_link"]
     output:
         config['reference'+'_'+config['genome_version']]["fasta"]
     shell:
@@ -13,7 +10,7 @@ rule get_ref:
 
 rule get_ref_index:
     input:
-        HTTP.remote(config['reference'+'_'+config['genome_version']] ["index_link"], keep_local=True)
+        config['reference'+'_'+config['genome_version']] ["index_link"]
     output:
         config['reference'+'_'+config['genome_version']]["index"]
     shell:

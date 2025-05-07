@@ -1,27 +1,24 @@
 #--- Downloads start ---#
 
 import os
-from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
-
-HTTP = HTTPRemoteProvider()
 
 rule download_gnomad:
-    input: HTTP.remote(config['gnomad_af_only'+'_'+config['genome_version']]["vcf_link"], keep_local=True)
+    input: config['gnomad_af_only'+'_'+config['genome_version']]["vcf_link"]
     output: config['gnomad_af_only'+'_'+config['genome_version']]["vcf"]
     shell: "mv {input} {output}"
 
 rule download_gnomad_index:
-    input: HTTP.remote(config['gnomad_af_only'+'_'+config['genome_version']]["index_link"], keep_local=True)
+    input: config['gnomad_af_only'+'_'+config['genome_version']]["index_link"]
     output: config['gnomad_af_only'+'_'+config['genome_version']]["index"]
     shell: "mv {input} {output}"
 
 rule download_common_biallelic:
-    input: HTTP.remote(config['common_germline_variants'+'_'+config['genome_version']]["vcf_link"], keep_local=True)
+    input: config['common_germline_variants'+'_'+config['genome_version']]["vcf_link"]
     output: config['common_germline_variants'+'_'+config['genome_version']]["vcf"]
     shell: "mv {input} {output}"
 
 rule download_common_biallelic_index:
-    input: HTTP.remote(config['common_germline_variants'+'_'+config['genome_version']]["index_link"], keep_local=True)
+    input: config['common_germline_variants'+'_'+config['genome_version']]["index_link"]
     output: config['common_germline_variants'+'_'+config['genome_version']]["index"]
     shell: "mv {input} {output}"
 
@@ -35,7 +32,7 @@ if config['compute_dict']:
 else:
     # Get the dict from the web. If ref. is masked, the .dict changes but it is not used anymore after mapping.
     rule download_ref_dict:
-        input: HTTP.remote(config['reference'+'_'+config['genome_version']]["dict_link"], keep_local=True)
+        input: config['reference'+'_'+config['genome_version']]["dict_link"]
         output: config['reference'+'_'+config['genome_version']]["dict"]
         benchmark: "benchmarks/download_ref_dict.log"
         shell: "mv {input} {output}"
@@ -45,6 +42,7 @@ else:
 rule mutect2_bam:
     input:
         fasta=config['reference'+'_'+config['genome_version']]["fasta"],
+        fastaidx=config['reference'+'_'+config['genome_version']]["index"],
         map=BAMs_for_CNV_calling,
         idx=BAM_index_for_CNV_calling,
         dict=config['reference'+'_'+config['genome_version']]["dict"],

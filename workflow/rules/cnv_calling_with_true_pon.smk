@@ -81,7 +81,7 @@ if config['pon_rds']['different_contigs']:
 
 rule download_sv_blacklist:
     input:
-        HTTP.remote(config['sv_blacklist'+'_'+config['genome_version']]['link'], keep_local=True)
+        config['sv_blacklist'+'_'+config['genome_version']]['link']
     output:
         config['sv_blacklist'+'_'+config['genome_version']]['bed']
     benchmark:

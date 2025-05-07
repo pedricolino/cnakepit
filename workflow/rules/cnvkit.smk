@@ -1,7 +1,5 @@
 import os
-from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 
-HTTP = HTTPRemoteProvider()
 
 # produced bed files
 my_targets = 'results/cnvkit/general/my_targets.bed'
@@ -57,7 +55,7 @@ if config['pon']['second_run_with_pon'] == True:
 
 rule download_sv_blacklist:
     input:
-        HTTP.remote(config['sv_blacklist'+'_'+config['genome_version']]['link'], keep_local=True)
+        config['sv_blacklist_' + config['genome_version']]['link']
     output:
         config['sv_blacklist'+'_'+config['genome_version']]['bed']
     benchmark:
@@ -88,7 +86,7 @@ if config['compute_mappability']:
 else:
     rule download_mappability:
         input:
-            HTTP.remote(config['mappability'+'_'+config['genome_version']]['link'], keep_local=True)
+            config['mappability'+'_'+config['genome_version']]['link']
         output:
             config['mappability'+'_'+config['genome_version']]['bed']
         benchmark:

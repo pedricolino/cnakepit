@@ -11,6 +11,8 @@
 ##SBATCH --mail-type=END,FAIL
 ##SBATCH --mail-user=your@email.address
 
+# This script was used with Snakemake version 7.32.3 and most likely does not work with version 8 and above.
+
 start_time=$(date +"%Y-%m-%d %H:%M:%S")
 echo "Starting CNAkepit pipeline at $start_time. Look out for snakes..."
 
