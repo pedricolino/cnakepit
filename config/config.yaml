@@ -54,6 +54,11 @@ vep:
   executable: "/data/cephfs-1/home/users/cemo10_c/work/miniforge3/envs/vcf2maf/bin"
   data: "resources/vep/hg37" # usually the homo_sapiens folder should be in there
 
+# refgene for gistic
+gistic:
+  refgene: "~/work/miniforge3/envs/gistic/share/gistic2-2.0.23-1/refgenefiles/hg19.mat"
+  conf_level: 0.75
+
 # genome version
 genome_version: "hg19" # valid options: "hg38", "hg19" (-> version b37 as required by Mutect2)
 

@@ -42,6 +42,15 @@ rule get_vep:
         vep_install -a cf -s homo_sapiens -y GRCh37 -c resources/vep/hg37 --CONVERT -n
         '''
 
+rule filter_purecn_vcf:
+    input: 'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.vcf'
+    output: 'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.filtered.vcf'
+    conda: env_prefix + 'cnv_calling' + env_suffix
+    shell:
+        '''
+        bcftools view -f PASS {input} > {output}
+        '''
+
 rule vcf2maf:
     input:  
         vcf = 'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.filtered.vcf',
@@ -87,9 +96,29 @@ rule merge_maf:
 rule merge_seg:
     input: expand('results/purecn'+suffix+'/cbs_none/{sample}/{sample}_dnacopy.seg', sample=samples_for_calling.index),
     output: 'results/purecn'+suffix+'/cbs_none/allsamples.seg'
-    resources: mem=lambda wildcards, attempt: '%dG' % (8 * attempt)
     shell:
         '''
         cat {input} | egrep "^ID" | head -1 > {output}
         cat {input} | egrep -v "^ID" >> {output}
+        '''
+
+rule gistic2:
+    input:  'results/purecn'+suffix+'/cbs_none/allsamples.seg'
+    output: 'results/gistic/purecn'+suffix+'_cbs_none/scores.gistic'
+    conda: env_prefix + 'gistic' + env_suffix
+    resources: mem=lambda wildcards, attempt: '%dG' % (8 * attempt)
+    params:
+        folder = 'results/gistic/purecn'+suffix+'_cbs_none/',
+        refgene = config['gistic']['refgene'],
+        conf = config['gistic']['conf_level'],
+    benchmark: 'benchmarks/gistic/purecn'+suffix+'_cbs_none.txt'
+    shell:
+        '''
+        rm -rf {params.folder}
+        mkdir -p {params.folder}
+        gistic2 \
+            -seg {input} \
+            -refgene {params.refgene} \
+            -conf_level {params.conf} \
+            -b {params.folder}
         '''
