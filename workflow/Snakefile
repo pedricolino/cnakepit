@@ -109,6 +109,8 @@ else:
     input:
       saved_config, # save the used configuration file
 
+      'results/purecn'+suffix+'/cbs_none/allsamples.seg',
+      'results/vcf2maf/purecn'+suffix+'_cbs_none/allsamples.maf',
       # expand('results/ploidyngs/{sample}/{sample}_MaxDepth100_MinCov0.tab', sample = samples_for_calling.index),
 
       # for merging different lanes from the same samples after alignment

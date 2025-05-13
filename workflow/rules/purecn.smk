@@ -18,7 +18,7 @@ rule purecn_cbs_Hclust:
         seg='results/cnvkit'+suffix+'/cbs/{sample}.seg'
     output:
         'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.vcf.gz'
+        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.vcf'
     resources: mem=lambda wildcards, attempt: '%dG' % (4 * 8 * attempt), # 4 GB per thread, 8 threads
     threads: 8
     benchmark: 'benchmarks/purecn'+suffix+'/cbs_Hclust/{sample}.txt'
@@ -68,8 +68,8 @@ use rule purecn_cbs_Hclust as purecn_cbs_PSCBS with:
         seg='results/cnvkit'+suffix+'/cbs/{sample}.seg',
         install='results/purecn/PSCBS_check'
     output:
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.vcf.gz'
+        'results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv',
+        'results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.vcf'
     benchmark: 'benchmarks/purecn'+suffix+'/cbs_PSCBS/{sample}.txt'
     log: 'logs/purecn'+suffix+'/cbs_PSCBS/{sample}.log',
     params:
@@ -89,8 +89,8 @@ use rule purecn_cbs_Hclust as purecn_hmm_Hclust with:
         blacklist = config['sv_blacklist'+'_'+config['genome_version']]['bed'],
         seg='results/cnvkit'+suffix+'/hmm/{sample}.seg'
     output:
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.vcf.gz'
+        'results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv',
+        'results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.vcf'
     benchmark: 'benchmarks/purecn'+suffix+'/hmm_Hclust/{sample}.txt'
     log: 'logs/purecn'+suffix+'/hmm_Hclust/{sample}.log',
     params:
@@ -111,8 +111,8 @@ use rule purecn_cbs_Hclust as purecn_hmm_PSCBS with:
         seg='results/cnvkit'+suffix+'/hmm/{sample}.seg',
         install='results/purecn/PSCBS_check'
     output:
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.vcf.gz'
+        'results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv',
+        'results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.vcf'
     benchmark: 'benchmarks/purecn'+suffix+'/hmm_PSCBS/{sample}.txt'
     log: 'logs/purecn'+suffix+'/hmm_PSCBS/{sample}.log',
     params:
@@ -132,8 +132,8 @@ use rule purecn_cbs_Hclust as purecn_cbs_none with:
         blacklist = config['sv_blacklist'+'_'+config['genome_version']]['bed'],
         seg='results/cnvkit'+suffix+'/cbs/{sample}.seg'
     output:
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.vcf.gz'
+        'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.csv',
+        'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.vcf'
     benchmark: 'benchmarks/purecn'+suffix+'/cbs_none/{sample}.txt'
     log: 'logs/purecn'+suffix+'/cbs_none/{sample}.log',
     params:
@@ -153,8 +153,8 @@ use rule purecn_cbs_Hclust as purecn_hmm_none with:
         blacklist = config['sv_blacklist'+'_'+config['genome_version']]['bed'],
         seg='results/cnvkit'+suffix+'/hmm/{sample}.seg'
     output:
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.vcf.gz'
+        'results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv',
+        'results/purecn'+suffix+'/hmm_none/{sample}/{sample}.vcf'
     benchmark: 'benchmarks/purecn'+suffix+'/hmm_none/{sample}.txt'
     log: 'logs/purecn'+suffix+'/hmm_none/{sample}.log',
     params:

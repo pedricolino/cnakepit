@@ -3,6 +3,7 @@ rule download_ploidyNGS:
     log: 'logs/ploidyngs/download_tool.log'
     shell: 'git clone "https://github.com/diriano/ploidyNGS.git" "workflow/ploidyNGS" 2> {log}'
 
+# requires modification, should be done with a single chromosome
 rule ploidyNGS:
     input: 
         bam = BAMs_for_CNV_calling,
@@ -18,4 +19,77 @@ rule ploidyNGS:
             mkdir -p results/ploidyngs/{wildcards.sample} 
             mv {wildcards.sample}* results/ploidyngs/{wildcards.sample}/ 
             cd -
+        '''
+
+rule download_vcf2maf:
+    output: 'resources/mskcc-vcf2maf-f6d0c40/vcf2maf.pl'
+    log: 'logs/vcf2maf/download_tool.log'
+    shell:
+        '''
+        curl -L -o resources/mskcc-vcf2maf.tar.gz https://api.github.com/repos/mskcc/vcf2maf/tarball/v1.6.22 
+        cd resources/
+        tar -zxf mskcc-vcf2maf.tar.gz
+        rmz mskcc-vcf2maf.tar.gz
+        '''
+
+rule get_vep:
+    output: config['vep']['data'] + '/homo_sapiens/109_GRCh37/'
+    log: 'logs/get_vep.log'
+    conda: env_prefix + 'vcf2maf' + env_suffix
+    shell:
+        '''
+        mkdir -p {config['vep']['data']}
+        vep_install -a cf -s homo_sapiens -y GRCh37 -c resources/vep/hg37 --CONVERT -n
+        '''
+
+rule vcf2maf:
+    input:  
+        vcf = 'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.filtered.vcf',
+        script = 'resources/mskcc-vcf2maf-f6d0c40/vcf2maf.pl',
+        ref = ref_file,
+        vep = config['vep']['data'] + '/homo_sapiens/109_GRCh37/'
+    output:
+        maf = 'results/vcf2maf/purecn'+suffix+'_cbs_none/{sample}.maf',
+        # vcf = 'results/vcf2maf/purecn'+suffix+'_cbs_none/{sample}.vep.vcf'
+    conda: env_prefix + 'vcf2maf' + env_suffix
+    log: 'logs/vcf2maf/purecn'+suffix+'cbs_none/{sample}.log'
+    params:
+        sampleid = '{sample}',
+        vep_path = config['vep']['executable'],
+        vep_data = config['vep']['data'],
+        folder = 'results/vcf2maf/purecn'+suffix+'_cbs_none',
+    threads: 1
+    resources: mem=lambda wildcards, attempt: '%dG' % (4 * 8 * attempt), # 4 GB per thread, 8 threads
+    shell:
+        '''
+        perl {input.script} \
+            --input-vcf {input.vcf} \
+            --output-maf {output.maf} \
+            --tmp-dir {params.folder} \
+            --ref-fasta {input.ref} \
+            --vep-path {params.vep_path} \
+            --vep-data {params.vep_data} \
+            --tumor-id {params.sampleid} \
+            --vep-overwrite \
+            --vep-forks {threads} 2> {log}
+        '''
+
+rule merge_maf:
+    input: expand('results/vcf2maf/purecn'+suffix+'_cbs_none/{sample}.maf', sample=samples_for_calling.index),
+    output: 'results/vcf2maf/purecn'+suffix+'_cbs_none/allsamples.maf'
+    shell:
+        '''
+        set -o pipefail
+        cat {input} | egrep "^#|^Hugo_Symbol" | head -2 > {output} || true
+        cat {input} | egrep -v "^#|^Hugo_Symbol" >> {output}
+        '''
+
+rule merge_seg:
+    input: expand('results/purecn'+suffix+'/cbs_none/{sample}/{sample}_dnacopy.seg', sample=samples_for_calling.index),
+    output: 'results/purecn'+suffix+'/cbs_none/allsamples.seg'
+    resources: mem=lambda wildcards, attempt: '%dG' % (8 * attempt)
+    shell:
+        '''
+        cat {input} | egrep "^ID" | head -1 > {output}
+        cat {input} | egrep -v "^ID" >> {output}
         '''

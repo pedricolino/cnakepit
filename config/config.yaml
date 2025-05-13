@@ -49,6 +49,11 @@ sex:
 # For hg19, chromosome / contig names must be of type "chr1" for hg38 and "1" in the paneldesign.
 panel_design: "/data/cephfs-1/home/users/cemo10_c/work/project_symlinks/crc/work/pipeline_pdo_ce14/panel/S33266436_Regions_no_chr.bed"
 
+# VEP for maf2vcf
+vep:
+  executable: "/data/cephfs-1/home/users/cemo10_c/work/miniforge3/envs/vcf2maf/bin"
+  data: "resources/vep/hg37" # usually the homo_sapiens folder should be in there
+
 # genome version
 genome_version: "hg19" # valid options: "hg38", "hg19" (-> version b37 as required by Mutect2)
 
