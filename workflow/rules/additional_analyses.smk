@@ -32,13 +32,14 @@ rule download_vcf2maf:
         rmz mskcc-vcf2maf.tar.gz
         '''
 
+# Hg19 is hardcoded in this and the vcf2maf rule. Fix this later.
 rule get_vep:
-    output: config['vep']['data'] + '/homo_sapiens/109_GRCh37/'
+    output: config['reference'+'_'+config['genome_version']]["vep_data"] + '/homo_sapiens/109_GRCh37/'
     log: 'logs/get_vep.log'
     conda: env_prefix + 'vcf2maf' + env_suffix
     shell:
         '''
-        mkdir -p {config['vep']['data']}
+        mkdir -p {config['reference'+'_'+config['genome_version']]["vep_data"]}
         vep_install -a cf -s homo_sapiens -y GRCh37 -c resources/vep/hg37 --CONVERT -n
         '''
 
@@ -56,7 +57,7 @@ rule vcf2maf:
         vcf = 'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.filtered.vcf',
         script = 'resources/mskcc-vcf2maf-f6d0c40/vcf2maf.pl',
         ref = ref_file,
-        vep = config['vep']['data'] + '/homo_sapiens/109_GRCh37/'
+        vep = config['reference'+'_'+config['genome_version']]["vep_data"] + '/homo_sapiens/109_GRCh37/'
     output:
         maf = 'results/vcf2maf/purecn'+suffix+'_cbs_none/{sample}.maf',
         # vcf = 'results/vcf2maf/purecn'+suffix+'_cbs_none/{sample}.vep.vcf'
@@ -65,7 +66,7 @@ rule vcf2maf:
     params:
         sampleid = '{sample}',
         vep_path = config['vep']['executable'],
-        vep_data = config['vep']['data'],
+        vep_data = config['reference'+'_'+config['genome_version']]["vep_data"],
         folder = 'results/vcf2maf/purecn'+suffix+'_cbs_none',
     threads: 1
     resources: mem=lambda wildcards, attempt: '%dG' % (4 * 8 * attempt), # 4 GB per thread, 8 threads
@@ -109,7 +110,7 @@ rule gistic2:
     resources: mem=lambda wildcards, attempt: '%dG' % (8 * attempt)
     params:
         folder = 'results/gistic/purecn'+suffix+'_cbs_none/',
-        refgene = config['gistic']['refgene'],
+        refgene = config['reference'+'_'+config['genome_version']]["gistic_refgene"],
         conf = config['gistic']['conf_level'],
     benchmark: 'benchmarks/gistic/purecn'+suffix+'_cbs_none.txt'
     shell:
@@ -121,4 +122,40 @@ rule gistic2:
             -refgene {params.refgene} \
             -conf_level {params.conf} \
             -b {params.folder}
+        '''
+
+rule get_ascets:
+    output:
+        script = 'workflow/repos/ascets/run_ascets.R',
+        ref = 'workflow/repos/ascets/genomic_arm_coordinates_hg19.txt' if config['genome_version'] == 'hg19' else 'workflow/repos/ascets/genomic_arm_coordinates_hg38.txt'
+    params: config['ascets']['github_link']
+    shell:
+        '''
+        git clone {params} workflow/repos/ascets
+        '''
+
+rule prepare_ascets_input:
+    input:  'results/cnvkit'+suffix+'/cbs/{sample}.seg'
+    output: 'results/ascets/purecn'+suffix+'_cbs/input/{sample}.seg'
+    shell:
+        '''
+        cut -f 1-6 {input} > {output}
+        '''
+
+rule run_ascets:
+    input:
+        script = 'workflow/repos/ascets/run_ascets.R',
+        cleaned_seg = 'results/ascets/purecn'+suffix+'_cbs/input/{sample}.seg',
+        ref = 'workflow/repos/ascets/genomic_arm_coordinates_hg19.txt' if config['genome_version'] == 'hg19' else 'workflow/repos/ascets/genomic_arm_coordinates_hg38.txt'
+    output:
+        'results/ascets/purecn'+suffix+'_cbs/output/{sample}_arm_level_calls.txt'
+    params:
+        sampleid = 'results/ascets/purecn'+suffix+'_cbs/output/{sample}',
+    conda: env_prefix + 'R' + env_suffix # needs tidyverse and data.table packages
+    shell:
+        '''
+        Rscript {input.script} \
+            -i {input.cleaned_seg} \
+            -o {params.sampleid} \
+            -c {input.ref}
         '''

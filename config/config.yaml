@@ -52,11 +52,9 @@ panel_design: "/data/cephfs-1/home/users/cemo10_c/work/project_symlinks/crc/work
 # VEP for maf2vcf
 vep:
   executable: "/data/cephfs-1/home/users/cemo10_c/work/miniforge3/envs/vcf2maf/bin"
-  data: "resources/vep/hg37" # usually the homo_sapiens folder should be in there
 
 # refgene for gistic
 gistic:
-  refgene: "~/work/miniforge3/envs/gistic/share/gistic2-2.0.23-1/refgenefiles/hg19.mat"
   conf_level: 0.75
 
 # genome version
@@ -74,6 +72,8 @@ reference_hg38:
   fasta_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta"
   index_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
   dict_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dict"
+  gistic_refgene: "~/work/miniforge3/envs/gistic/share/gistic2-2.0.23-1/refgenefiles/hg38.UCSC.add_miR.160920.refgene.mat"
+  vep_data: "" # usually the homo_sapiens folder should be in there
 
 reference_hg19:
   # fasta: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.fasta"
@@ -86,6 +86,8 @@ reference_hg19:
   fasta_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta"
   index_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta.fai"
   dict_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.dict"
+  gistic_refgene: "~/work/miniforge3/envs/gistic/share/gistic2-2.0.23-1/refgenefiles/hg19.mat"
+  vep_data: "resources/vep/hg37" # usually the homo_sapiens folder should be in there
 
 data:
   samples_in_directory: false # boolean, are samples or their symlinks in resource/data?
@@ -164,6 +166,9 @@ sv_blacklist_hg19:
   link: "https://hgdownload.soe.ucsc.edu/goldenPath/hg19/database/simpleRepeat.txt.gz"
 
 masked_ref: "resources/reference/masked.fa"
+
+ascets:
+  github_link: "https://github.com/beroukhim-lab/ascets.git"
 
 #--- variance calling parameters: bcf tools --------------------------------------
 
