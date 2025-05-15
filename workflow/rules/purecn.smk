@@ -18,7 +18,8 @@ rule purecn_cbs_Hclust:
         seg='results/cnvkit'+suffix+'/cbs/{sample}.seg'
     output:
         'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.vcf'
+        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.vcf',
+        'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}_dnacopy.seg'
     resources: mem=lambda wildcards, attempt: '%dG' % (4 * 8 * attempt), # 4 GB per thread, 8 threads
     threads: 8
     benchmark: 'benchmarks/purecn'+suffix+'/cbs_Hclust/{sample}.txt'
@@ -69,7 +70,8 @@ use rule purecn_cbs_Hclust as purecn_cbs_PSCBS with:
         install='results/purecn/PSCBS_check'
     output:
         'results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.vcf'
+        'results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}.vcf',
+        'results/purecn'+suffix+'/cbs_PSCBS/{sample}/{sample}_dnacopy.seg',
     benchmark: 'benchmarks/purecn'+suffix+'/cbs_PSCBS/{sample}.txt'
     log: 'logs/purecn'+suffix+'/cbs_PSCBS/{sample}.log',
     params:
@@ -90,7 +92,8 @@ use rule purecn_cbs_Hclust as purecn_hmm_Hclust with:
         seg='results/cnvkit'+suffix+'/hmm/{sample}.seg'
     output:
         'results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.vcf'
+        'results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}.vcf',
+        'results/purecn'+suffix+'/hmm_Hclust/{sample}/{sample}_dnacopy.seg'
     benchmark: 'benchmarks/purecn'+suffix+'/hmm_Hclust/{sample}.txt'
     log: 'logs/purecn'+suffix+'/hmm_Hclust/{sample}.log',
     params:
@@ -112,7 +115,8 @@ use rule purecn_cbs_Hclust as purecn_hmm_PSCBS with:
         install='results/purecn/PSCBS_check'
     output:
         'results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.vcf'
+        'results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}.vcf',
+        'results/purecn'+suffix+'/hmm_PSCBS/{sample}/{sample}_dnacopy.seg'
     benchmark: 'benchmarks/purecn'+suffix+'/hmm_PSCBS/{sample}.txt'
     log: 'logs/purecn'+suffix+'/hmm_PSCBS/{sample}.log',
     params:
@@ -133,7 +137,8 @@ use rule purecn_cbs_Hclust as purecn_cbs_none with:
         seg='results/cnvkit'+suffix+'/cbs/{sample}.seg'
     output:
         'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.vcf'
+        'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.vcf',
+        'results/purecn'+suffix+'/cbs_none/{sample}/{sample}_dnacopy.seg'
     benchmark: 'benchmarks/purecn'+suffix+'/cbs_none/{sample}.txt'
     log: 'logs/purecn'+suffix+'/cbs_none/{sample}.log',
     params:
@@ -154,7 +159,8 @@ use rule purecn_cbs_Hclust as purecn_hmm_none with:
         seg='results/cnvkit'+suffix+'/hmm/{sample}.seg'
     output:
         'results/purecn'+suffix+'/hmm_none/{sample}/{sample}.csv',
-        'results/purecn'+suffix+'/hmm_none/{sample}/{sample}.vcf'
+        'results/purecn'+suffix+'/hmm_none/{sample}/{sample}.vcf',
+        'results/purecn'+suffix+'/hmm_none/{sample}/{sample}_dnacopy.seg'
     benchmark: 'benchmarks/purecn'+suffix+'/hmm_none/{sample}.txt'
     log: 'logs/purecn'+suffix+'/hmm_none/{sample}.log',
     params:
