@@ -10,3 +10,4 @@ workflow/scripts/__pycache__/
 tests/
 test/
 *.config.yaml
+results_backup/
