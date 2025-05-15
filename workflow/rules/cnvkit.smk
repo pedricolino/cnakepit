@@ -54,7 +54,7 @@ if config['pon']['second_run_with_pon'] == True:
 
 
 rule download_sv_blacklist:
-    input:
+    params:
         config['sv_blacklist_' + config['genome_version']]['link']
     output:
         config['sv_blacklist'+'_'+config['genome_version']]['bed']
@@ -63,7 +63,7 @@ rule download_sv_blacklist:
     log:
         'logs/cnvkit/general/download_sv_blacklist/log',
     shell:
-        'mv {input} {output}'
+            'wget -O {output} {params}'
 
 if config['compute_mappability']:
     rule cnvkit_access:
@@ -85,7 +85,7 @@ if config['compute_mappability']:
 
 else:
     rule download_mappability:
-        input:
+        params:
             config['mappability'+'_'+config['genome_version']]['link']
         output:
             config['mappability'+'_'+config['genome_version']]['bed']
@@ -94,7 +94,8 @@ else:
         log:
             'logs/cnvkit/general/download_mappability/log',
         shell:
-            'mv {input} {output}'
+            'wget -O {output} {params}'
+
 
 rule cnvkit_target:
     input:
@@ -107,10 +108,11 @@ rule cnvkit_target:
         'logs/cnvkit/general/target/log',
     params:
         extra = '--split',
+        annotate = '' if config['panel_contains_genes'] else '--annotate ' + config['reference'+'_'+config['genome_version']]['refFlat'],
     conda:
         env_prefix + 'cnv_calling' + env_suffix
     shell:
-        'cnvkit.py target {input} -o {output} {params.extra} 2> {log}'
+        'cnvkit.py target {input} -o {output} {params.annotate} {params.extra} 2> {log}'
 
 rule cnvkit_antitarget:
     input:
@@ -124,10 +126,14 @@ rule cnvkit_antitarget:
         'logs/cnvkit/general/antitarget/log',
     params:
         extra = '',
+        remove_chr = "sed -i 's/chr//g' "+config['mappability'+'_'+config['genome_version']]['bed'] if config['genome_version'] == 'hg19' else ''
     conda:
         env_prefix + 'cnv_calling' + env_suffix
     shell:
-        'cnvkit.py antitarget {input.bed} --access {input.access} -o {output} {params.extra} 2> {log}'
+        '''
+        {params.remove_chr} 
+        cnvkit.py antitarget {input.bed} --access {input.access} -o {output} {params.extra} 2> {log}
+        '''
 
 # Autobin uses the BAM with median file size, so it's not necessary to use all samples and we can subsample.
 if not config['different_lanes']:

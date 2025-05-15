@@ -48,6 +48,7 @@ sex:
 
 # For hg19, chromosome / contig names must be of type "chr1" for hg38 and "1" in the paneldesign.
 panel_design: "/data/cephfs-1/home/users/cemo10_c/work/project_symlinks/crc/work/pipeline_pdo_ce14/panel/S33266436_Regions_no_chr.bed"
+panel_contains_genes: false # if false, will annotate the bed file in rule cnvkit_target
 
 # VEP for maf2vcf
 vep:
@@ -74,6 +75,7 @@ reference_hg38:
   dict_link: "storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dict"
   gistic_refgene: "~/work/miniforge3/envs/gistic/share/gistic2-2.0.23-1/refgenefiles/hg38.UCSC.add_miR.160920.refgene.mat"
   vep_data: "" # usually the homo_sapiens folder should be in there
+  refFlat: "resources/reference/refFlat_hg38.txt"
 
 reference_hg19:
   # fasta: "/data/cephfs-1/work/projects/cubit/20.05/static_data/app_support/GATK_bundle/b37/human_g1k_v37.fasta"
@@ -88,6 +90,7 @@ reference_hg19:
   dict_link: "https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.dict"
   gistic_refgene: "~/work/miniforge3/envs/gistic/share/gistic2-2.0.23-1/refgenefiles/hg19.mat"
   vep_data: "resources/vep/hg37" # usually the homo_sapiens folder should be in there
+  refFlat: "resources/reference/refFlat_hg19.txt"
 
 data:
   samples_in_directory: false # boolean, are samples or their symlinks in resource/data?
@@ -154,7 +157,7 @@ mappability_hg38:
 mappability_hg19:
   bed: "resources/mappability/access.bed"
   # bed: "resources/mappability/access_no_chr.bed"
-  link: "github.com/etal/cnvkit/raw/master/data/access-10kb.hg19.bed"
+  link: "https://raw.githubusercontent.com/etal/cnvkit/master/data/access-10kb.hg19.bed"
 
 sv_blacklist_hg38:
   bed: "resources/sv_blacklist/sv_blacklist_hg38.bed"
