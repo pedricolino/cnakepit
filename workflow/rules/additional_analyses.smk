@@ -44,7 +44,7 @@ rule get_vep:
         '''
 
 rule filter_purecn_vcf:
-    input: 'results/purecn'+suffix+'/cbs_Hclust/{sample}/{sample}.vcf'
+    input: 'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.vcf'
     output: 'results/purecn'+suffix+'/cbs_none/{sample}/{sample}.filtered.vcf'
     conda: env_prefix + 'cnv_calling' + env_suffix
     shell:
@@ -121,7 +121,10 @@ rule gistic2:
             -seg {input} \
             -refgene {params.refgene} \
             -conf_level {params.conf} \
-            -b {params.folder}
+            -b {params.folder} \
+            -savegene 1 \
+            -save_data_files 0 \
+            -v 30
         '''
 
 rule get_ascets:
