@@ -113,6 +113,8 @@ else:
       'results/vcf2maf/purecn'+suffix+'_cbs_none/allsamples.maf',
       'results/gistic/purecn'+suffix+'_cbs_none/scores.gistic',
       expand('results/ascets/purecn'+suffix+'_cbs/output/{sample}_arm_level_calls.txt', sample=samples_for_calling.index),
+      'results/purecn'+suffix+'/cbs_none/for_cbioportal/data_cna_gistic.txt',
+      'results/purecn'+suffix+'/cbs_none/for_cbioportal/data_cna_log2.txt',
       # expand('results/ploidyngs/{sample}/{sample}_MaxDepth100_MinCov0.tab', sample = samples_for_calling.index),
 
       # for merging different lanes from the same samples after alignment

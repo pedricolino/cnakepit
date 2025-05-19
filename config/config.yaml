@@ -91,6 +91,7 @@ reference_hg19:
   gistic_refgene: "~/work/miniforge3/envs/gistic/share/gistic2-2.0.23-1/refgenefiles/hg19.mat"
   vep_data: "resources/vep/hg37" # usually the homo_sapiens folder should be in there
   refFlat: "resources/reference/refFlat_hg19.txt"
+  refFlat_link: "https://hgdownload.soe.ucsc.edu/goldenPath/hg19/database/refFlat.txt.gz"
 
 data:
   samples_in_directory: false # boolean, are samples or their symlinks in resource/data?
