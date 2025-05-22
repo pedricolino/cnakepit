@@ -16,9 +16,10 @@ rule get_vep:
     output: config['reference'+'_'+config['genome_version']]["vep_data"] + '/homo_sapiens/109_GRCh37/'
     log: 'logs/get_vep.log'
     conda: env_prefix + 'vcf2maf' + env_suffix
+    params: config['reference'+'_'+config['genome_version']]["vep_data"]
     shell:
         '''
-        mkdir -p {config['reference'+'_'+config['genome_version']]["vep_data"]}
+        mkdir -p {params}
         vep_install -a cf -s homo_sapiens -y GRCh37 -c resources/vep/hg37 --CONVERT -n
         '''
 
