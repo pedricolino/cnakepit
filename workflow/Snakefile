@@ -97,7 +97,10 @@ else:
 # include in any case
 include: 'rules/cnvkit.smk'
 include: 'rules/purecn.smk'
-include: 'rules/additional_analyses.smk'
+include: 'rules/create_cbioportal_files.smk'
+include: 'rules/vcf2maf.smk'
+include: 'rules/ascets.smk'
+include: 'rules/experimental.smk'
 
 if config['pon_rds']['use_true_pon_instead']:
   include: 'rules/cnv_calling_with_true_pon.smk'
@@ -111,6 +114,7 @@ else:
 
       'results/purecn'+suffix+'/cbs_none/allsamples.seg',
       'results/vcf2maf/purecn'+suffix+'_cbs_none/allsamples.maf',
+      'results/vcf2maf/unfiltered/allsamples_unfiltered.maf',
       'results/gistic/purecn'+suffix+'_cbs_none/scores.gistic',
       expand('results/ascets/purecn'+suffix+'_cbs/output/{sample}_arm_level_calls.txt', sample=samples_for_calling.index),
       'results/purecn'+suffix+'/cbs_none/for_cbioportal/data_cna_gistic.txt',
